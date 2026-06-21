@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>RHS Firestore Setup</title>
+<style>
+  body{font-family:sans-serif;max-width:700px;margin:40px auto;padding:20px;background:#f5f9f8}
+  .card{background:#fff;border-radius:12px;padding:24px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+  button{background:#14534F;color:#fff;border:none;padding:12px 24px;border-radius:8px;cursor:pointer;font-size:1rem;margin:4px}
+  button:hover{background:#0E3D3A}
+  .success{color:#2E9E5B;font-weight:600}
+  .error{color:#D9483A}
+  h1{color:#14534F}
+  pre{background:#f0f0f0;padding:12px;border-radius:8px;font-size:.85rem;overflow:auto}
+  .status{margin-top:12px;padding:10px;border-radius:8px;background:#EEF8F1}
+</style>
+</head>
+<body>
+<h1>🔥 RHS Firestore Setup</h1>
+<div class="card">
+  <h3>Step 1 — Initialize Default Data</h3>
+  <p>This will create all required collections in Firestore with default data.</p>
+  <button onclick="setupAll()">🚀 Setup All Collections</button>
+  <div id="setupStatus" class="status" style="display:none"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyArd3DU3G4thncYaGuKSEseusduNSMORzs",
+  authDomain: "rising-hope-society-pk.firebaseapp.com",
+  projectId: "rising-hope-society-pk",
+  storageBucket: "rising-hope-society-pk.firebasestorage.app",
+  messagingSenderId: "371234102504",
+  appId: "1:371234102504:web:a8bf7d8cc51d1fd797fd5d"
+});
+const db = getFirestore(app);
+
+window.setupAll = async function() {
+  const status = document.getElementById("setupStatus");
+  status.style.display = "block";
+  status.innerHTML = "⏳ Setting up...";
+
+  try {
+    // NGO Settings
+    await setDoc(doc(db, "settings", "ngo"), {
+      ngoName: "Rising Hope Society",
+      ngoPhone: "0346-4800064",
+      ngoAddress: "Khairpur Tamewali, Bahawalpur, Punjab, Pakistan",
+      ngoEmail: "risinghopesociety@gmail.com",
+      bankAccount: "111111111111111",
+      alertNumber: "0346-4800064",
+      ourTeamTitle: "Our Team",
+      ourTeamMatter: "The volunteers and coordinators who keep Rising Hope Society moving forward."
+    });
+    status.innerHTML += "<br>✅ NGO Settings created";
+
+    // Statistics
+    await setDoc(doc(db, "settings", "statistics"), {
+      members: 0, families: 0, projects: 0, volunteers: 0
+    });
+    status.innerHTML += "<br>✅ Statistics created";
+
+    // Contact/Social
+    await setDoc(doc(db, "settings", "contact"), {
+      facebook: "", instagram: "", whatsapp: "923464800064", youtube: ""
+    });
+    status.innerHTML += "<br>✅ Contact/Social created";
+
+    // Content
+    await setDoc(doc(db, "settings", "content"), {
+      heroTitle: "Rising Hope Society",
+      heroSubtitle: "Serving humanity with compassion",
+      aboutTitle: "About Us",
+      aboutText: "Rising Hope Society is a registered NGO working for the welfare of people in Khairpur Tamewali, Bahawalpur."
+    });
+    status.innerHTML += "<br>✅ Content created";
+
+    // Firestore Security Rules reminder
+    status.innerHTML += `
+    <br><br><strong>✅ All collections ready!</strong>
+    <br><br>⚠️ Now set Firestore Rules:
+    <pre>
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /settings/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /team/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /members/{doc} {
+      allow read, write: if true;
+    }
+    match /grantRequests/{doc} {
+      allow read, write: if true;
+    }
+    match /charityDonations/{doc} {
+      allow read: if request.auth != null;
+      allow write: if true;
+    }
+    match /cashBook/{doc} {
+      allow read, write: if request.auth != null;
+    }
+    match /adminExpenses/{doc} {
+      allow read, write: if request.auth != null;
+    }
+    match /caseExpenses/{doc} {
+      allow read, write: if request.auth != null;
+    }
+    match /contactMessages/{doc} {
+      allow create: if true;
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+    </pre>
+    Go to: <a href="https://console.firebase.google.com/project/rising-hope-society-pk/firestore/rules" target="_blank">Firebase Console → Firestore → Rules</a>
+    `;
+
+  } catch(e) {
+    status.innerHTML += `<br><span class="error">❌ Error: ${e.message}</span>`;
+  }
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — Rising Hope Society</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <img src="images/logo.png" alt="RHS Logo">
+      <h1>Rising Hope <em>Society</em></h1>
+      <small>Khairpur Tamewali · Bahawalpur</small>
+    </div>
+    <h2>Admin Login</h2>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="admin@example.com" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <div class="pass-wrap">
+        <input type="password" id="loginPass" placeholder="••••••••" autocomplete="off">
+        <button type="button" onclick="togglePass()" id="passToggle"><i class="fa fa-eye"></i></button>
+      </div>
+    </div>
+    <button id="loginSubmitBtn" class="btn btn-primary w-full" onclick="doLogin()">
+      <i class="fa fa-sign-in-alt"></i> Login to Dashboard
+    </button>
+    <p class="login-msg" id="loginMsg"></p>
+    <div style="text-align:center;margin-top:14px">
+      <button onclick="doForgotPassword()" style="background:none;border:none;color:#14534F;font-size:0.88rem;cursor:pointer;text-decoration:underline">
+        Forgot Password?
+      </button>
+    </div>
+    <div style="text-align:center;margin-top:10px;border-top:1px solid #E7DFD2;padding-top:14px">
+      <a href="index.html" style="color:#8A9A96;font-size:0.85rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px">
+        <i class="fa fa-home"></i> Back to Home Page
+      </a>
+    </div>
+  </div>
+
+  <!-- FORGOT PASSWORD SUCCESS BOX -->
+  <div class="login-box hidden" id="forgotBox" style="margin-top:16px;text-align:center">
+    <div style="width:64px;height:64px;background:linear-gradient(135deg,#E8A33D,#F2785C);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
+      <i class="fa fa-envelope" style="color:#fff;font-size:1.6rem"></i>
+    </div>
+    <h2 style="font-family:'Fraunces',serif;color:#14534F;margin-bottom:12px">Password Sent!</h2>
+    <div style="background:#EEF8F1;border:1px solid #BFE3CC;border-radius:14px;padding:20px 24px;margin-bottom:20px">
+      <p style="color:#1F7A45;font-size:1rem;font-weight:600;margin-bottom:8px">
+        <i class="fa fa-check-circle"></i> Your password has been sent on official email
+      </p>
+      <p style="color:#4A5C58;font-size:0.9rem;margin-bottom:6px">
+        Please check your inbox at
+      </p>
+      <p style="color:#14534F;font-weight:700;font-size:1rem">
+        risinghopesociety@gmail.com
+      </p>
+      <p style="color:#8A9A96;font-size:0.82rem;margin-top:10px">
+        Login with your password and you can change it anytime.
+      </p>
+    </div>
+    <p class="login-msg" id="forgotMsg" style="margin-bottom:14px"></p>
+    <button class="btn btn-primary w-full" onclick="hideForgotPassword()">
+      <i class="fa fa-sign-in-alt"></i> Back to Login
+    </button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="dashboard hidden">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <img src="images/logo.png" alt="RHS">
+      <div>
+        <span>Rising Hope</span>
+        <small>Society</small>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" onclick="switchTab('home')" id="nav-home">
+        <i class="fa fa-home"></i><span>Dashboard</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('members')" id="nav-members">
+        <i class="fa fa-users"></i><span>Members</span>
+        <span class="badge" id="pendingBadge">0</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('charity')" id="nav-charity">
+        <i class="fa fa-hand-holding-heart"></i><span>Charity Entry</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('grants')" id="nav-grants">
+        <i class="fa fa-file-alt"></i><span>Grant Cases</span>
+        <span class="badge badge-red" id="grantBadge">0</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('cashbook')" id="nav-cashbook">
+        <i class="fa fa-book"></i><span>Cash Book</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('adminexp')" id="nav-adminexp">
+        <i class="fa fa-receipt"></i><span>Admin Expenses</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('reports')" id="nav-reports">
+        <i class="fa fa-chart-bar"></i><span>Reports</span>
+      </button>
+    </nav>
+    <button class="logout-btn" onclick="doLogout()"><i class="fa fa-sign-out-alt"></i> Logout</button>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <button class="menu-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+      <h2 class="page-title" id="pageTitle">Dashboard</h2>
+      <div class="topbar-right">
+        <span class="admin-chip"><i class="fa fa-user-shield"></i> Admin</span>
+      </div>
+    </div>
+
+    <!-- ===== TAB: HOME ===== -->
+    <div class="tab-content" id="tab-home">
+      <!-- ROW 1: Members -->
+      <div class="stats-row-4" id="adminStatsRow">
+        <button class="stat-box-btn teal" onclick="switchTab('members');loadMembers('pending')">
+          <i class="fa fa-hourglass-half"></i>
+          <div><span id="st-pending">0</span><small>Underprocess</small></div>
+        </button>
+        <button class="stat-box-btn green" onclick="switchTab('members');loadMembers('active')">
+          <i class="fa fa-user-check"></i>
+          <div><span id="st-active">0</span><small>Active Members</small></div>
+        </button>
+        <button class="stat-box-btn orange" onclick="switchTab('members');loadMembers('expired')">
+          <i class="fa fa-clock"></i>
+          <div><span id="st-expired">0</span><small>Expired Members</small></div>
+        </button>
+        <button class="stat-box-btn red" onclick="switchTab('members');loadMembers('banned')">
+          <i class="fa fa-ban"></i>
+          <div><span id="st-banned">0</span><small>Banned Members</small></div>
+        </button>
+      </div>
+
+      <!-- ROW 2: Financials -->
+      <div class="stats-row-4" style="margin-top:14px">
+        <button class="stat-box-btn blue" onclick="switchTab('charity')">
+          <i class="fa fa-hand-holding-usd"></i>
+          <div><span id="st-charity">Rs. 0</span><small>Total Charity</small></div>
+        </button>
+        <button class="stat-box-btn red" onclick="switchTab('adminexp')">
+          <i class="fa fa-receipt"></i>
+          <div><span id="st-adminexp">Rs. 0</span><small>Admin Expenses</small></div>
+        </button>
+        <button class="stat-box-btn gold" onclick="switchTab('cashbook')">
+          <i class="fa fa-file-invoice-dollar"></i>
+          <div><span id="st-casecost">Rs. 0</span><small>Total Case Cost</small></div>
+        </button>
+        <button class="stat-box-btn purple" onclick="switchTab('cashbook')">
+          <i class="fa fa-wallet"></i>
+          <div><span id="st-networth">Rs. 0</span><small>Net Worth</small></div>
+        </button>
+      </div>
+
+      <!-- ROW 3: Cases -->
+      <div class="stats-row-4" style="margin-top:14px">
+        <button class="stat-box-btn teal2" onclick="switchTab('grants');loadGrants('completed')">
+          <i class="fa fa-clipboard-check"></i>
+          <div><span id="st-completed">0</span><small>Completed Cases</small></div>
+        </button>
+        <button class="stat-box-btn green" onclick="switchTab('grants');loadGrants('approved')">
+          <i class="fa fa-check-circle"></i>
+          <div><span id="st-approved">0</span><small>Approved Cases</small></div>
+        </button>
+        <button class="stat-box-btn red" onclick="switchTab('grants');loadGrants('rejected')">
+          <i class="fa fa-times-circle"></i>
+          <div><span id="st-rejected">0</span><small>Rejected Cases</small></div>
+        </button>
+        <button class="stat-box-btn gold" onclick="switchTab('grants');loadGrants('closed')">
+          <i class="fa fa-lock"></i>
+          <div><span id="st-closed">0</span><small>Closed Cases</small></div>
+        </button>
+      </div>
+
+      <div class="welcome-card" style="margin-top:16px">
+        <h3><i class="fa fa-hands-helping"></i> Welcome, Admin!</h3>
+        <p class="ngo-name" style="color:rgba(255,255,255,0.9)">Rising Hope Society</p>
+        <p style="margin-top:4px;color:rgba(255,255,255,0.7);font-size:0.88rem" class="ngo-address">Khairpur Tamewali, Bahawalpur</p>
+      </div>
+    </div>
+
+    <!-- ===== TAB: MEMBERS ===== -->
+    <div class="tab-content hidden" id="tab-members">
+      <div class="tab-filters">
+        <button class="filter-btn active" onclick="loadMembers('all',this)">All</button>
+        <button class="filter-btn" onclick="loadMembers('pending',this)">⏳ Underprocess</button>
+        <button class="filter-btn" onclick="loadMembers('active',this)">✅ Active</button>
+        <button class="filter-btn" onclick="loadMembers('expired',this)">🕐 Expired</button>
+        <button class="filter-btn" onclick="loadMembers('banned',this)">🚫 Banned</button>
+      </div>
+      <div class="table-search-wrap">
+        <input type="text" id="memberSearchBox" class="search-input" 
+          placeholder="🔍 Search by Name, CNIC, Mobile, Registration No..."
+          oninput="searchMembersTable(this.value)" autocomplete="off">
+        <button class="search-clear-btn" onclick="clearMemberSearch()" title="Clear search">✕</button>
+      </div>
+      <div id="membersTableWrap" class="table-wrap">
+        <div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading members...</div>
+      </div>
+    </div>
+
+    <!-- ===== TAB: CHARITY ENTRY ===== -->
+    <div class="tab-content hidden" id="tab-charity">
+      <div class="card">
+        <h3 class="card-title"><i class="fa fa-search"></i> Search Member</h3>
+        <div class="search-live-wrap">
+          <input type="text" id="charitySearch" placeholder="Type name, CNIC or mobile..." class="search-input" oninput="liveSearchMember(this.value)" autocomplete="off">
+          <div id="charitySearchResults" class="live-results hidden"></div>
+        </div>
+
+        <div id="charityMemberInfo" class="member-chip hidden">
+          <i class="fa fa-user-circle"></i>
+          <div>
+            <strong id="cmName">—</strong>
+            <span id="cmCnic">—</span> &bull; <span id="cmMobile">—</span>
+          </div>
+          <button onclick="clearCharityMember()" class="chip-clear"><i class="fa fa-times"></i></button>
+        </div>
+
+        <div id="charityForm" class="charity-form-grid">
+          <div class="field">
+            <label>Payment Method <span class="req">*</span></label>
+            <select id="paymentMethod" autocomplete="off">
+              <option value="">Select method</option>
+              <option value="Cash Received">Cash Received</option>
+              <option value="Online Bank Transfer — AC: 111111111111111">Online Bank Transfer</option>
+              <option value="Pay Order">Pay Order</option>
+              <option value="Cheque">Cheque</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Amount (Rs.) <span class="req">*</span></label>
+            <input type="number" id="charityAmount" placeholder="e.g. 500" min="1" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Date <span class="req">*</span></label>
+            <input type="date" id="charityDate" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Slip / Reference No</label>
+            <input type="text" id="charitySlip" placeholder="Optional" autocomplete="off">
+          </div>
+          <div class="field field-full">
+            <label>Note</label>
+            <input type="text" id="charityNote" placeholder="Optional note" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="send-msg-row">
+          <label class="checkbox-label">
+            <input type="checkbox" id="sendThankMsg" checked autocomplete="off">
+            Send Thank You Email to Member
+          </label>
+        </div>
+        <div class="send-msg-row" style="margin-top:8px">
+          <label class="checkbox-label">
+            <input type="checkbox" id="sendWhatsApp" autocomplete="off">
+            Open WhatsApp Message (Manual Send)
+          </label>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="submitCharity()"><i class="fa fa-check"></i> Submit Charity Entry</button>
+          <button class="btn btn-ghost" onclick="clearCharityForm()"><i class="fa fa-times"></i> Clear</button>
+        </div>
+        <p class="form-msg" id="charityMsg"></p>
+      </div>
+
+      <div class="card" style="margin-top:24px">
+        <h3 class="card-title"><i class="fa fa-list"></i> Recent Charity Entries</h3>
+        <div id="charityListWrap" class="table-wrap">
+          <div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB: GRANTS ===== -->
+    <div class="tab-content hidden" id="tab-grants">
+      <div class="tab-filters">
+        <button class="filter-btn active" onclick="loadGrants('all',this)">All</button>
+        <button class="filter-btn" onclick="loadGrants('new',this)">🆕 New</button>
+        <button class="filter-btn" onclick="loadGrants('assigned',this)">👤 Assigned</button>
+        <button class="filter-btn" onclick="loadGrants('completed',this)">📋 Case Completed</button>
+        <button class="filter-btn" onclick="loadGrants('approved',this)">✅ Approved</button>
+        <button class="filter-btn" onclick="loadGrants('rejected',this)">❌ Rejected</button>
+        <button class="filter-btn" onclick="loadGrants('closed',this)">🔒 Closed</button>
+      </div>
+      <div class="table-search-wrap">
+        <input type="text" id="grantSearchBox" class="search-input"
+          placeholder="🔍 Search by CRN, Name, CNIC, Mobile, Help Type..."
+          oninput="searchGrantsTable(this.value)" autocomplete="off">
+        <button class="search-clear-btn" onclick="clearGrantSearch()" title="Clear search">✕</button>
+      </div>
+      <div id="grantsTableWrap" class="table-wrap">
+        <div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading cases...</div>
+      </div>
+    </div>
+
+    <!-- ===== TAB: CASH BOOK ===== -->
+    <div class="tab-content hidden" id="tab-cashbook">
+      <div class="networth-row">
+        <div class="nw-box green"><small>Total Inflow</small><span id="cb-inflow">Rs. 0</span></div>
+        <div class="nw-box red"><small>Total Outflow</small><span id="cb-outflow">Rs. 0</span></div>
+        <div class="nw-box teal"><small>Net Worth</small><span id="cb-networth">Rs. 0</span></div>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title"><i class="fa fa-plus-circle"></i> Add Cash Entry</h3>
+        <div class="charity-form-grid">
+          <div class="field">
+            <label>Type <span class="req">*</span></label>
+            <select id="cbType" autocomplete="off">
+              <option value="Inflow">💰 Inflow (Received)</option>
+              <option value="Outflow">💸 Outflow (Spent)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Date <span class="req">*</span></label>
+            <input type="date" id="cbDate" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Source / Purpose <span class="req">*</span></label>
+            <input type="text" id="cbSource" placeholder="e.g. Donation from Ali / Food Packages" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Amount (Rs.) <span class="req">*</span></label>
+            <input type="number" id="cbAmount" placeholder="e.g. 5000" min="1" autocomplete="off">
+          </div>
+          <div class="field field-full">
+            <label>Note</label>
+            <input type="text" id="cbNote" placeholder="Optional details" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="submitCashEntry()"><i class="fa fa-plus"></i> Add Entry</button>
+          <button class="btn btn-ghost" onclick="clearCashForm()"><i class="fa fa-times"></i> Clear</button>
+        </div>
+        <p class="form-msg" id="cashMsg"></p>
+      </div>
+
+      <div class="card" style="margin-top:24px">
+        <h3 class="card-title"><i class="fa fa-book-open"></i> Cash Book Ledger</h3>
+        <div id="cashbookWrap" class="table-wrap">
+          <div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB: ADMIN EXPENSES ===== -->
+    <div class="tab-content hidden" id="tab-adminexp">
+
+      <!-- Total -->
+      <div class="networth-row" style="grid-template-columns:1fr 1fr">
+        <div class="nw-box red"><small>Total Admin Expenses</small><span id="ae-total">Rs. 0</span></div>
+        <div class="nw-box" style="background:#EEF3FF">
+          <small>Filter by Date</small>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap">
+            <input type="date" id="aeFrom" class="modal-input" style="flex:1;min-width:130px">
+            <span style="color:#8A9A96">to</span>
+            <input type="date" id="aeTo" class="modal-input" style="flex:1;min-width:130px">
+            <button class="btn btn-sm btn-primary" onclick="filterAdminExpenses()"><i class="fa fa-search"></i></button>
+            <button class="btn btn-sm btn-ghost" onclick="clearAdminExpFilter()"><i class="fa fa-times"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Expense -->
+      <div class="card" style="margin-top:20px">
+        <h3 class="card-title"><i class="fa fa-plus-circle"></i> Add Admin Expense</h3>
+        <div class="charity-form-grid">
+          <div class="field">
+            <label>Date <span class="req">*</span></label>
+            <input type="date" id="aeDate">
+          </div>
+          <div class="field">
+            <label>Detail <span class="req">*</span></label>
+            <input type="text" id="aeDetail" placeholder="e.g. Office Rent, Fuel, Stationery...">
+          </div>
+          <div class="field">
+            <label>Amount (Rs.) <span class="req">*</span></label>
+            <input type="number" id="aeAmount" placeholder="e.g. 5000" min="1">
+          </div>
+          <div class="field">
+            <label>Pay To</label>
+            <input type="text" id="aePayto" placeholder="e.g. Landlord, Vendor name...">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="submitAdminExpense()"><i class="fa fa-plus"></i> Add & Debit Cash Book</button>
+          <button class="btn btn-ghost" onclick="printAdminExpReport()"><i class="fa fa-file-pdf"></i> Download PDF</button>
+        </div>
+        <p class="form-msg" id="aeMsg"></p>
+      </div>
+
+      <!-- Expenses List -->
+      <div class="card" style="margin-top:20px">
+        <h3 class="card-title"><i class="fa fa-list"></i> Admin Expenses Ledger</h3>
+        <div id="adminExpWrap" class="table-wrap">
+          <div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB: REPORTS ===== -->
+    <div class="tab-content hidden" id="tab-reports">
+
+      <!-- SECTION 1: MEMBERS -->
+      <div class="report-section-title"><i class="fa fa-users"></i> Members Reports</div>
+      <div class="stats-row-4">
+        <button class="stat-box-btn teal" onclick="reportBusy(this,'printMemberReport','pending')">
+          <i class="fa fa-hourglass-half"></i>
+          <div><span id="rp-pending">0</span><small>Underprocess</small></div>
+        </button>
+        <button class="stat-box-btn green" onclick="reportBusy(this,'printMemberReport','active')">
+          <i class="fa fa-user-check"></i>
+          <div><span id="rp-active">0</span><small>Active Members</small></div>
+        </button>
+        <button class="stat-box-btn orange" onclick="reportBusy(this,'printMemberReport','expired')">
+          <i class="fa fa-clock"></i>
+          <div><span id="rp-expired">0</span><small>Expired Members</small></div>
+        </button>
+        <button class="stat-box-btn red" onclick="reportBusy(this,'printMemberReport','banned')">
+          <i class="fa fa-ban"></i>
+          <div><span id="rp-banned">0</span><small>Banned Members</small></div>
+        </button>
+      </div>
+
+      <!-- SECTION 2: FINANCIALS -->
+      <div class="report-section-title" style="margin-top:20px"><i class="fa fa-wallet"></i> Financial Reports</div>
+      <div class="stats-row-4">
+        <button class="stat-box-btn blue" onclick="reportBusy(this,'printCharityReport','')">
+          <i class="fa fa-hand-holding-usd"></i>
+          <div><span id="rp-charity">Rs. 0</span><small>Total Charity</small></div>
+        </button>
+        <button class="stat-box-btn red" onclick="reportBusy(this,'printAdminExpReport','')">
+          <i class="fa fa-receipt"></i>
+          <div><span id="rp-adminexp">Rs. 0</span><small>Admin Expenses</small></div>
+        </button>
+        <button class="stat-box-btn gold" onclick="reportBusy(this,'printCaseCostReport','')">
+          <i class="fa fa-file-invoice-dollar"></i>
+          <div><span id="rp-casecost">Rs. 0</span><small>Case Costs</small></div>
+        </button>
+        <button class="stat-box-btn purple" onclick="reportBusy(this,'generateNetWorthCertificate','')">
+          <i class="fa fa-certificate"></i>
+          <div><span id="rp-networth">Rs. 0</span><small>Net Worth Cert.</small></div>
+        </button>
+      </div>
+
+      <!-- SECTION 3: CASES -->
+      <div class="report-section-title" style="margin-top:20px"><i class="fa fa-file-alt"></i> Case Reports</div>
+      <div class="stats-row-4">
+        <button class="stat-box-btn teal2" onclick="reportBusy(this,'printGrantReport','completed')">
+          <i class="fa fa-clipboard-check"></i>
+          <div><span id="rp-completed">0</span><small>Completed Cases</small></div>
+        </button>
+        <button class="stat-box-btn green" onclick="reportBusy(this,'printGrantReport','approved')">
+          <i class="fa fa-check-circle"></i>
+          <div><span id="rp-approved">0</span><small>Approved Cases</small></div>
+        </button>
+        <button class="stat-box-btn red" onclick="reportBusy(this,'printGrantReport','rejected')">
+          <i class="fa fa-times-circle"></i>
+          <div><span id="rp-rejected">0</span><small>Rejected Cases</small></div>
+        </button>
+        <button class="stat-box-btn gold" onclick="reportBusy(this,'printGrantReport','closed')">
+          <i class="fa fa-lock"></i>
+          <div><span id="rp-closed">0</span><small>Closed Cases</small></div>
+        </button>
+      </div>
+
+      <!-- SECTION 4: LEDGERS -->
+      <div class="report-section-title" style="margin-top:20px"><i class="fa fa-book"></i> Ledger Reports</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="card" style="padding:16px">
+          <h4 style="font-family:'Fraunces',serif;color:var(--teal);margin-bottom:12px"><i class="fa fa-book"></i> Cash Book</h4>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+            <input type="date" id="cbRptFrom" class="modal-input" style="flex:1;min-width:120px" placeholder="From">
+            <input type="date" id="cbRptTo" class="modal-input" style="flex:1;min-width:120px" placeholder="To">
+          </div>
+          <button class="btn btn-primary w-full" onclick="reportBusy(this,'printCashReportFiltered','')">
+            <i class="fa fa-file-pdf"></i> Generate Cash Book Report
+          </button>
+        </div>
+        <div class="card" style="padding:16px">
+          <h4 style="font-family:'Fraunces',serif;color:var(--teal);margin-bottom:12px"><i class="fa fa-receipt"></i> Admin Expenses</h4>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+            <input type="date" id="aeRptFrom" class="modal-input" style="flex:1;min-width:120px" placeholder="From">
+            <input type="date" id="aeRptTo" class="modal-input" style="flex:1;min-width:120px" placeholder="To">
+          </div>
+          <button class="btn btn-primary w-full" onclick="reportBusy(this,'printAdminExpFiltered','')">
+            <i class="fa fa-file-pdf"></i> Generate Expenses Report
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MEMBER DETAIL MODAL -->
+<div class="modal-overlay hidden" id="memberModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalMemberName">Member Detail</h3>
+      <button onclick="closeModal('memberModal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="memberModalBody"></div>
+  </div>
+</div>
+
+<!-- GRANT DETAIL MODAL -->
+<div class="modal-overlay hidden" id="grantModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3 id="modalGrantCrn">Grant Case</h3>
+      <button onclick="closeModal('grantModal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="grantModalBody"></div>
+  </div>
+</div>
+
+<!-- THANK YOU LETTER MODAL -->
+<div class="modal-overlay hidden" id="letterModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3>Thank You Letter — RHS</h3>
+      <button onclick="closeModal('letterModal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="letterModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="printLetter()"><i class="fa fa-print"></i> Print / Download</button>
+      <button class="btn btn-ghost" onclick="closeModal('letterModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="printArea" class="print-area"></div>
+<!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    const FIREBASE_CONFIG = {
+      apiKey: "AIzaSyArd3DU3G4thncYaGuKSEseusduNSMORzs",
+      authDomain: "rising-hope-society-pk.firebaseapp.com",
+      projectId: "rising-hope-society-pk",
+      storageBucket: "rising-hope-society-pk.firebasestorage.app",
+      messagingSenderId: "371234102504",
+      appId: "1:371234102504:web:a8bf7d8cc51d1fd797fd5d"
+    };
+    const app = initializeApp(FIREBASE_CONFIG);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    window.__db = db; window.__auth = auth;
+    window.__fauth = { signInWithEmailAndPassword, signOut, sendPasswordResetEmail, onAuthStateChanged };
+    window.__fs = { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, serverTimestamp };
+    window.__fbReady = true;
+    window.dispatchEvent(new Event('firebaseReady'));
+  </script>
+  <script type="module" src="firebase-db.js"></script>
+  <script src="admin.js" defer></script>
+</body>
+</html>
