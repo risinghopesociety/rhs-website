@@ -570,10 +570,10 @@
     </div>
 
     <!-- ===== TAB: SETUP ===== -->
-    <div class="tab-content hidden" id="tab-setup">
+    <div class="tab-content hidden" id="tab-setup" style="display:flex;flex-direction:column">
 
-      <!-- SETUP TOP MENU - same style as filter buttons -->
-      <div class="tab-filters" style="flex-wrap:wrap;gap:8px;margin-bottom:20px">
+      <!-- SETUP TOP MENU -->
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;position:sticky;top:0;background:#F5F9F8;padding:12px;border-radius:12px;z-index:10">
         <button class="filter-btn active" onclick="showSetupSection('adminSettings', this)">
           <i class="fa fa-cog"></i> Admin Settings
         </button>
