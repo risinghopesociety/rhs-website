@@ -346,31 +346,46 @@ async function addCharityEntry(data) {
 async function getCharityLedger(cnic, dob) {
   await waitForFB();
   const cnicF = generateCNIC(cnic);
+
+  // Find member by CNIC + DOB
   const memberQ = fs().query(
     fs().collection(db(), "members"),
     fs().where("cnic", "==", cnicF),
     fs().where("dob", "==", dob)
   );
   const memberSnaps = await fs().getDocs(memberQ);
-  if (memberSnaps.empty) return { success: false, message: "No member found." };
-  
+  if (memberSnaps.empty) return { success: false, message: "No member found with these credentials." };
+
   const member = { id: memberSnaps.docs[0].id, ...memberSnaps.docs[0].data() };
-  
+
+  // Get donations — only filter by cnic (no orderBy to avoid composite index error)
   const donQ = fs().query(
     fs().collection(db(), "charityDonations"),
-    fs().where("cnic", "==", cnicF),
-    fs().orderBy("date", "asc")
+    fs().where("cnic", "==", cnicF)
   );
   const donSnaps = await fs().getDocs(donQ);
   const donations = [];
-  let total = 0;
   donSnaps.forEach(d => {
-    const dd = d.data();
-    total += Number(dd.amount) || 0;
-    donations.push({ id: d.id, ...dd, runningTotal: total });
+    donations.push({ id: d.id, ...d.data() });
   });
 
-  return { success: true, member, donations, total };
+  // Sort by date in JS (dd-mm-yyyy format)
+  function parseDDMMYYYY(s) {
+    if (!s) return 0;
+    const p = s.split("-");
+    if (p.length !== 3) return 0;
+    return new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0])).getTime();
+  }
+  donations.sort((a, b) => parseDDMMYYYY(a.date) - parseDDMMYYYY(b.date));
+
+  // Calculate running total
+  let total = 0;
+  const donationsWithTotal = donations.map(d => {
+    total += Number(d.amount) || 0;
+    return { ...d, runningTotal: total };
+  });
+
+  return { success: true, member, donations: donationsWithTotal, total };
 }
 
 async function getAllCharity() {
@@ -655,59 +670,21 @@ async function getAdminStats() {
     fs().getDocs(fs().collection(db(), "caseExpenses"))
   ]);
 
-  // Member counts
-  let pending = 0, active = 0, expired = 0, banned = 0, male = 0, female = 0, totalMembers = 0;
+  let pending = 0, active = 0, expired = 0, banned = 0;
   members.forEach(d => {
-    const m = d.data();
-    const s = (m.status || "").toLowerCase();
-    const g = (m.gender || "").toLowerCase();
-    totalMembers++;
+    const s = (d.data().status || "").toLowerCase();
     if (s === "underprocess") pending++;
     else if (s === "active") active++;
     else if (s === "expired") expired++;
     else if (s === "banned") banned++;
-    if (g === "male") male++;
-    else if (g === "female") female++;
   });
 
-  // 30-day active/inactive members
-  // Active = has charity in last 30 days, Inactive = no charity in last 30 days
-  const now = new Date();
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  function ddmmyyyy_to_date(s) {
-    if (!s) return null;
-    const p = s.split("-");
-    if (p.length !== 3) return null;
-    return new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0]));
-  }
-  // Build set of CNICs who donated in last 30 days
-  const recentDonorCNICs = new Set();
-  charity.forEach(d => {
-    const dd = d.data();
-    const dt = ddmmyyyy_to_date(dd.date);
-    if (dt && dt >= thirtyDaysAgo) {
-      recentDonorCNICs.add(dd.cnic);
-    }
-  });
-  // Count active members who donated vs not
-  let activeCharity30 = 0, inactiveCharity30 = 0;
-  members.forEach(d => {
-    const m = d.data();
-    if ((m.status || "").toLowerCase() === "active") {
-      if (recentDonorCNICs.has(m.cnic)) activeCharity30++;
-      else inactiveCharity30++;
-    }
-  });
-
-  // Grant counts
-  let newG = 0, assignedG = 0, completedG = 0, approved = 0, rejected = 0, closed = 0;
+  let newG = 0, completed = 0, approved = 0, rejected = 0, closed = 0;
   grants.forEach(d => {
-    const g = d.data();
-    const s = (g.status || "").toLowerCase();
-    const dec = (g.decision || "").toLowerCase();
+    const s = (d.data().status || "").toLowerCase();
+    const dec = (d.data().decision || "").toLowerCase();
     if (s === "new") newG++;
-    if (s === "assigned") assignedG++;
-    if (s === "completed") completedG++;
+    if (s === "completed") completed++;
     if (dec === "approved" && s !== "closed") approved++;
     if (dec === "rejected" && s !== "closed") rejected++;
     if (s === "closed") closed++;
@@ -726,12 +703,9 @@ async function getAdminStats() {
 
   return {
     success: true,
-    totalMembers,
     pendingMembers: pending, activeMembers: active,
     expiredMembers: expired, bannedMembers: banned,
-    maleMembers: male, femaleMembers: female,
-    activeCharity30, inactiveCharity30,
-    newGrants: newG, assignedGrants: assignedG, completedCases: completedG,
+    newGrants: newG, completedCases: completed,
     approvedCases: approved, rejectedCases: rejected, closedCases: closed,
     totalCharity, totalAdminExp, totalCaseCost,
     netWorth: nw.netWorth || 0

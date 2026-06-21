@@ -1,4 +1,4 @@
-// RHS Website — Complete Fixed Script
+// RHS Website — Complete Fixed Script v2
 
 /* ===================== GLOBAL UTILITIES ===================== */
 function setLoading(btn, loading, text="") {
@@ -13,16 +13,6 @@ function setLoading(btn, loading, text="") {
     btn.innerHTML = btn._origHtml || btn.innerHTML;
     btn.style.opacity = "1";
   }
-}
-
-function resetForm(formId) {
-  const form = document.getElementById(formId);
-  if (!form) return;
-  form.querySelectorAll("input, textarea, select").forEach(el => {
-    if (el.type === "submit" || el.type === "button") return;
-    el.value = "";
-    el.removeAttribute("value");
-  });
 }
 
 /* ===================== NGO SETTINGS ===================== */
@@ -70,12 +60,10 @@ window.addEventListener("load", () => {
 });
 
 /* ============================================================
-   ALERT MODAL SYSTEM
-   Screen ke bilkul center mein aata hai — koi scroll nahi
+   ALERT MODAL SYSTEM — Screen ke bilkul center mein
    Colors: green, yellow, red, orange, teal
 ============================================================ */
 function showAlertModal(color, icon, title, bodyHtml, buttons) {
-  // Remove any existing modal
   const existing = document.getElementById("rhsAlertModal");
   if (existing) existing.remove();
 
@@ -88,36 +76,20 @@ function showAlertModal(color, icon, title, bodyHtml, buttons) {
   };
   const c = colorMap[color] || colorMap.teal;
   const btns = (buttons || []).map(b =>
-    `<button class="btn btn-ghost" onclick="${b.fn}" style="min-width:140px;margin:4px">${b.label}</button>`
+    `<button class="btn btn-ghost" onclick="${b.fn}" style="min-width:130px;margin:4px">${b.label}</button>`
   ).join("");
 
   const overlay = document.createElement("div");
   overlay.id = "rhsAlertModal";
-  overlay.style.cssText = `
-    position:fixed;top:0;left:0;width:100%;height:100%;
-    background:rgba(0,0,0,0.55);z-index:99999;
-    display:flex;align-items:center;justify-content:center;
-    padding:16px;box-sizing:border-box;
-  `;
+  overlay.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;";
   overlay.innerHTML = `
-    <div style="
-      background:${c.bg};border:2.5px solid ${c.border};border-radius:20px;
-      padding:36px 28px;max-width:480px;width:100%;text-align:center;
-      box-shadow:0 20px 60px rgba(0,0,0,.25);
-      animation:rhsModalIn .25s cubic-bezier(.34,1.56,.64,1);
-    ">
+    <div style="background:${c.bg};border:2.5px solid ${c.border};border-radius:20px;padding:36px 28px;max-width:480px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:rhsModalIn .25s cubic-bezier(.34,1.56,.64,1);">
       <i class="fa-solid ${icon}" style="font-size:3rem;color:${c.iconClr};margin-bottom:14px;display:block"></i>
       <h3 style="font-family:'Fraunces',serif;color:${c.titleClr};margin:0 0 14px;font-size:1.3rem;line-height:1.3">${title}</h3>
       <div style="color:#374151;line-height:1.75;font-size:.93rem;margin-bottom:22px">${bodyHtml}</div>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">${btns}</div>
     </div>`;
-
   document.body.appendChild(overlay);
-
-  // Click backdrop to close (if only 1 button or no buttons)
-  overlay.addEventListener("click", e => {
-    if (e.target === overlay && buttons && buttons.length === 0) closeAlertModal();
-  });
 }
 
 function closeAlertModal() {
@@ -126,10 +98,18 @@ function closeAlertModal() {
 }
 window.closeAlertModal = closeAlertModal;
 
+// Inject modal animation CSS once
+(function() {
+  if (document.getElementById("rhsModalStyle")) return;
+  const s = document.createElement("style");
+  s.id = "rhsModalStyle";
+  s.textContent = "@keyframes rhsModalIn{from{opacity:0;transform:scale(.85) translateY(-10px)}to{opacity:1;transform:scale(1) translateY(0)}}";
+  document.head.appendChild(s);
+})();
+
 /* ===================== INIT AFTER DOM ===================== */
 document.addEventListener("DOMContentLoaded", () => {
 
-  /* AUTOCOMPLETE OFF */
   document.querySelectorAll("input, textarea, select, form").forEach(el => {
     el.setAttribute("autocomplete", "off");
   });
@@ -157,50 +137,46 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("scroll", () => {
     let current = "home";
     sections.forEach(sec => { if (window.scrollY >= sec.offsetTop - 120) current = sec.id; });
-    if (navLinks) {
-      navLinks.querySelectorAll("a").forEach(a => {
-        a.classList.toggle("active", a.getAttribute("href") === "#" + current);
-      });
-    }
+    if (navLinks) navLinks.querySelectorAll("a").forEach(a => {
+      a.classList.toggle("active", a.getAttribute("href") === "#" + current);
+    });
   });
 
   /* HERO SLIDER */
   const slides   = document.querySelectorAll(".slide");
   const dotsWrap = document.getElementById("sliderDots");
   if (slides.length && dotsWrap) {
-    let currentSlide = 0, sliderInterval;
+    let cur = 0, interval;
     slides.forEach((_, i) => {
       const dot = document.createElement("button");
       dot.classList.add("dot");
       if (i === 0) dot.classList.add("active");
-      dot.addEventListener("click", () => goToSlide(i));
+      dot.addEventListener("click", () => go(i));
       dotsWrap.appendChild(dot);
     });
     const dots = dotsWrap.querySelectorAll(".dot");
-    function goToSlide(index) {
-      slides[currentSlide].classList.remove("active");
-      dots[currentSlide].classList.remove("active");
-      currentSlide = (index + slides.length) % slides.length;
-      slides[currentSlide].classList.add("active");
-      dots[currentSlide].classList.add("active");
+    function go(i) {
+      slides[cur].classList.remove("active"); dots[cur].classList.remove("active");
+      cur = (i + slides.length) % slides.length;
+      slides[cur].classList.add("active"); dots[cur].classList.add("active");
     }
-    function startSlider() { sliderInterval = setInterval(() => goToSlide(currentSlide + 1), 5500); }
-    function resetSlider()  { clearInterval(sliderInterval); startSlider(); }
-    const nextBtn = document.getElementById("nextSlide");
-    const prevBtn = document.getElementById("prevSlide");
-    if (nextBtn) nextBtn.addEventListener("click", () => { goToSlide(currentSlide + 1); resetSlider(); });
-    if (prevBtn) prevBtn.addEventListener("click", () => { goToSlide(currentSlide - 1); resetSlider(); });
-    startSlider();
+    function start() { interval = setInterval(() => go(cur + 1), 5500); }
+    function reset() { clearInterval(interval); start(); }
+    const nb = document.getElementById("nextSlide");
+    const pb = document.getElementById("prevSlide");
+    if (nb) nb.addEventListener("click", () => { go(cur + 1); reset(); });
+    if (pb) pb.addEventListener("click", () => { go(cur - 1); reset(); });
+    start();
   }
 
-  /* CNIC FORMAT — auto dash */
+  /* CNIC FORMAT */
   document.querySelectorAll('[id*="cnic"],[id*="Cnic"],[placeholder*="00000-"]').forEach(el => {
     el.setAttribute("autocomplete", "new-password");
     el.addEventListener("input", function() {
-      const digits = this.value.replace(/\D/g, "").slice(0, 13);
-      let v = digits;
-      if (digits.length > 12) v = digits.slice(0,5)+"-"+digits.slice(5,12)+"-"+digits.slice(12,13);
-      else if (digits.length > 5) v = digits.slice(0,5)+"-"+digits.slice(5);
+      const d = this.value.replace(/\D/g, "").slice(0, 13);
+      let v = d;
+      if (d.length > 12) v = d.slice(0,5)+"-"+d.slice(5,12)+"-"+d.slice(12);
+      else if (d.length > 5) v = d.slice(0,5)+"-"+d.slice(5);
       this.value = v;
     });
   });
@@ -214,14 +190,10 @@ document.addEventListener("DOMContentLoaded", () => {
       else if (v.length > 2) v = v.slice(0,2)+"-"+v.slice(2);
       this.value = v;
     });
-    el.addEventListener("blur", function() {
-      const val = this.value.trim();
-      this.style.borderColor = (val && !/^\d{2}-\d{2}-\d{4}$/.test(val)) ? "#D9483A" : "";
-    });
   });
 
   /* MOBILE FORMAT */
-  document.querySelectorAll('[id*="mobile"],[id*="Mobile"],[placeholder*="0300-"],[placeholder*="0346-"]').forEach(el => {
+  document.querySelectorAll('[id*="mobile"],[id*="Mobile"],[placeholder*="0300-"]').forEach(el => {
     el.addEventListener("input", function() {
       let v = this.value.replace(/\D/g, "").slice(0, 11);
       if (v.length > 4) v = v.slice(0,4)+"-"+v.slice(4);
@@ -232,17 +204,14 @@ document.addEventListener("DOMContentLoaded", () => {
   /* STATISTICS */
   function animateCount(el, target) {
     target = Number(target) || 0;
-    const duration = 1400, startTime = performance.now();
+    const dur = 1400, t0 = performance.now();
     function tick(now) {
-      const progress = Math.min((now - startTime) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      el.textContent = Math.floor(target * eased).toLocaleString();
-      if (progress < 1) requestAnimationFrame(tick);
-      else el.textContent = target.toLocaleString();
+      const p = Math.min((now - t0) / dur, 1);
+      el.textContent = Math.floor(target * (1 - Math.pow(1 - p, 3))).toLocaleString();
+      if (p < 1) requestAnimationFrame(tick); else el.textContent = target.toLocaleString();
     }
     requestAnimationFrame(tick);
   }
-
   function loadStatistics() {
     if (!window.RHS) { setTimeout(loadStatistics, 500); return; }
     RHS.getStatistics().then(res => {
@@ -253,21 +222,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }).catch(() => {});
   }
   loadStatistics();
-
   const statsEl = document.getElementById("stats");
   if (statsEl) {
-    const statsObserver = new IntersectionObserver(entries => {
+    new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           document.querySelectorAll(".stat-num").forEach(el => animateCount(el, el.dataset.target || 0));
-          statsObserver.disconnect();
         }
       });
-    }, { threshold: 0.3 });
-    statsObserver.observe(statsEl);
+    }, { threshold: 0.3 }).observe(statsEl);
   }
 
-  /* YEAR */
   const yearEl = document.getElementById("year");
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
@@ -275,37 +240,32 @@ document.addEventListener("DOMContentLoaded", () => {
      MEMBER PORTAL NAVIGATION
   ============================================================ */
   window.showMemberSection = function(which) {
-    const regSection = document.getElementById("registration");
-    const verifyWrap = document.getElementById("verifyPortalWrap");
-    const memberBtns = document.getElementById("memberPortalBtns");
-
+    const regSec  = document.getElementById("registration");
+    const verWrap = document.getElementById("verifyPortalWrap");
     if (which === "registration") {
-      if (verifyWrap) verifyWrap.style.display = "none";
-      if (regSection) {
-        regSection.style.display = "block";
-        setTimeout(() => regSection.scrollIntoView({ behavior:"smooth", block:"start" }), 50);
-      }
-    } else if (which === "verify") {
-      if (regSection) regSection.style.display = "none";
-      if (verifyWrap) {
-        verifyWrap.style.display = "block";
-        clearVerifyInputs();
-        hideVerifyResult();
-        showVerifyForm();
-        setTimeout(() => verifyWrap.scrollIntoView({ behavior:"smooth", block:"start" }), 50);
+      if (verWrap) verWrap.style.display = "none";
+      if (regSec) { regSec.style.display = "block"; setTimeout(() => regSec.scrollIntoView({ behavior:"smooth", block:"start" }), 50); }
+    } else {
+      if (regSec) regSec.style.display = "none";
+      if (verWrap) {
+        verWrap.style.display = "block";
+        resetVerifyPortal();
+        setTimeout(() => verWrap.scrollIntoView({ behavior:"smooth", block:"start" }), 50);
       }
     }
   };
 
   window.backToMemberPortalMain = function() {
     closeAlertModal();
-    const regSection = document.getElementById("registration");
-    const verifyWrap = document.getElementById("verifyPortalWrap");
-    if (regSection) regSection.style.display = "none";
-    if (verifyWrap)  verifyWrap.style.display = "none";
-    clearVerifyInputs();
-    hideVerifyResult();
-    showVerifyForm();
+    const regSec  = document.getElementById("registration");
+    const verWrap = document.getElementById("verifyPortalWrap");
+    if (regSec)  regSec.style.display  = "none";
+    if (verWrap) verWrap.style.display = "none";
+    resetVerifyPortal();
+    const regForm = document.getElementById("regForm");
+    const formResult = document.getElementById("formResult");
+    if (regForm) { regForm.style.display = "block"; regForm.reset(); }
+    if (formResult) { formResult.hidden = true; }
     const ms = document.getElementById("memberSection");
     if (ms) setTimeout(() => ms.scrollIntoView({ behavior:"smooth", block:"start" }), 50);
   };
@@ -314,43 +274,35 @@ document.addEventListener("DOMContentLoaded", () => {
     closeAlertModal();
     const regForm = document.getElementById("regForm");
     const formResult = document.getElementById("formResult");
-    if (regForm) { regForm.reset(); regForm.style.display = "block"; }
-    if (formResult) { formResult.hidden = true; formResult.innerHTML = ""; }
+    if (regForm) { regForm.style.display = "block"; regForm.reset(); }
+    if (formResult) { formResult.hidden = true; }
     const preview = document.getElementById("regPhotoPreview");
     if (preview) preview.innerHTML = `<i class="fa-solid fa-camera"></i><span>Click to upload</span>`;
-    const regSection = document.getElementById("registration");
-    if (regSection) setTimeout(() => regSection.scrollIntoView({ behavior:"smooth", block:"start" }), 50);
+    const regSec = document.getElementById("registration");
+    if (regSec) setTimeout(() => regSec.scrollIntoView({ behavior:"smooth", block:"start" }), 50);
   };
 
-  function clearVerifyInputs() {
+  function resetVerifyPortal() {
     const vCnic = document.getElementById("vCnic");
     const vDob  = document.getElementById("vDob");
     if (vCnic) vCnic.value = "";
     if (vDob)  vDob.value  = "";
     const verifyMsg = document.getElementById("verifyMsg");
-    if (verifyMsg) { verifyMsg.textContent = ""; verifyMsg.className = "form-msg"; }
-  }
-
-  function hideVerifyResult() {
+    if (verifyMsg) { verifyMsg.textContent=""; verifyMsg.className="form-msg"; }
     const certResult = document.getElementById("certResult");
     if (certResult) certResult.innerHTML = "";
-  }
-
-  function showVerifyForm() {
-    const memberLookupCard = document.getElementById("memberLookupCard");
-    if (memberLookupCard) memberLookupCard.style.display = "block";
-  }
-
-  function hideVerifyForm() {
-    const memberLookupCard = document.getElementById("memberLookupCard");
-    if (memberLookupCard) memberLookupCard.style.display = "none";
+    const lookupCard = document.getElementById("memberLookupCard");
+    if (lookupCard) lookupCard.style.display = "block";
   }
 
   window.backToVerifyForm = function() {
     closeAlertModal();
-    hideVerifyResult();
-    showVerifyForm();
-    clearVerifyInputs();
+    const certResult = document.getElementById("certResult");
+    if (certResult) certResult.innerHTML = "";
+    const lookupCard = document.getElementById("memberLookupCard");
+    if (lookupCard) lookupCard.style.display = "block";
+    const verifyMsg = document.getElementById("verifyMsg");
+    if (verifyMsg) { verifyMsg.textContent=""; verifyMsg.className="form-msg"; }
     const vp = document.getElementById("verifyPortalWrap");
     if (vp) setTimeout(() => vp.scrollIntoView({ behavior:"smooth", block:"start" }), 50);
   };
@@ -358,8 +310,8 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ============================================================
      REGISTRATION FORM
      - All fields required including photo
-     - Cloudinary upload
-     - Alert modal on success/fail
+     - Cloudinary upload → photo URL saved in Firestore
+     - Photo shows on certificate
   ============================================================ */
   const regForm   = document.getElementById("regForm");
   const formMsg   = document.getElementById("formMsg");
@@ -369,7 +321,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (regForm) {
     regForm.addEventListener("reset", () => {
       setTimeout(() => {
-        if (formMsg) { formMsg.textContent = ""; formMsg.className = "form-msg"; }
+        if (formMsg) { formMsg.textContent=""; formMsg.className="form-msg"; }
         const preview = document.getElementById("regPhotoPreview");
         if (preview) preview.innerHTML = `<i class="fa-solid fa-camera"></i><span>Click to upload</span>`;
       }, 0);
@@ -381,20 +333,20 @@ document.addEventListener("DOMContentLoaded", () => {
       formMsg.textContent = "";
       formMsg.className = "form-msg";
 
-      const cnic       = document.getElementById("regCnic")?.value.trim()        || "";
-      const dob        = document.getElementById("regDob")?.value.trim()          || "";
-      const fullName   = document.getElementById("regName")?.value.trim()         || "";
-      const father     = document.getElementById("regFather")?.value.trim()       || "";
-      const gender     = document.getElementById("regGender")?.value              || "";
-      const prof       = document.getElementById("regProfession")?.value.trim()   || "";
-      const mobile     = document.getElementById("regMobile")?.value.trim()       || "";
-      const email      = document.getElementById("regEmail")?.value.trim()        || "";
-      const province   = document.getElementById("regProvince")?.value            || "";
-      const membership = document.getElementById("regMembership")?.value          || "";
-      const address    = document.getElementById("regAddress")?.value.trim()      || "";
-      const photoFile  = document.getElementById("regPhoto")?.files?.[0]          || null;
+      const cnic       = document.getElementById("regCnic")?.value.trim()       || "";
+      const dob        = document.getElementById("regDob")?.value.trim()         || "";
+      const fullName   = document.getElementById("regName")?.value.trim()        || "";
+      const father     = document.getElementById("regFather")?.value.trim()      || "";
+      const gender     = document.getElementById("regGender")?.value             || "";
+      const prof       = document.getElementById("regProfession")?.value.trim()  || "";
+      const mobile     = document.getElementById("regMobile")?.value.trim()      || "";
+      const email      = document.getElementById("regEmail")?.value.trim()       || "";
+      const province   = document.getElementById("regProvince")?.value           || "";
+      const membership = document.getElementById("regMembership")?.value         || "";
+      const address    = document.getElementById("regAddress")?.value.trim()     || "";
+      const photoFile  = document.getElementById("regPhoto")?.files?.[0]         || null;
 
-      // Validation — all required
+      // Validation
       if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic))  { formMsg.textContent="⚠️ Valid CNIC required: 00000-0000000-0"; formMsg.classList.add("error"); return; }
       if (!/^\d{2}-\d{2}-\d{4}$/.test(dob))    { formMsg.textContent="⚠️ Date of Birth required (dd-mm-yyyy)"; formMsg.classList.add("error"); return; }
       if (!fullName)   { formMsg.textContent="⚠️ Full Name is required"; formMsg.classList.add("error"); return; }
@@ -408,45 +360,43 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!address)    { formMsg.textContent="⚠️ Full Address is required"; formMsg.classList.add("error"); return; }
       if (!photoFile)  { formMsg.textContent="⚠️ Passport size photo is required"; formMsg.classList.add("error"); return; }
 
-      setLoading(submitBtn, true, "Submitting...");
+      setLoading(submitBtn, true, "Uploading photo...");
 
-      // Upload photo to Cloudinary
+      // Upload photo to Cloudinary (cloud: dt9yspaw7, preset: rhs-upload, folder: rhs/members)
       let photoUrl = "";
       if (photoFile && window.RHS) {
-        formMsg.textContent = "Uploading photo...";
-        formMsg.className = "form-msg";
         try {
           photoUrl = await RHS.uploadImage(photoFile, "rhs/members");
-          formMsg.textContent = "";
+          // photoUrl is now like: https://res.cloudinary.com/dt9yspaw7/image/upload/.../rhs/members/filename.jpg
         } catch(err) {
           setLoading(submitBtn, false);
-          formMsg.textContent = "⚠️ Photo upload failed. Please try again.";
+          formMsg.textContent = "⚠️ Photo upload failed. Check your internet and try again.";
           formMsg.classList.add("error");
           return;
         }
       }
 
+      setLoading(submitBtn, true, "Submitting...");
       if (!window.RHS) { setLoading(submitBtn, false); formMsg.textContent="Please wait..."; return; }
 
+      // Save to Firestore — photoUrl saved alongside member data
       RHS.registerMember({ cnic, dob, fullName, fatherName:father, gender, profession:prof, email, mobile, province, address, membershipType:membership, photo:photoUrl })
       .then(res => {
         setLoading(submitBtn, false);
         if (res.success) {
           if (regForm) regForm.style.display = "none";
-          showAlertModal("green", "fa-circle-check",
-            "Registration Submitted Successfully!",
+          showAlertModal("green","fa-circle-check","Registration Submitted Successfully!",
             `Dear <strong>${fullName}</strong>, Your Registration Request has been Successfully Received.<br><br>
              Your Registration is now <strong>Underprocess</strong>. You will be notified after approval.<br><br>
              📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}`,
             [
-              { label:"<i class='fa-solid fa-house'></i> Main Menu",        fn:"backToMemberPortalMain()" },
+              { label:"<i class='fa-solid fa-house'></i> Main Menu",         fn:"backToMemberPortalMain()" },
               { label:"<i class='fa-solid fa-user-plus'></i> New Registration", fn:"restartRegistration()" }
             ]
           );
         } else if (res.code === "DUPLICATE") {
-          showAlertModal("yellow", "fa-circle-info",
-            "Already Registered",
-            res.message || `Dear <strong>${fullName}</strong>, You are already registered with us.`,
+          showAlertModal("yellow","fa-circle-info","Already Registered",
+            res.message || `Dear <strong>${fullName}</strong>, You are already registered.`,
             [{ label:"<i class='fa-solid fa-house'></i> Main Menu", fn:"backToMemberPortalMain()" }]
           );
         } else {
@@ -461,27 +411,29 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* PHOTO PREVIEW */
+  /* PHOTO PREVIEW — with size check */
   window.previewRegPhoto = function(input) {
     const file = input.files?.[0];
     if (!file) return;
-    const preview = document.getElementById("regPhotoPreview");
-    if (!preview) return;
     if (file.size > 2 * 1024 * 1024) {
-      alert("Photo size must be under 2MB. Please choose a smaller image.");
+      showAlertModal("orange","fa-triangle-exclamation","Photo Too Large",
+        "Photo size must be under 2MB. Please choose a smaller image.",
+        [{ label:"<i class='fa-solid fa-check'></i> OK", fn:"closeAlertModal()" }]
+      );
       input.value = "";
       return;
     }
     const reader = new FileReader();
     reader.onload = e => {
-      preview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`;
+      const preview = document.getElementById("regPhotoPreview");
+      if (preview) preview.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`;
     };
     reader.readAsDataURL(file);
   };
 
   /* ============================================================
-     CERTIFICATE VERIFICATION + CHARITY LEDGER
-     Single form — 3 buttons — result as modal
+     VERIFY PORTAL — Certificate + Charity Ledger
+     Both use same CNIC+DOB form
   ============================================================ */
   const verifyForm        = document.getElementById("verifyForm");
   const verifyMsg         = document.getElementById("verifyMsg");
@@ -498,11 +450,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function validateVerify() {
     const { cnic, dob } = getVerifyVals();
-    if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic)) {
+    if (!cnic || !/^\d{5}-\d{7}-\d{1}$/.test(cnic)) {
       if (verifyMsg) { verifyMsg.textContent="⚠️ Valid CNIC required: 00000-0000000-0"; verifyMsg.classList.add("error"); }
       return false;
     }
-    if (!/^\d{2}-\d{2}-\d{4}$/.test(dob)) {
+    if (!dob || !/^\d{2}-\d{2}-\d{4}$/.test(dob)) {
       if (verifyMsg) { verifyMsg.textContent="⚠️ Date of Birth required (dd-mm-yyyy)"; verifyMsg.classList.add("error"); }
       return false;
     }
@@ -510,40 +462,47 @@ document.addEventListener("DOMContentLoaded", () => {
     return true;
   }
 
+  function showCertResult(html) {
+    const lookupCard = document.getElementById("memberLookupCard");
+    const certResult  = document.getElementById("certResult");
+    if (lookupCard) lookupCard.style.display = "none";
+    if (certResult) {
+      certResult.innerHTML = html;
+      setTimeout(() => certResult.scrollIntoView({ behavior:"smooth", block:"start" }), 100);
+    }
+  }
+
   if (verifyForm) {
     verifyForm.addEventListener("submit", e => { e.preventDefault(); doVerifyCert(); });
   }
 
+  /* --- Verify Certificate --- */
   function doVerifyCert() {
     if (!validateVerify()) return;
     const { cnic, dob } = getVerifyVals();
     setLoading(verifyBtn, true, "Verifying...");
     if (!window.RHS) { setLoading(verifyBtn, false); return; }
+
     RHS.getMemberByCredentials(cnic, dob).then(res => {
       setLoading(verifyBtn, false);
       if (res.success && res.found) {
         const m = res.member;
         const s = (m.status || "").toLowerCase();
         if (s === "active") {
-          // Show certificate in inline area (needs scroll for PDF)
-          hideVerifyForm();
-          const certResult = document.getElementById("certResult");
-          if (certResult) {
-            certResult.innerHTML = renderCertCard(m);
-            certResult.scrollIntoView({ behavior:"smooth", block:"start" });
-          }
+          // Show certificate card inline
+          showCertResult(buildCertCard(m));
         } else {
-          // Status alert — modal center screen
-          const statusCfg = {
+          // Colored modal for other statuses
+          const cfg = {
             underprocess: { color:"yellow", icon:"fa-hourglass-half", title:"Membership Underprocess",
-              msg:`Dear <strong>${m.fullName}</strong>, Your Membership Status is <strong>Underprocess</strong>.<br>Your application is being reviewed by our team.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}` },
+              msg:`Dear <strong>${m.fullName}</strong>, Your Membership Status is <strong>Underprocess</strong>. Your application is being reviewed by our team.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}` },
             expired:      { color:"orange", icon:"fa-clock",          title:"Membership Expired",
-              msg:`Dear <strong>${m.fullName}</strong>, Your Membership Status is <strong>Expired</strong>.<br>Please contact us to renew your membership.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}` },
+              msg:`Dear <strong>${m.fullName}</strong>, Your Membership Status is <strong>Expired</strong>. Please contact us to renew your membership.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}` },
             banned:       { color:"red",    icon:"fa-ban",            title:"Membership Banned",
-              msg:`Dear <strong>${m.fullName}</strong>, Your Membership Status is <strong>Banned</strong>.<br>Please contact us for more information.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}` },
-          };
-          const cfg = statusCfg[s] || { color:"yellow", icon:"fa-circle-info", title:`Status: ${m.status}`,
+              msg:`Dear <strong>${m.fullName}</strong>, Your Membership Status is <strong>Banned</strong>. Please contact us for more information.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}` },
+          }[s] || { color:"yellow", icon:"fa-circle-info", title:`Status: ${m.status}`,
             msg:`Dear <strong>${m.fullName}</strong>, Your Membership Status is <strong>${m.status}</strong>.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}` };
+
           showAlertModal(cfg.color, cfg.icon, cfg.title, cfg.msg, [
             { label:"<i class='fa-solid fa-arrow-left'></i> Back",       fn:"backToVerifyForm()" },
             { label:"<i class='fa-solid fa-house'></i> Main Menu",       fn:"backToMemberPortalMain()" }
@@ -552,134 +511,138 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         if (verifyMsg) { verifyMsg.textContent = res.message || "No record found with these credentials."; verifyMsg.classList.add("error"); }
       }
-    }).catch(() => { setLoading(verifyBtn, false); if (verifyMsg) { verifyMsg.textContent="Network error."; verifyMsg.classList.add("error"); } });
+    }).catch(() => { setLoading(verifyBtn, false); if (verifyMsg) { verifyMsg.textContent="Network error. Please try again."; verifyMsg.classList.add("error"); } });
   }
 
+  /* --- Verify Charity Donation / Ledger --- */
   if (verifyDonationBtn) {
     verifyDonationBtn.addEventListener("click", () => {
       if (!validateVerify()) return;
       const { cnic, dob } = getVerifyVals();
       setLoading(verifyDonationBtn, true, "Loading...");
       if (!window.RHS) { setLoading(verifyDonationBtn, false); return; }
+
       RHS.getCharityLedger(cnic, dob).then(res => {
         setLoading(verifyDonationBtn, false);
         if (!res.success) {
           if (verifyMsg) { verifyMsg.textContent = res.message || "No record found."; verifyMsg.classList.add("error"); }
           return;
         }
-        hideVerifyForm();
-        const certResult = document.getElementById("certResult");
-        if (certResult) {
-          certResult.innerHTML = renderLedger(res);
-          certResult.scrollIntoView({ behavior:"smooth", block:"start" });
-        }
-      }).catch(() => { setLoading(verifyDonationBtn, false); if (verifyMsg) { verifyMsg.textContent="Network error."; verifyMsg.classList.add("error"); } });
+        showCertResult(buildLedger(res));
+      }).catch(err => {
+        setLoading(verifyDonationBtn, false);
+        if (verifyMsg) { verifyMsg.textContent="Network error. Please try again."; verifyMsg.classList.add("error"); }
+      });
     });
   }
 
   if (verifyClearBtn) {
-    verifyClearBtn.addEventListener("click", () => {
-      clearVerifyInputs();
-      hideVerifyResult();
-      showVerifyForm();
-    });
+    verifyClearBtn.addEventListener("click", () => { resetVerifyPortal(); });
   }
 
-  /* Certificate Card HTML */
-  function renderCertCard(m) {
+  /* --- Build Certificate Card HTML ---
+     Photo comes from Cloudinary URL stored in Firestore
+     Shows on card + in Print PDF
+  */
+  function buildCertCard(m) {
+    // Photo from Cloudinary (uploaded during registration, URL in Firestore)
     const photoHtml = m.photo
       ? `<img src="${m.photo}" alt="${m.fullName}" style="width:100%;height:100%;object-fit:cover">`
       : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#EEF8F1;color:#8A9A96;font-size:2.5rem"><i class="fa-solid fa-user"></i></div>`;
-    const mData = JSON.stringify(m).replace(/"/g, "&quot;");
+    const mData = JSON.stringify(m).replace(/"/g,"&quot;");
     return `
-      <div class="cert-card" style="margin-top:0">
-        <div class="cert-top-bar">
-          <img src="images/logo.png" class="cert-logo" alt="RHS">
-          <div class="cert-org-info">
-            <div class="cert-org-name">${window.NGO.name}</div>
-            <div class="cert-org-addr">${window.NGO.address}</div>
+    <div class="cert-card">
+      <div class="cert-top-bar">
+        <img src="images/logo.png" class="cert-logo" alt="RHS">
+        <div class="cert-org-info">
+          <div class="cert-org-name">${window.NGO.name}</div>
+          <div class="cert-org-addr">${window.NGO.address}</div>
+        </div>
+        <span class="cert-badge-active">✓ Active Member</span>
+      </div>
+      <div class="cert-body">
+        <div class="cert-photo">${photoHtml}</div>
+        <div class="cert-details">
+          <div class="cert-member-name">${m.fullName}</div>
+          <div class="cert-member-type">${m.membershipType||"Member"}</div>
+          <div class="cert-grid">
+            <div class="cert-item"><span class="lbl">Reg No</span><span class="val">${m.registrationNo}</span></div>
+            <div class="cert-item"><span class="lbl">CNIC</span><span class="val">${m.cnic}</span></div>
+            <div class="cert-item"><span class="lbl">Father / Husband</span><span class="val">${m.fatherName||"—"}</span></div>
+            <div class="cert-item"><span class="lbl">Gender</span><span class="val">${m.gender||"—"}</span></div>
+            <div class="cert-item"><span class="lbl">Mobile</span><span class="val">${m.mobile||"—"}</span></div>
+            <div class="cert-item"><span class="lbl">Member Since</span><span class="val">${m.timestamp||"—"}</span></div>
+            <div class="cert-item"><span class="lbl">Valid Upto</span><span class="val" style="color:#1a9e5c;font-weight:700">${m.validUpto||"—"}</span></div>
+            <div class="cert-item cert-full"><span class="lbl">Address</span><span class="val">${m.address||"—"}</span></div>
           </div>
-          <span class="cert-badge-active">✓ Active Member</span>
         </div>
-        <div class="cert-body">
-          <div class="cert-photo">${photoHtml}</div>
-          <div class="cert-details">
-            <div class="cert-member-name">${m.fullName}</div>
-            <div class="cert-member-type">${m.membershipType || "Member"}</div>
-            <div class="cert-grid">
-              <div class="cert-item"><span class="lbl">Reg No</span><span class="val">${m.registrationNo}</span></div>
-              <div class="cert-item"><span class="lbl">CNIC</span><span class="val">${m.cnic}</span></div>
-              <div class="cert-item"><span class="lbl">Father / Husband</span><span class="val">${m.fatherName||"—"}</span></div>
-              <div class="cert-item"><span class="lbl">Gender</span><span class="val">${m.gender||"—"}</span></div>
-              <div class="cert-item"><span class="lbl">Mobile</span><span class="val">${m.mobile||"—"}</span></div>
-              <div class="cert-item"><span class="lbl">Member Since</span><span class="val">${m.timestamp||"—"}</span></div>
-              <div class="cert-item"><span class="lbl">Valid Upto</span><span class="val" style="color:#1a9e5c;font-weight:700">${m.validUpto||"—"}</span></div>
-              <div class="cert-item cert-full"><span class="lbl">Address</span><span class="val">${m.address||"—"}</span></div>
-            </div>
-          </div>
-        </div>
-        <div class="cert-footer-bar">
-          <span>📞 ${window.NGO.phone}</span>
-          <span>✉️ ${window.NGO.email}</span>
-          <span style="font-style:italic">Computer-Generated · No Signature Required</span>
-        </div>
-        <div class="cert-actions">
-          <button class="btn btn-primary" onclick="printMemberCert(${mData})">
-            <i class="fa-solid fa-file-pdf"></i> Download PDF
-          </button>
-          <button class="btn btn-ghost" onclick="backToVerifyForm()">
-            <i class="fa-solid fa-arrow-left"></i> Back
-          </button>
-          <button class="btn btn-ghost" onclick="backToMemberPortalMain()">
-            <i class="fa-solid fa-house"></i> Main Menu
-          </button>
-        </div>
-        <p class="cert-footnote">This digital certificate is valid proof of membership in ${window.NGO.name}.</p>
-      </div>`;
+      </div>
+      <div class="cert-footer-bar">
+        <span>📞 ${window.NGO.phone}</span>
+        <span>✉️ ${window.NGO.email}</span>
+        <span style="font-style:italic">Computer-Generated · No Signature Required</span>
+      </div>
+      <div class="cert-actions">
+        <button class="btn btn-primary" onclick="printMemberCert(${mData})">
+          <i class="fa-solid fa-file-pdf"></i> Download PDF
+        </button>
+        <button class="btn btn-ghost" onclick="backToVerifyForm()">
+          <i class="fa-solid fa-arrow-left"></i> Back
+        </button>
+        <button class="btn btn-ghost" onclick="backToMemberPortalMain()">
+          <i class="fa-solid fa-house"></i> Main Menu
+        </button>
+      </div>
+      <p class="cert-footnote">This digital certificate is valid proof of membership in ${window.NGO.name}.</p>
+    </div>`;
   }
 
+  /* Print Certificate as PDF — includes photo from Cloudinary */
   window.printMemberCert = function(m) {
     const pa = document.getElementById("printCert");
     if (!pa) return;
     pa.innerHTML = `
-      <div style="border:6px double #14534F;padding:40px;font-family:Georgia,serif;max-width:700px;margin:0 auto">
-        <div style="text-align:center;border-bottom:2px solid #E8A33D;padding-bottom:16px;margin-bottom:20px">
-          <h1 style="color:#14534F;margin:0">${window.NGO.name}</h1>
-          <p style="color:#E8A33D;letter-spacing:3px;margin:4px 0;font-size:.85rem">DIGITAL MEMBERSHIP CERTIFICATE</p>
-        </div>
-        <table style="width:100%;border-collapse:collapse"><tr>
-          <td style="width:28%;vertical-align:top;padding-right:20px">
-            ${m.photo?`<img src="${m.photo}" style="width:110px;height:130px;object-fit:cover;border:2px solid #14534F">`:`<div style="width:110px;height:130px;background:#eee;border:2px solid #14534F;display:flex;align-items:center;justify-content:center;font-size:3rem;color:#aaa">👤</div>`}
-          </td>
-          <td style="vertical-align:top">
-            <h2 style="color:#14534F;margin:0 0 4px">${m.fullName}</h2>
-            <p style="color:#888;margin:0 0 10px">${m.membershipType||"Member"}</p>
-            <table style="width:100%;font-size:.9rem">
-              <tr><td style="padding:3px 0;font-weight:bold;width:130px">Reg No:</td><td>${m.registrationNo}</td></tr>
-              <tr><td style="padding:3px 0;font-weight:bold">CNIC:</td><td>${m.cnic}</td></tr>
-              <tr><td style="padding:3px 0;font-weight:bold">Father/Husband:</td><td>${m.fatherName||"—"}</td></tr>
-              <tr><td style="padding:3px 0;font-weight:bold">Mobile:</td><td>${m.mobile||"—"}</td></tr>
-              <tr><td style="padding:3px 0;font-weight:bold">Valid Upto:</td><td style="color:#1a9e5c;font-weight:bold">${m.validUpto||"—"}</td></tr>
-              <tr><td style="padding:3px 0;font-weight:bold">Address:</td><td>${m.address||"—"}</td></tr>
-            </table>
-          </td>
-        </tr></table>
-        <div style="text-align:center;margin-top:24px;padding-top:16px;border-top:1px solid #E7DFD2;color:#888;font-size:.75rem">
-          ${window.NGO.address} &nbsp;·&nbsp; ${window.NGO.phone} &nbsp;·&nbsp; ${window.NGO.email}
-        </div>
-      </div>`;
+    <div style="border:6px double #14534F;padding:40px;font-family:Georgia,serif;max-width:700px;margin:0 auto">
+      <div style="text-align:center;border-bottom:2px solid #E8A33D;padding-bottom:16px;margin-bottom:20px">
+        <h1 style="color:#14534F;margin:0">${window.NGO.name}</h1>
+        <p style="color:#E8A33D;letter-spacing:3px;margin:4px 0;font-size:.85rem">DIGITAL MEMBERSHIP CERTIFICATE</p>
+      </div>
+      <table style="width:100%;border-collapse:collapse"><tr>
+        <td style="width:25%;vertical-align:top;padding-right:24px">
+          ${m.photo
+            ? `<img src="${m.photo}" style="width:110px;height:130px;object-fit:cover;border:3px solid #14534F;display:block">`
+            : `<div style="width:110px;height:130px;background:#EEF8F1;border:3px solid #14534F;display:flex;align-items:center;justify-content:center;font-size:3rem;color:#aaa">👤</div>`}
+        </td>
+        <td style="vertical-align:top">
+          <h2 style="color:#14534F;margin:0 0 4px">${m.fullName}</h2>
+          <p style="color:#888;margin:0 0 12px;font-size:.9rem">${m.membershipType||"Member"}</p>
+          <table style="width:100%;font-size:.88rem;border-collapse:collapse">
+            <tr><td style="padding:4px 0;font-weight:bold;width:140px;color:#555">Reg No:</td><td style="color:#14534F;font-weight:bold">${m.registrationNo}</td></tr>
+            <tr><td style="padding:4px 0;font-weight:bold;color:#555">CNIC:</td><td>${m.cnic}</td></tr>
+            <tr><td style="padding:4px 0;font-weight:bold;color:#555">Father/Husband:</td><td>${m.fatherName||"—"}</td></tr>
+            <tr><td style="padding:4px 0;font-weight:bold;color:#555">Mobile:</td><td>${m.mobile||"—"}</td></tr>
+            <tr><td style="padding:4px 0;font-weight:bold;color:#555">Valid Upto:</td><td style="color:#1a9e5c;font-weight:bold">${m.validUpto||"—"}</td></tr>
+            <tr><td style="padding:4px 0;font-weight:bold;color:#555">Status:</td><td style="color:#1a9e5c">Active ✓</td></tr>
+            <tr><td style="padding:4px 0;font-weight:bold;color:#555">Address:</td><td>${m.address||"—"}</td></tr>
+          </table>
+        </td>
+      </tr></table>
+      <div style="text-align:center;margin-top:24px;padding-top:16px;border-top:2px solid #E7DFD2;color:#888;font-size:.75rem">
+        ${window.NGO.address} &nbsp;·&nbsp; 📞 ${window.NGO.phone} &nbsp;·&nbsp; ✉️ ${window.NGO.email}
+      </div>
+    </div>`;
     window.print();
     setTimeout(() => { pa.innerHTML=""; }, 3000);
   };
 
-  /* Charity Ledger HTML */
-  function renderLedger(res) {
+  /* --- Build Charity Ledger HTML --- */
+  function buildLedger(res) {
     const m = res.member;
     const donations = res.donations || [];
     let runTotal = 0;
     const rows = !donations.length
       ? `<tr><td colspan="4" style="text-align:center;padding:24px;color:#8A9A96;font-style:italic">No charity donations recorded yet.</td></tr>`
-      : donations.map((d,i) => {
+      : donations.map((d, i) => {
           runTotal += Number(d.amount)||0;
           return `<tr style="background:${i%2?"#F5F9F8":"#fff"}">
             <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2">${d.date||""}</td>
@@ -688,69 +651,88 @@ document.addEventListener("DOMContentLoaded", () => {
             <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2;font-weight:600">Rs. ${runTotal.toLocaleString()}</td>
           </tr>`;
         }).join("");
+
     return `
-      <div class="ledger-wrap">
-        <div class="ledger-header">
-          <img src="images/logo.png" alt="RHS" class="ledger-logo">
-          <div><h3>${window.NGO.name}</h3><small>${window.NGO.address}</small></div>
+    <div class="ledger-wrap" id="ledgerPrintArea">
+      <div class="ledger-header">
+        <img src="images/logo.png" alt="RHS" class="ledger-logo">
+        <div>
+          <h3 style="margin:0;font-family:'Fraunces',serif;color:#14534F">${window.NGO.name}</h3>
+          <small style="color:#8A9A96">${window.NGO.address}</small>
         </div>
-        <div style="text-align:center;margin:10px 0"><span class="eyebrow">Charity Donation Ledger</span></div>
-        <div class="ledger-member-info">
-          <div class="ledger-info-row"><span class="lbl">Member Name</span><span class="val">${m.fullName}</span></div>
-          <div class="ledger-info-row"><span class="lbl">Reg No</span><span class="val">${m.registrationNo}</span></div>
-          <div class="ledger-info-row"><span class="lbl">CNIC</span><span class="val">${m.cnic}</span></div>
-          <div class="ledger-info-row"><span class="lbl">Valid Upto</span><span class="val" style="color:#14534F;font-weight:700">${m.validUpto||"—"}</span></div>
-          <div class="ledger-info-row"><span class="lbl">Status</span><span class="val"><span class="cert-badge">${m.status}</span></span></div>
-        </div>
-        <div style="overflow-x:auto;margin-top:16px">
-          <table style="width:100%;border-collapse:collapse;font-size:.88rem">
-            <thead><tr style="background:#14534F;color:#fff">
-              <th style="padding:10px 14px;text-align:left">Date</th>
-              <th style="padding:10px 14px;text-align:left">Payment</th>
-              <th style="padding:10px 14px;text-align:left">Amount</th>
-              <th style="padding:10px 14px;text-align:left">Running Total</th>
-            </tr></thead>
-            <tbody>${rows}</tbody>
-            <tfoot><tr style="background:#EEF8F1">
-              <td colspan="2" style="padding:12px 14px;font-weight:700;color:#14534F">Total Charity</td>
-              <td colspan="2" style="padding:12px 14px;font-weight:700;color:#14534F;font-size:1rem">Rs. ${res.total.toLocaleString()}</td>
-            </tr></tfoot>
-          </table>
-        </div>
-        <p class="cert-footnote">${window.NGO.name} &nbsp;|&nbsp; ${window.NGO.phone} &nbsp;|&nbsp; ${window.NGO.email}</p>
-        <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-          <button class="btn btn-primary" onclick="window.print()"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
-          <button class="btn btn-ghost"   onclick="backToVerifyForm()"><i class="fa-solid fa-arrow-left"></i> Back</button>
-          <button class="btn btn-ghost"   onclick="backToMemberPortalMain()"><i class="fa-solid fa-house"></i> Main Menu</button>
-        </div>
-      </div>`;
+      </div>
+      <div style="text-align:center;margin:12px 0">
+        <span class="eyebrow">Charity Donation Ledger</span>
+      </div>
+      <div class="ledger-member-info">
+        <div class="ledger-info-row"><span class="lbl">Member Name</span><span class="val">${m.fullName}</span></div>
+        <div class="ledger-info-row"><span class="lbl">Reg No</span><span class="val">${m.registrationNo}</span></div>
+        <div class="ledger-info-row"><span class="lbl">CNIC</span><span class="val">${m.cnic}</span></div>
+        <div class="ledger-info-row"><span class="lbl">Valid Upto</span><span class="val" style="color:#14534F;font-weight:700">${m.validUpto||"—"}</span></div>
+        <div class="ledger-info-row"><span class="lbl">Status</span><span class="val"><span class="cert-badge">${m.status}</span></span></div>
+        <div class="ledger-info-row"><span class="lbl">Total Donations</span><span class="val" style="color:#1a9e5c;font-weight:700">${donations.length}</span></div>
+      </div>
+      <div style="overflow-x:auto;margin-top:16px">
+        <table style="width:100%;border-collapse:collapse;font-size:.88rem">
+          <thead><tr style="background:#14534F;color:#fff">
+            <th style="padding:10px 14px;text-align:left">Date</th>
+            <th style="padding:10px 14px;text-align:left">Payment Method</th>
+            <th style="padding:10px 14px;text-align:left">Amount</th>
+            <th style="padding:10px 14px;text-align:left">Running Total</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+          <tfoot><tr style="background:#EEF8F1">
+            <td colspan="2" style="padding:12px 14px;font-weight:700;color:#14534F">Total Charity Contributed</td>
+            <td colspan="2" style="padding:12px 14px;font-weight:700;color:#14534F;font-size:1.05rem">Rs. ${res.total.toLocaleString()}</td>
+          </tr></tfoot>
+        </table>
+      </div>
+      <p class="cert-footnote">${window.NGO.name} &nbsp;|&nbsp; ${window.NGO.phone} &nbsp;|&nbsp; ${window.NGO.email}</p>
+      <div style="margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="printLedger()">
+          <i class="fa-solid fa-file-pdf"></i> Download PDF
+        </button>
+        <button class="btn btn-ghost" onclick="backToVerifyForm()">
+          <i class="fa-solid fa-arrow-left"></i> Back
+        </button>
+        <button class="btn btn-ghost" onclick="backToMemberPortalMain()">
+          <i class="fa-solid fa-house"></i> Main Menu
+        </button>
+      </div>
+    </div>`;
   }
+
+  /* Print Ledger as PDF */
+  window.printLedger = function() {
+    window.print();
+  };
 
   /* ============================================================
      CHARITY HELP DESK
   ============================================================ */
   window.showHelpSection = function(which) {
-    const btns           = document.getElementById("helpdeskBtns");
-    const grantFormWrap  = document.getElementById("grantFormWrap");
-    const grantStatusWrap= document.getElementById("grantStatusWrap");
-    if (btns) btns.style.display = "none";
-    if (grantFormWrap)   grantFormWrap.style.display   = (which === "grant")  ? "block" : "none";
-    if (grantStatusWrap) grantStatusWrap.style.display = (which === "status") ? "block" : "none";
+    const btns    = document.getElementById("helpdeskBtns");
+    const gWrap   = document.getElementById("grantFormWrap");
+    const sWrap   = document.getElementById("grantStatusWrap");
+    if (btns)  btns.style.display  = "none";
+    if (gWrap) gWrap.style.display = which === "grant"  ? "block" : "none";
+    if (sWrap) sWrap.style.display = which === "status" ? "block" : "none";
     const desk = document.getElementById("charityDesk");
     if (desk) desk.scrollIntoView({ behavior:"smooth" });
   };
 
   window.hideHelpSection = function() {
-    const btns           = document.getElementById("helpdeskBtns");
-    const grantFormWrap  = document.getElementById("grantFormWrap");
-    const grantStatusWrap= document.getElementById("grantStatusWrap");
-    const grantForm2     = document.getElementById("grantForm");
-    const grantResult2   = document.getElementById("grantResult");
-    if (btns) btns.style.display = "flex";
-    if (grantFormWrap)   grantFormWrap.style.display   = "none";
-    if (grantStatusWrap) grantStatusWrap.style.display = "none";
-    if (grantForm2) grantForm2.style.display = "block";
-    if (grantResult2) { grantResult2.style.display="none"; grantResult2.innerHTML=""; }
+    closeAlertModal();
+    const btns    = document.getElementById("helpdeskBtns");
+    const gWrap   = document.getElementById("grantFormWrap");
+    const sWrap   = document.getElementById("grantStatusWrap");
+    const gForm   = document.getElementById("grantForm");
+    const gResult = document.getElementById("grantResult");
+    if (btns)  btns.style.display  = "flex";
+    if (gWrap) gWrap.style.display = "none";
+    if (sWrap) sWrap.style.display = "none";
+    if (gForm) gForm.style.display = "block";
+    if (gResult) { gResult.style.display="none"; gResult.innerHTML=""; }
     const desk = document.getElementById("charityDesk");
     if (desk) desk.scrollIntoView({ behavior:"smooth" });
   };
@@ -777,19 +759,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const address  = document.getElementById("gAddress")?.value.trim() || "";
       const email    = document.getElementById("gEmail")?.value.trim()   || "";
 
-      // All fields required
-      if (!cnic)     { grantMsg.textContent="⚠️ CNIC is required";               grantMsg.classList.add("error"); return; }
-      if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic)) { grantMsg.textContent="⚠️ Valid CNIC: 00000-0000000-0"; grantMsg.classList.add("error"); return; }
-      if (!dob)      { grantMsg.textContent="⚠️ Date of Birth is required";      grantMsg.classList.add("error"); return; }
-      if (!/^\d{2}-\d{2}-\d{4}$/.test(dob)) { grantMsg.textContent="⚠️ DOB format: dd-mm-yyyy"; grantMsg.classList.add("error"); return; }
-      if (!name)     { grantMsg.textContent="⚠️ Full Name is required";          grantMsg.classList.add("error"); return; }
-      if (!father)   { grantMsg.textContent="⚠️ Father/Husband Name is required";grantMsg.classList.add("error"); return; }
-      if (!gender)   { grantMsg.textContent="⚠️ Please select Gender";           grantMsg.classList.add("error"); return; }
-      if (!mobile)   { grantMsg.textContent="⚠️ Mobile Number is required";      grantMsg.classList.add("error"); return; }
-      if (!/^\d{4}-\d{7}$/.test(mobile)) { grantMsg.textContent="⚠️ Mobile format: 0300-0000000"; grantMsg.classList.add("error"); return; }
-      if (!helpType) { grantMsg.textContent="⚠️ Please select Help Type";        grantMsg.classList.add("error"); return; }
-      if (!amount || Number(amount) < 1) { grantMsg.textContent="⚠️ Amount Required must be greater than 0"; grantMsg.classList.add("error"); return; }
-      if (!address)  { grantMsg.textContent="⚠️ Full Address is required";       grantMsg.classList.add("error"); return; }
+      if (!cnic || !/^\d{5}-\d{7}-\d{1}$/.test(cnic)) { grantMsg.textContent="⚠️ Valid CNIC required";        grantMsg.classList.add("error"); return; }
+      if (!dob  || !/^\d{2}-\d{2}-\d{4}$/.test(dob))  { grantMsg.textContent="⚠️ Date of Birth required";     grantMsg.classList.add("error"); return; }
+      if (!name)     { grantMsg.textContent="⚠️ Full Name is required";           grantMsg.classList.add("error"); return; }
+      if (!father)   { grantMsg.textContent="⚠️ Father/Husband Name is required"; grantMsg.classList.add("error"); return; }
+      if (!gender)   { grantMsg.textContent="⚠️ Please select Gender";            grantMsg.classList.add("error"); return; }
+      if (!mobile || !/^\d{4}-\d{7}$/.test(mobile)) { grantMsg.textContent="⚠️ Mobile: 0300-0000000"; grantMsg.classList.add("error"); return; }
+      if (!helpType) { grantMsg.textContent="⚠️ Please select Help Type";         grantMsg.classList.add("error"); return; }
+      if (!amount || Number(amount) < 1) { grantMsg.textContent="⚠️ Amount is required"; grantMsg.classList.add("error"); return; }
+      if (!address)  { grantMsg.textContent="⚠️ Full Address is required";        grantMsg.classList.add("error"); return; }
 
       setLoading(grantSubmitBtn, true, "Submitting...");
       if (!window.RHS) { setLoading(grantSubmitBtn, false); return; }
@@ -801,14 +779,13 @@ document.addEventListener("DOMContentLoaded", () => {
           grantForm.style.display = "none";
           showAlertModal("green","fa-circle-check","Charity Request Submitted!",
             `Dear <strong>${name}</strong>, Your Charity Help Request has been Successfully Received.<br><br>
-             Your Case Reference Number is <strong>${res.crn||""}</strong>. Our team will review and contact you soon.<br><br>
+             Your Case No: <strong>${res.crn||""}</strong><br>Our team will contact you soon.<br><br>
              📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}`,
             [{ label:"<i class='fa-solid fa-arrow-left'></i> Back", fn:"hideHelpSection()" }]
           );
         } else if (res.code === "DUPLICATE_CASE") {
-          grantForm.style.display = "none";
           showAlertModal("yellow","fa-circle-info","Case Already Submitted",
-            res.message || `Dear <strong>${name}</strong>, You already have an active case registered.`,
+            res.message || `Dear <strong>${name}</strong>, You already have an active case.`,
             [{ label:"<i class='fa-solid fa-arrow-left'></i> Back", fn:"hideHelpSection()" }]
           );
         } else {
@@ -820,9 +797,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* GRANT STATUS */
-  const grantStatusForm    = document.getElementById("grantStatusForm");
-  const gsMsg              = document.getElementById("gsMsg");
-  const grantStatusResult  = document.getElementById("grantStatusResult");
+  const grantStatusForm   = document.getElementById("grantStatusForm");
+  const gsMsg             = document.getElementById("gsMsg");
+  const grantStatusResult = document.getElementById("grantStatusResult");
 
   if (grantStatusForm) {
     grantStatusForm.addEventListener("reset", () => {
@@ -831,69 +808,63 @@ document.addEventListener("DOMContentLoaded", () => {
         if (grantStatusResult) grantStatusResult.innerHTML="";
       }, 0);
     });
-
     grantStatusForm.addEventListener("submit", e => {
       e.preventDefault();
       if (gsMsg) { gsMsg.textContent=""; gsMsg.className="form-msg"; }
       if (grantStatusResult) grantStatusResult.innerHTML="";
       const cnic = document.getElementById("gsCnic")?.value.trim() || "";
       const dob  = document.getElementById("gsDob")?.value.trim()  || "";
-      if (!cnic) { gsMsg.textContent="⚠️ CNIC is required";               gsMsg.classList.add("error"); return; }
-      if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic)) { gsMsg.textContent="⚠️ Valid CNIC: 00000-0000000-0"; gsMsg.classList.add("error"); return; }
-      if (!dob)  { gsMsg.textContent="⚠️ Date of Birth is required";      gsMsg.classList.add("error"); return; }
-      if (!/^\d{2}-\d{2}-\d{4}$/.test(dob)) { gsMsg.textContent="⚠️ DOB format: dd-mm-yyyy"; gsMsg.classList.add("error"); return; }
-
+      if (!cnic || !/^\d{5}-\d{7}-\d{1}$/.test(cnic)) { gsMsg.textContent="⚠️ Valid CNIC required"; gsMsg.classList.add("error"); return; }
+      if (!dob  || !/^\d{2}-\d{2}-\d{4}$/.test(dob))  { gsMsg.textContent="⚠️ Date of Birth required"; gsMsg.classList.add("error"); return; }
       const gsBtn = grantStatusForm.querySelector('[type="submit"]');
       setLoading(gsBtn, true, "Checking...");
       if (!window.RHS) { setLoading(gsBtn, false); return; }
 
       RHS.getGrantStatus(cnic, dob).then(res => {
         setLoading(gsBtn, false);
-        if (!res.success||!res.grants||!res.grants.length) {
+        if (!res.success || !res.grants || !res.grants.length) {
           showAlertModal("red","fa-circle-xmark","No Request Found",
-            res.message || "No charity request found with these credentials. Please check your CNIC and Date of Birth.",
+            "No charity request found with these credentials.",
             [{ label:"<i class='fa-solid fa-rotate-left'></i> Try Again", fn:"closeAlertModal()" }]
           );
           return;
         }
-        const active = res.grants.filter(g=>(g.status||"").toLowerCase()!=="closed");
-        const list   = active.length ? active : res.grants;
-        let html="";
-        list.forEach(g => {
-          const s = (g.status||"").toLowerCase();
-          const d = (g.decision||"").toLowerCase();
-          let color,icon,title,msg;
-          if (s==="new") {
-            color="yellow"; icon="fa-hourglass-half"; title=`Request Received — ${g.crn}`;
-            msg=`Dear <strong>${g.name}</strong>, Your Charity Help Request <strong>${g.crn}</strong> has been received. Our team will review and contact you soon.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}`;
-          } else if (s==="assigned") {
-            color="teal"; icon="fa-user-check"; title=`Case Assigned — ${g.crn}`;
-            msg=`Dear <strong>${g.name}</strong>, Your case <strong>${g.crn}</strong> has been assigned to our team. They will contact you. Please cooperate.<br><br>📞 ${window.NGO.alert}`;
-          } else if (s==="completed") {
-            color="yellow"; icon="fa-clipboard-check"; title=`Verification Done — ${g.crn}`;
-            msg=`Dear <strong>${g.name}</strong>, Verification for case <strong>${g.crn}</strong> is completed. Please wait for the final decision.<br><br>📞 ${window.NGO.alert}`;
-          } else if (d==="approved"&&s!=="closed") {
-            color="green"; icon="fa-circle-check"; title=`Case APPROVED ✅ — ${g.crn}`;
-            msg=`Dear <strong>${g.name}</strong>, Congratulations! 🎉 Your Charity Case <strong>${g.crn}</strong> has been <strong>Approved</strong>. Our team will contact you and deliver your help.<br><br>📞 ${window.NGO.alert}`;
-          } else if (d==="rejected"&&s!=="closed") {
-            color="red"; icon="fa-circle-xmark"; title=`Case Rejected — ${g.crn}`;
-            msg=`Dear <strong>${g.name}</strong>, Your case <strong>${g.crn}</strong> was <strong>Rejected</strong> as it does not match our current criteria. To appeal, please meet our President with Case No.<br><br>📞 ${window.NGO.alert}`;
-          } else if (s==="closed"&&d!=="rejected") {
-            color="green"; icon="fa-lock"; title=`Successfully Closed — ${g.crn}`;
-            msg=`Dear <strong>${g.name}</strong>, Your case <strong>${g.crn}</strong> has been <strong>Successfully Closed</strong> after granting. Jazak Allah Khair! 🤲`;
-          } else if (s==="closed"&&d==="rejected") {
-            color="red"; icon="fa-lock"; title=`Case Closed — ${g.crn}`;
-            msg=`Dear <strong>${g.name}</strong>, Your case <strong>${g.crn}</strong> has been Closed after Rejection. To appeal, please meet our President.<br><br>📞 ${window.NGO.alert}`;
-          } else {
-            color="yellow"; icon="fa-hourglass-half"; title=`Under Process — ${g.crn}`;
-            msg=`Dear <strong>${g.name}</strong>, Your case is under process. Please contact us.<br><br>📞 ${window.NGO.alert}`;
-          }
-          // Show as modal — screen ke center mein
-          showAlertModal(color, icon, title,
-            msg+`<br><br><small style="color:#6B7280">Help: ${g.helpType||"—"} &nbsp;|&nbsp; Applied: ${g.timestamp||"—"} &nbsp;|&nbsp; Amount: Rs. ${Number(g.amountRequired||0).toLocaleString()}</small>`,
-            [{ label:"<i class='fa-solid fa-rotate-left'></i> Check Again", fn:"closeAlertModal()" }]
-          );
-        });
+        const active = res.grants.filter(g => (g.status||"").toLowerCase() !== "closed");
+        const list = active.length ? active : res.grants;
+        // Show first/most relevant grant
+        const g = list[0];
+        const s = (g.status||"").toLowerCase();
+        const d = (g.decision||"").toLowerCase();
+        let color,icon,title,msg;
+        if (s==="new") {
+          color="yellow"; icon="fa-hourglass-half"; title=`Request Received — ${g.crn}`;
+          msg=`Dear <strong>${g.name}</strong>, Your Charity Request <strong>${g.crn}</strong> has been received. Our team will contact you soon.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}`;
+        } else if (s==="assigned") {
+          color="teal"; icon="fa-user-check"; title=`Case Assigned — ${g.crn}`;
+          msg=`Dear <strong>${g.name}</strong>, Your case <strong>${g.crn}</strong> has been assigned to our team. They will contact you soon.<br><br>📞 ${window.NGO.alert}`;
+        } else if (s==="completed") {
+          color="yellow"; icon="fa-clipboard-check"; title=`Verification Done — ${g.crn}`;
+          msg=`Dear <strong>${g.name}</strong>, Verification for case <strong>${g.crn}</strong> is complete. Please wait for the final decision.<br><br>📞 ${window.NGO.alert}`;
+        } else if (d==="approved" && s!=="closed") {
+          color="green"; icon="fa-circle-check"; title=`Case APPROVED ✅ — ${g.crn}`;
+          msg=`Dear <strong>${g.name}</strong>, Congratulations! 🎉 Your case <strong>${g.crn}</strong> has been <strong>Approved</strong>. Our team will contact you.<br><br>📞 ${window.NGO.alert}`;
+        } else if (d==="rejected" && s!=="closed") {
+          color="red"; icon="fa-circle-xmark"; title=`Case Rejected — ${g.crn}`;
+          msg=`Dear <strong>${g.name}</strong>, Your case <strong>${g.crn}</strong> was <strong>Rejected</strong>. To appeal, please meet our President with Case No.<br><br>📞 ${window.NGO.alert}`;
+        } else if (s==="closed" && d!=="rejected") {
+          color="green"; icon="fa-lock"; title=`Successfully Closed — ${g.crn}`;
+          msg=`Dear <strong>${g.name}</strong>, Your case <strong>${g.crn}</strong> has been <strong>Successfully Closed</strong>. Jazak Allah Khair! 🤲`;
+        } else if (s==="closed" && d==="rejected") {
+          color="red"; icon="fa-lock"; title=`Case Closed — ${g.crn}`;
+          msg=`Dear <strong>${g.name}</strong>, Your case <strong>${g.crn}</strong> was Closed after Rejection. To appeal, meet our President.<br><br>📞 ${window.NGO.alert}`;
+        } else {
+          color="yellow"; icon="fa-hourglass-half"; title=`Under Process — ${g.crn}`;
+          msg=`Dear <strong>${g.name}</strong>, Your case is under process. Please contact us.<br><br>📞 ${window.NGO.alert}`;
+        }
+        showAlertModal(color, icon, title,
+          msg + `<br><br><small style="color:#6B7280">Help: ${g.helpType||"—"} &nbsp;|&nbsp; Applied: ${g.timestamp||"—"} &nbsp;|&nbsp; Amount: Rs. ${Number(g.amountRequired||0).toLocaleString()}</small>`,
+          [{ label:"<i class='fa-solid fa-rotate-left'></i> Check Again", fn:"closeAlertModal()" }]
+        );
       }).catch(() => { setLoading(gsBtn, false); if (gsMsg) { gsMsg.textContent="Network error."; gsMsg.classList.add("error"); } });
     });
   }
@@ -901,21 +872,19 @@ document.addEventListener("DOMContentLoaded", () => {
   /* TEAM */
   function loadTeam() {
     if (!window.RHS) { setTimeout(loadTeam, 500); return; }
-    const teamGrid = document.getElementById("teamGrid");
-    if (!teamGrid) return;
+    const grid = document.getElementById("teamGrid");
+    if (!grid) return;
     RHS.getTeam().then(res => {
-      if (!res.success||!res.team||!res.team.length) {
-        teamGrid.innerHTML=""; return;
-      }
-      teamGrid.innerHTML = "";
+      if (!res.success || !res.team || !res.team.length) { grid.innerHTML=""; return; }
+      grid.innerHTML = "";
       res.team.forEach(member => {
         const card = document.createElement("div");
         card.className = "team-card";
-        const photoHtml = member.photo
+        const ph = member.photo
           ? `<div class="photo" style="background-image:url('${member.photo}')"></div>`
           : `<div class="photo" style="background:#EEF8F1;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-user" style="font-size:2rem;color:#8A9A96"></i></div>`;
-        card.innerHTML = `${photoHtml}<h4>${member.name}</h4><div class="role">${member.designation}</div><p class="bio">${member.bio||""}</p>`;
-        teamGrid.appendChild(card);
+        card.innerHTML = `${ph}<h4>${member.name}</h4><div class="role">${member.designation}</div><p class="bio">${member.bio||""}</p>`;
+        grid.appendChild(card);
       });
     }).catch(() => {});
   }
@@ -945,8 +914,7 @@ document.addEventListener("DOMContentLoaded", () => {
           );
           contactForm.reset();
         } else {
-          contactMsg.textContent = res.message || "Something went wrong.";
-          contactMsg.classList.add("error");
+          contactMsg.textContent = res.message||"Something went wrong."; contactMsg.classList.add("error");
         }
       }).catch(() => { setLoading(sendBtn, false); contactMsg.textContent="⚠️ Network error."; contactMsg.classList.add("error"); });
     });
@@ -970,13 +938,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function loadNews() {
     const grid = document.getElementById("newsGrid");
     if (!grid) return;
-    grid.innerHTML='<div class="news-loading"><i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem"></i><p>Loading news...</p></div>';
+    grid.innerHTML='<div class="news-loading"><i class="fa-solid fa-spinner fa-spin"></i></div>';
     if (!window.RHS) { setTimeout(loadNews, 800); return; }
     RHS.getNews().then(res => {
-      if (!res.news||!res.news.length) {
-        grid.innerHTML='<div class="news-loading"><i class="fa-solid fa-newspaper" style="font-size:2rem;display:block;margin-bottom:8px"></i>No news yet.</div>';
-        return;
-      }
+      if (!res.news||!res.news.length) { grid.innerHTML='<div class="news-loading">No news yet.</div>'; return; }
       grid.innerHTML = res.news.map(n => `
         <article class="news-card">
           ${n.imageURL?`<img src="${n.imageURL}" alt="${n.title}" class="news-card-img" loading="lazy">`:`<div class="news-card-img" style="background:#EEF8F1;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-newspaper" style="font-size:2rem;color:#8A9A96"></i></div>`}
@@ -998,10 +963,7 @@ document.addEventListener("DOMContentLoaded", () => {
     grid.innerHTML='<div class="news-loading"><i class="fa-solid fa-spinner fa-spin"></i></div>';
     if (!window.RHS) { setTimeout(loadStories, 800); return; }
     RHS.getStories().then(res => {
-      if (!res.stories||!res.stories.length) {
-        grid.innerHTML='<div class="news-loading">No stories yet.</div>';
-        return;
-      }
+      if (!res.stories||!res.stories.length) { grid.innerHTML='<div class="news-loading">No stories yet.</div>'; return; }
       grid.innerHTML = res.stories.map(s => `
         <article class="story-card">
           ${s.photo?`<img src="${s.photo}" alt="${s.name}" class="story-card-img" loading="lazy">`:`<div class="story-card-img placeholder"><i class="fa-solid fa-heart"></i></div>`}
@@ -1021,14 +983,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!window.RHS) { setTimeout(loadContact, 500); return; }
     RHS.getContact().then(res => {
       if (!res.success) return;
-      const fb = document.getElementById("socialFb");
-      const ig = document.getElementById("socialIg");
-      const wa = document.getElementById("socialWa");
-      const yt = document.getElementById("socialYt");
-      if (fb && res.facebook) fb.href = res.facebook;
-      if (ig && res.instagram) ig.href = res.instagram;
-      if (wa && res.whatsapp) wa.href = "https://wa.me/" + res.whatsapp.replace(/\D/g,"");
-      if (yt && res.youtube) yt.href = res.youtube;
+      const setHref = (id, url) => { const el=document.getElementById(id); if(el&&url) el.href=url; };
+      setHref("socialFb", res.facebook);
+      setHref("socialIg", res.instagram);
+      setHref("socialYt", res.youtube);
+      if (res.whatsapp) { const el=document.getElementById("socialWa"); if(el) el.href="https://wa.me/"+res.whatsapp.replace(/\D/g,""); }
     }).catch(() => {});
   }
   loadContact();
@@ -1037,15 +996,3 @@ document.addEventListener("DOMContentLoaded", () => {
   loadNGOSettings();
 
 }); // end DOMContentLoaded
-
-// Add animation CSS for modal
-(function() {
-  const style = document.createElement("style");
-  style.textContent = `
-    @keyframes rhsModalIn {
-      from { opacity:0; transform:scale(0.85) translateY(-10px); }
-      to   { opacity:1; transform:scale(1)    translateY(0); }
-    }
-  `;
-  document.head.appendChild(style);
-})();
