@@ -210,7 +210,7 @@
       <h2>Membership &amp; Certificate Portal</h2>
       <p>New registration, verify your digital membership certificate, or view your complete charity donation history.</p>
     </div>
-    <!-- Main Portal Buttons -->
+    <!-- Main Buttons -->
     <div class="helpdesk-btns" id="memberPortalBtns">
       <button class="btn btn-primary" onclick="showMemberSection('registration')">
         <i class="fa-solid fa-user-plus"></i> New Member Registration
@@ -220,7 +220,7 @@
       </button>
     </div>
 
-    <!-- VERIFY PORTAL — hidden by default, shown on button click -->
+    <!-- VERIFY PORTAL — hidden by default -->
     <div id="verifyPortalWrap" style="display:none;margin-top:32px">
       <div class="form-card narrow" id="memberLookupCard">
         <div style="text-align:center;margin-bottom:20px">
@@ -253,13 +253,13 @@
           <p class="form-msg" id="verifyMsg"></p>
         </form>
       </div>
-      <!-- Results area — form hides, result shows fullscreen-center -->
-      <div id="certResult"></div>
+      <!-- Certificate / Ledger renders here -->
+      <div id="certResult" style="margin-top:24px"></div>
     </div>
   </div>
 </section>
 
-<!-- ===== REGISTRATION FORM ===== -->
+<!-- ===== REGISTRATION FORM — hidden by default ===== -->
 <section class="registration" id="registration" style="display:none">
   <div class="container">
     <div class="section-head">
@@ -333,9 +333,9 @@
             <label for="regAddress">Full Address <span class="req">*</span></label>
             <textarea id="regAddress" rows="2" placeholder="House no, street, area, city…" required autocomplete="off"></textarea>
           </div>
-          <!-- PHOTO UPLOAD -->
+          <!-- PHOTO UPLOAD — Required -->
           <div class="field full-col">
-            <label>Passport Size Photo <small>(optional)</small></label>
+            <label>Passport Size Photo <span class="req">*</span></label>
             <div class="photo-upload-row">
               <div class="photo-preview-box" id="regPhotoPreview" onclick="document.getElementById('regPhoto').click()">
                 <i class="fa-solid fa-camera"></i>
@@ -343,7 +343,7 @@
               </div>
               <div class="photo-upload-info">
                 <p><i class="fa-solid fa-circle-info" style="color:var(--teal)"></i> Upload a clear passport-size photo</p>
-                <p style="color:#8A9A96;font-size:.8rem">Format: JPG / PNG &nbsp;|&nbsp; Max: 2MB</p>
+                <p style="color:#8A9A96;font-size:.8rem">Format: JPG / PNG &nbsp;|&nbsp; Max: 2MB &nbsp;|&nbsp; <strong>Required</strong></p>
                 <input type="file" id="regPhoto" accept="image/*" style="display:none" onchange="previewRegPhoto(this)">
                 <button type="button" class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="document.getElementById('regPhoto').click()">
                   <i class="fa-solid fa-upload"></i> Choose Photo

@@ -1,4 +1,4 @@
-// RHS Firebase Mode - Complete Fixed Version
+// RHS Website — Complete Fixed Script
 
 /* ===================== GLOBAL UTILITIES ===================== */
 function setLoading(btn, loading, text="") {
@@ -23,10 +23,6 @@ function resetForm(formId) {
     el.value = "";
     el.removeAttribute("value");
   });
-  form.querySelectorAll(".form-msg").forEach(el => {
-    el.textContent = "";
-    el.className = "form-msg";
-  });
 }
 
 /* ===================== NGO SETTINGS ===================== */
@@ -45,14 +41,14 @@ function loadNGOSettings() {
   if (!window.RHS) { setTimeout(loadNGOSettings, 500); return; }
   RHS.getNGOSettings().then(res => {
     window.NGO = {
-      name:         res.ngoName        || window.NGO.name,
-      phone:        res.ngoPhone       || window.NGO.phone,
-      address:      res.ngoAddress     || window.NGO.address,
-      email:        res.ngoEmail       || window.NGO.email,
-      bank:         res.bankAccount    || window.NGO.bank,
-      alert:        res.alertNumber    || res.ngoPhone || window.NGO.alert,
-      ourTeamTitle: res.ourTeamTitle   || "Our Team",
-      ourTeamMatter:res.ourTeamMatter  || ""
+      name:          res.ngoName        || window.NGO.name,
+      phone:         res.ngoPhone       || window.NGO.phone,
+      address:       res.ngoAddress     || window.NGO.address,
+      email:         res.ngoEmail       || window.NGO.email,
+      bank:          res.bankAccount    || window.NGO.bank,
+      alert:         res.alertNumber    || res.ngoPhone || window.NGO.alert,
+      ourTeamTitle:  res.ourTeamTitle   || "Our Team",
+      ourTeamMatter: res.ourTeamMatter  || ""
     };
     document.querySelectorAll(".ngo-name").forEach(el => el.textContent = window.NGO.name);
     document.querySelectorAll(".ngo-address").forEach(el => el.textContent = window.NGO.address);
@@ -73,6 +69,63 @@ window.addEventListener("load", () => {
   }, 1200);
 });
 
+/* ============================================================
+   ALERT MODAL SYSTEM
+   Screen ke bilkul center mein aata hai — koi scroll nahi
+   Colors: green, yellow, red, orange, teal
+============================================================ */
+function showAlertModal(color, icon, title, bodyHtml, buttons) {
+  // Remove any existing modal
+  const existing = document.getElementById("rhsAlertModal");
+  if (existing) existing.remove();
+
+  const colorMap = {
+    green:  { bg:"#EEF8F1", border:"#1a9e5c", titleClr:"#1a9e5c", iconClr:"#1a9e5c" },
+    yellow: { bg:"#FFFBEB", border:"#D97706", titleClr:"#92400E", iconClr:"#D97706" },
+    red:    { bg:"#FEF2F2", border:"#DC2626", titleClr:"#991B1B", iconClr:"#DC2626" },
+    orange: { bg:"#FFF7ED", border:"#EA580C", titleClr:"#9A3412", iconClr:"#EA580C" },
+    teal:   { bg:"#EEF8F1", border:"#14534F", titleClr:"#14534F", iconClr:"#14534F" },
+  };
+  const c = colorMap[color] || colorMap.teal;
+  const btns = (buttons || []).map(b =>
+    `<button class="btn btn-ghost" onclick="${b.fn}" style="min-width:140px;margin:4px">${b.label}</button>`
+  ).join("");
+
+  const overlay = document.createElement("div");
+  overlay.id = "rhsAlertModal";
+  overlay.style.cssText = `
+    position:fixed;top:0;left:0;width:100%;height:100%;
+    background:rgba(0,0,0,0.55);z-index:99999;
+    display:flex;align-items:center;justify-content:center;
+    padding:16px;box-sizing:border-box;
+  `;
+  overlay.innerHTML = `
+    <div style="
+      background:${c.bg};border:2.5px solid ${c.border};border-radius:20px;
+      padding:36px 28px;max-width:480px;width:100%;text-align:center;
+      box-shadow:0 20px 60px rgba(0,0,0,.25);
+      animation:rhsModalIn .25s cubic-bezier(.34,1.56,.64,1);
+    ">
+      <i class="fa-solid ${icon}" style="font-size:3rem;color:${c.iconClr};margin-bottom:14px;display:block"></i>
+      <h3 style="font-family:'Fraunces',serif;color:${c.titleClr};margin:0 0 14px;font-size:1.3rem;line-height:1.3">${title}</h3>
+      <div style="color:#374151;line-height:1.75;font-size:.93rem;margin-bottom:22px">${bodyHtml}</div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">${btns}</div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+
+  // Click backdrop to close (if only 1 button or no buttons)
+  overlay.addEventListener("click", e => {
+    if (e.target === overlay && buttons && buttons.length === 0) closeAlertModal();
+  });
+}
+
+function closeAlertModal() {
+  const m = document.getElementById("rhsAlertModal");
+  if (m) m.remove();
+}
+window.closeAlertModal = closeAlertModal;
+
 /* ===================== INIT AFTER DOM ===================== */
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -83,7 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* NAVBAR */
   const navToggle = document.getElementById("navToggle");
-  const navLinks = document.getElementById("navLinks");
+  const navLinks  = document.getElementById("navLinks");
   if (navToggle && navLinks) {
     navToggle.addEventListener("click", () => {
       navToggle.classList.toggle("open");
@@ -103,9 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const sections = document.querySelectorAll("section[id]");
   window.addEventListener("scroll", () => {
     let current = "home";
-    sections.forEach(sec => {
-      if (window.scrollY >= sec.offsetTop - 120) current = sec.id;
-    });
+    sections.forEach(sec => { if (window.scrollY >= sec.offsetTop - 120) current = sec.id; });
     if (navLinks) {
       navLinks.querySelectorAll("a").forEach(a => {
         a.classList.toggle("active", a.getAttribute("href") === "#" + current);
@@ -114,11 +165,10 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* HERO SLIDER */
-  const slides = document.querySelectorAll(".slide");
+  const slides   = document.querySelectorAll(".slide");
   const dotsWrap = document.getElementById("sliderDots");
   if (slides.length && dotsWrap) {
-    let currentSlide = 0;
-    let sliderInterval;
+    let currentSlide = 0, sliderInterval;
     slides.forEach((_, i) => {
       const dot = document.createElement("button");
       dot.classList.add("dot");
@@ -135,7 +185,7 @@ document.addEventListener("DOMContentLoaded", () => {
       dots[currentSlide].classList.add("active");
     }
     function startSlider() { sliderInterval = setInterval(() => goToSlide(currentSlide + 1), 5500); }
-    function resetSlider() { clearInterval(sliderInterval); startSlider(); }
+    function resetSlider()  { clearInterval(sliderInterval); startSlider(); }
     const nextBtn = document.getElementById("nextSlide");
     const prevBtn = document.getElementById("prevSlide");
     if (nextBtn) nextBtn.addEventListener("click", () => { goToSlide(currentSlide + 1); resetSlider(); });
@@ -143,13 +193,14 @@ document.addEventListener("DOMContentLoaded", () => {
     startSlider();
   }
 
-  /* CNIC FORMAT */
+  /* CNIC FORMAT — auto dash */
   document.querySelectorAll('[id*="cnic"],[id*="Cnic"],[placeholder*="00000-"]').forEach(el => {
     el.setAttribute("autocomplete", "new-password");
     el.addEventListener("input", function() {
-      let v = this.value.replace(/\D/g, "").slice(0, 13);
-      if (v.length > 12) v = v.slice(0,5) + "-" + v.slice(5,12) + "-" + v.slice(12);
-      else if (v.length > 5) v = v.slice(0,5) + "-" + v.slice(5);
+      const digits = this.value.replace(/\D/g, "").slice(0, 13);
+      let v = digits;
+      if (digits.length > 12) v = digits.slice(0,5)+"-"+digits.slice(5,12)+"-"+digits.slice(12,13);
+      else if (digits.length > 5) v = digits.slice(0,5)+"-"+digits.slice(5);
       this.value = v;
     });
   });
@@ -159,8 +210,8 @@ document.addEventListener("DOMContentLoaded", () => {
     el.setAttribute("autocomplete", "new-password");
     el.addEventListener("input", function() {
       let v = this.value.replace(/\D/g, "").slice(0, 8);
-      if (v.length > 4) v = v.slice(0,2) + "-" + v.slice(2,4) + "-" + v.slice(4);
-      else if (v.length > 2) v = v.slice(0,2) + "-" + v.slice(2);
+      if (v.length > 4) v = v.slice(0,2)+"-"+v.slice(2,4)+"-"+v.slice(4);
+      else if (v.length > 2) v = v.slice(0,2)+"-"+v.slice(2);
       this.value = v;
     });
     el.addEventListener("blur", function() {
@@ -173,7 +224,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll('[id*="mobile"],[id*="Mobile"],[placeholder*="0300-"],[placeholder*="0346-"]').forEach(el => {
     el.addEventListener("input", function() {
       let v = this.value.replace(/\D/g, "").slice(0, 11);
-      if (v.length > 4) v = v.slice(0,4) + "-" + v.slice(4);
+      if (v.length > 4) v = v.slice(0,4)+"-"+v.slice(4);
       this.value = v;
     });
   });
@@ -181,8 +232,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* STATISTICS */
   function animateCount(el, target) {
     target = Number(target) || 0;
-    const duration = 1400;
-    const startTime = performance.now();
+    const duration = 1400, startTime = performance.now();
     function tick(now) {
       const progress = Math.min((now - startTime) / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
@@ -198,9 +248,7 @@ document.addEventListener("DOMContentLoaded", () => {
     RHS.getStatistics().then(res => {
       document.querySelectorAll(".stat-num").forEach(el => {
         const key = el.dataset.key;
-        if (key && res[key] !== undefined) {
-          el.dataset.target = res[key];
-        }
+        if (key && res[key] !== undefined) el.dataset.target = res[key];
       });
     }).catch(() => {});
   }
@@ -211,9 +259,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const statsObserver = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          document.querySelectorAll(".stat-num").forEach(el => {
-            animateCount(el, el.dataset.target || 0);
-          });
+          document.querySelectorAll(".stat-num").forEach(el => animateCount(el, el.dataset.target || 0));
           statsObserver.disconnect();
         }
       });
@@ -226,65 +272,94 @@ document.addEventListener("DOMContentLoaded", () => {
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   /* ============================================================
-     MEMBER PORTAL — Navigation helpers
-     Issues 5,6: alert screen ke samne aaye, Main Menu + Back
+     MEMBER PORTAL NAVIGATION
   ============================================================ */
-
-  // Show/hide helpers
-  function showEl(id)  { const el=document.getElementById(id); if(el) el.style.display="block"; }
-  function hideEl(id)  { const el=document.getElementById(id); if(el) el.style.display="none";  }
-
-  // Back to root Member Portal (New Reg + Certificate Verify buttons)
-  window.backToMemberPortalMain = function() {
-    hideEl("registration");
-    hideEl("verifyPortalWrap");
-    const certResult = document.getElementById("certResult");
-    if (certResult) certResult.innerHTML = "";
-    const memberLookupCard = document.getElementById("memberLookupCard");
-    if (memberLookupCard) memberLookupCard.style.display = "block";
-    clearVerifyForm();
-    const ms = document.getElementById("memberSection");
-    if (ms) { ms.style.display="block"; ms.scrollIntoView({ behavior:"smooth" }); }
-  };
-
-  // Back to verify form (within verify portal)
-  window.backToVerifyForm = function() {
-    const certResult = document.getElementById("certResult");
-    if (certResult) certResult.innerHTML = "";
-    const memberLookupCard = document.getElementById("memberLookupCard");
-    if (memberLookupCard) memberLookupCard.style.display = "block";
-    clearVerifyForm();
-    const vp = document.getElementById("verifyPortalWrap");
-    if (vp) vp.scrollIntoView({ behavior:"smooth" });
-  };
-
-  function clearVerifyForm() {
-    const vCnic = document.getElementById("vCnic");
-    const vDob  = document.getElementById("vDob");
-    if (vCnic) vCnic.value = "";
-    if (vDob)  vDob.value = "";
-    const verifyMsg = document.getElementById("verifyMsg");
-    if (verifyMsg) { verifyMsg.textContent=""; verifyMsg.className="form-msg"; }
-  }
-
   window.showMemberSection = function(which) {
+    const regSection = document.getElementById("registration");
+    const verifyWrap = document.getElementById("verifyPortalWrap");
+    const memberBtns = document.getElementById("memberPortalBtns");
+
     if (which === "registration") {
-      hideEl("verifyPortalWrap");
-      showEl("registration");
-      document.getElementById("registration")?.scrollIntoView({ behavior:"smooth" });
+      if (verifyWrap) verifyWrap.style.display = "none";
+      if (regSection) {
+        regSection.style.display = "block";
+        setTimeout(() => regSection.scrollIntoView({ behavior:"smooth", block:"start" }), 50);
+      }
     } else if (which === "verify") {
-      hideEl("registration");
-      showEl("verifyPortalWrap");
-      const certResult = document.getElementById("certResult");
-      if (certResult) certResult.innerHTML = "";
-      const memberLookupCard = document.getElementById("memberLookupCard");
-      if (memberLookupCard) memberLookupCard.style.display = "block";
-      document.getElementById("verifyPortalWrap")?.scrollIntoView({ behavior:"smooth" });
+      if (regSection) regSection.style.display = "none";
+      if (verifyWrap) {
+        verifyWrap.style.display = "block";
+        clearVerifyInputs();
+        hideVerifyResult();
+        showVerifyForm();
+        setTimeout(() => verifyWrap.scrollIntoView({ behavior:"smooth", block:"start" }), 50);
+      }
     }
   };
 
+  window.backToMemberPortalMain = function() {
+    closeAlertModal();
+    const regSection = document.getElementById("registration");
+    const verifyWrap = document.getElementById("verifyPortalWrap");
+    if (regSection) regSection.style.display = "none";
+    if (verifyWrap)  verifyWrap.style.display = "none";
+    clearVerifyInputs();
+    hideVerifyResult();
+    showVerifyForm();
+    const ms = document.getElementById("memberSection");
+    if (ms) setTimeout(() => ms.scrollIntoView({ behavior:"smooth", block:"start" }), 50);
+  };
+
+  window.restartRegistration = function() {
+    closeAlertModal();
+    const regForm = document.getElementById("regForm");
+    const formResult = document.getElementById("formResult");
+    if (regForm) { regForm.reset(); regForm.style.display = "block"; }
+    if (formResult) { formResult.hidden = true; formResult.innerHTML = ""; }
+    const preview = document.getElementById("regPhotoPreview");
+    if (preview) preview.innerHTML = `<i class="fa-solid fa-camera"></i><span>Click to upload</span>`;
+    const regSection = document.getElementById("registration");
+    if (regSection) setTimeout(() => regSection.scrollIntoView({ behavior:"smooth", block:"start" }), 50);
+  };
+
+  function clearVerifyInputs() {
+    const vCnic = document.getElementById("vCnic");
+    const vDob  = document.getElementById("vDob");
+    if (vCnic) vCnic.value = "";
+    if (vDob)  vDob.value  = "";
+    const verifyMsg = document.getElementById("verifyMsg");
+    if (verifyMsg) { verifyMsg.textContent = ""; verifyMsg.className = "form-msg"; }
+  }
+
+  function hideVerifyResult() {
+    const certResult = document.getElementById("certResult");
+    if (certResult) certResult.innerHTML = "";
+  }
+
+  function showVerifyForm() {
+    const memberLookupCard = document.getElementById("memberLookupCard");
+    if (memberLookupCard) memberLookupCard.style.display = "block";
+  }
+
+  function hideVerifyForm() {
+    const memberLookupCard = document.getElementById("memberLookupCard");
+    if (memberLookupCard) memberLookupCard.style.display = "none";
+  }
+
+  window.backToVerifyForm = function() {
+    closeAlertModal();
+    hideVerifyResult();
+    showVerifyForm();
+    clearVerifyInputs();
+    const vp = document.getElementById("verifyPortalWrap");
+    if (vp) setTimeout(() => vp.scrollIntoView({ behavior:"smooth", block:"start" }), 50);
+  };
+
   /* ============================================================
-     REGISTRATION FORM — Issues 1,2,3
+     REGISTRATION FORM
+     - All fields required including photo
+     - Cloudinary upload
+     - Alert modal on success/fail
   ============================================================ */
   const regForm   = document.getElementById("regForm");
   const formMsg   = document.getElementById("formMsg");
@@ -294,7 +369,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (regForm) {
     regForm.addEventListener("reset", () => {
       setTimeout(() => {
-        if (formMsg) { formMsg.textContent=""; formMsg.className="form-msg"; }
+        if (formMsg) { formMsg.textContent = ""; formMsg.className = "form-msg"; }
         const preview = document.getElementById("regPhotoPreview");
         if (preview) preview.innerHTML = `<i class="fa-solid fa-camera"></i><span>Click to upload</span>`;
       }, 0);
@@ -306,70 +381,74 @@ document.addEventListener("DOMContentLoaded", () => {
       formMsg.textContent = "";
       formMsg.className = "form-msg";
 
-      const cnic       = document.getElementById("regCnic")?.value.trim() || "";
-      const dob        = document.getElementById("regDob")?.value.trim() || "";
-      const fullName   = document.getElementById("regName")?.value.trim() || "";
-      const father     = document.getElementById("regFather")?.value.trim() || "";
-      const gender     = document.getElementById("regGender")?.value || "";
-      const prof       = document.getElementById("regProfession")?.value.trim() || "";
-      const email      = document.getElementById("regEmail")?.value.trim() || "";
-      const mobile     = document.getElementById("regMobile")?.value.trim() || "";
-      const province   = document.getElementById("regProvince")?.value || "";
-      const membership = document.getElementById("regMembership")?.value || "";
-      const address    = document.getElementById("regAddress")?.value.trim() || "";
+      const cnic       = document.getElementById("regCnic")?.value.trim()        || "";
+      const dob        = document.getElementById("regDob")?.value.trim()          || "";
+      const fullName   = document.getElementById("regName")?.value.trim()         || "";
+      const father     = document.getElementById("regFather")?.value.trim()       || "";
+      const gender     = document.getElementById("regGender")?.value              || "";
+      const prof       = document.getElementById("regProfession")?.value.trim()   || "";
+      const mobile     = document.getElementById("regMobile")?.value.trim()       || "";
+      const email      = document.getElementById("regEmail")?.value.trim()        || "";
+      const province   = document.getElementById("regProvince")?.value            || "";
+      const membership = document.getElementById("regMembership")?.value          || "";
+      const address    = document.getElementById("regAddress")?.value.trim()      || "";
+      const photoFile  = document.getElementById("regPhoto")?.files?.[0]          || null;
 
+      // Validation — all required
       if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic))  { formMsg.textContent="⚠️ Valid CNIC required: 00000-0000000-0"; formMsg.classList.add("error"); return; }
-      if (!/^\d{2}-\d{2}-\d{4}$/.test(dob))    { formMsg.textContent="⚠️ DOB format: dd-mm-yyyy"; formMsg.classList.add("error"); return; }
-      if (!fullName)   { formMsg.textContent="⚠️ Full Name required."; formMsg.classList.add("error"); return; }
-      if (!father)     { formMsg.textContent="⚠️ Father/Husband Name required."; formMsg.classList.add("error"); return; }
-      if (!gender)     { formMsg.textContent="⚠️ Please select Gender."; formMsg.classList.add("error"); return; }
-      if (!prof)       { formMsg.textContent="⚠️ Profession required."; formMsg.classList.add("error"); return; }
-      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { formMsg.textContent="⚠️ Valid Email format required."; formMsg.classList.add("error"); return; }
+      if (!/^\d{2}-\d{2}-\d{4}$/.test(dob))    { formMsg.textContent="⚠️ Date of Birth required (dd-mm-yyyy)"; formMsg.classList.add("error"); return; }
+      if (!fullName)   { formMsg.textContent="⚠️ Full Name is required"; formMsg.classList.add("error"); return; }
+      if (!father)     { formMsg.textContent="⚠️ Father/Husband Name is required"; formMsg.classList.add("error"); return; }
+      if (!gender)     { formMsg.textContent="⚠️ Please select Gender"; formMsg.classList.add("error"); return; }
+      if (!prof)       { formMsg.textContent="⚠️ Profession is required"; formMsg.classList.add("error"); return; }
       if (!/^\d{4}-\d{7}$/.test(mobile)) { formMsg.textContent="⚠️ Mobile format: 0300-0000000"; formMsg.classList.add("error"); return; }
-      if (!province)   { formMsg.textContent="⚠️ Please select Province."; formMsg.classList.add("error"); return; }
-      if (!membership) { formMsg.textContent="⚠️ Please select Membership Type."; formMsg.classList.add("error"); return; }
-      if (!address)    { formMsg.textContent="⚠️ Address required."; formMsg.classList.add("error"); return; }
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { formMsg.textContent="⚠️ Valid Email format required"; formMsg.classList.add("error"); return; }
+      if (!province)   { formMsg.textContent="⚠️ Please select Province"; formMsg.classList.add("error"); return; }
+      if (!membership) { formMsg.textContent="⚠️ Please select Membership Type"; formMsg.classList.add("error"); return; }
+      if (!address)    { formMsg.textContent="⚠️ Full Address is required"; formMsg.classList.add("error"); return; }
+      if (!photoFile)  { formMsg.textContent="⚠️ Passport size photo is required"; formMsg.classList.add("error"); return; }
 
       setLoading(submitBtn, true, "Submitting...");
 
-      // Photo upload
+      // Upload photo to Cloudinary
       let photoUrl = "";
-      const photoFile = document.getElementById("regPhoto")?.files?.[0];
       if (photoFile && window.RHS) {
-        try { photoUrl = await RHS.uploadImage(photoFile, "rhs/members"); } catch(err) {}
+        formMsg.textContent = "Uploading photo...";
+        formMsg.className = "form-msg";
+        try {
+          photoUrl = await RHS.uploadImage(photoFile, "rhs/members");
+          formMsg.textContent = "";
+        } catch(err) {
+          setLoading(submitBtn, false);
+          formMsg.textContent = "⚠️ Photo upload failed. Please try again.";
+          formMsg.classList.add("error");
+          return;
+        }
       }
 
-      if (!window.RHS) { setLoading(submitBtn, false); formMsg.textContent="Please wait, loading..."; return; }
+      if (!window.RHS) { setLoading(submitBtn, false); formMsg.textContent="Please wait..."; return; }
 
-      RHS.registerMember({ cnic, dob, fullName, fatherName: father, gender, profession: prof, email, mobile, province, address, membershipType: membership, photo: photoUrl })
+      RHS.registerMember({ cnic, dob, fullName, fatherName:father, gender, profession:prof, email, mobile, province, address, membershipType:membership, photo:photoUrl })
       .then(res => {
         setLoading(submitBtn, false);
         if (res.success) {
           if (regForm) regForm.style.display = "none";
-          if (formResult) {
-            formResult.hidden = false;
-            // Issue 2: Proper styled success alert
-            formResult.innerHTML = makeAlert("green", "fa-circle-check",
-              "Registration Submitted Successfully!",
-              `Dear <strong>${fullName}</strong>, Your Registration Request has been Successfully Received.<br><br>
-               Your Registration is now <strong>Underprocess</strong>. You will be notified after approval.<br><br>
-               📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}`,
-              [
-                {label:"<i class='fa-solid fa-house'></i> Main Menu", fn:"backToMemberPortalMain()"},
-                {label:"<i class='fa-solid fa-user-plus'></i> New Registration", fn:"restartRegistration()"}
-              ]
-            );
-          }
+          showAlertModal("green", "fa-circle-check",
+            "Registration Submitted Successfully!",
+            `Dear <strong>${fullName}</strong>, Your Registration Request has been Successfully Received.<br><br>
+             Your Registration is now <strong>Underprocess</strong>. You will be notified after approval.<br><br>
+             📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}`,
+            [
+              { label:"<i class='fa-solid fa-house'></i> Main Menu",        fn:"backToMemberPortalMain()" },
+              { label:"<i class='fa-solid fa-user-plus'></i> New Registration", fn:"restartRegistration()" }
+            ]
+          );
         } else if (res.code === "DUPLICATE") {
-          if (regForm) regForm.style.display = "none";
-          if (formResult) {
-            formResult.hidden = false;
-            formResult.innerHTML = makeAlert("yellow", "fa-circle-info",
-              "Already Registered",
-              res.message || `Dear <strong>${fullName}</strong>, You are already registered.`,
-              [{label:"<i class='fa-solid fa-house'></i> Main Menu", fn:"backToMemberPortalMain()"}]
-            );
-          }
+          showAlertModal("yellow", "fa-circle-info",
+            "Already Registered",
+            res.message || `Dear <strong>${fullName}</strong>, You are already registered with us.`,
+            [{ label:"<i class='fa-solid fa-house'></i> Main Menu", fn:"backToMemberPortalMain()" }]
+          );
         } else {
           formMsg.textContent = res.message || "Something went wrong.";
           formMsg.classList.add("error");
@@ -382,49 +461,33 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  window.restartRegistration = function() {
-    if (regForm) { regForm.style.display="block"; regForm.reset(); }
-    if (formResult) { formResult.hidden=true; formResult.innerHTML=""; }
-    if (formMsg) { formMsg.textContent=""; formMsg.className="form-msg"; }
+  /* PHOTO PREVIEW */
+  window.previewRegPhoto = function(input) {
+    const file = input.files?.[0];
+    if (!file) return;
+    const preview = document.getElementById("regPhotoPreview");
+    if (!preview) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Photo size must be under 2MB. Please choose a smaller image.");
+      input.value = "";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      preview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`;
+    };
+    reader.readAsDataURL(file);
   };
 
   /* ============================================================
-     ALERT BUILDER — Issues 4,5,6
-     Colors: green=Active/Success, yellow=Underprocess, red=Banned, orange=Expired
-  ============================================================ */
-  function makeAlert(color, icon, title, body, buttons) {
-    const colorMap = {
-      green:  { bg:"#EEF8F1", border:"#1a9e5c", title:"#1a9e5c", icon:"#1a9e5c" },
-      yellow: { bg:"#FFFBEB", border:"#D97706", title:"#92400E", icon:"#D97706" },
-      red:    { bg:"#FEF2F2", border:"#DC2626", title:"#991B1B", icon:"#DC2626" },
-      orange: { bg:"#FFF7ED", border:"#EA580C", title:"#9A3412", icon:"#EA580C" },
-      teal:   { bg:"#EEF8F1", border:"#14534F", title:"#14534F", icon:"#14534F" },
-    };
-    const c = colorMap[color] || colorMap.teal;
-    const btns = (buttons||[]).map(b =>
-      `<button class="btn btn-ghost" onclick="${b.fn}" style="margin:4px">${b.label}</button>`
-    ).join("");
-    return `
-      <div style="background:${c.bg};border:2px solid ${c.border};border-radius:16px;padding:32px 28px;max-width:540px;margin:0 auto;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.08)">
-        <i class="fa-solid ${icon}" style="font-size:2.5rem;color:${c.icon};margin-bottom:12px;display:block"></i>
-        <h3 style="font-family:'Fraunces',serif;color:${c.title};margin:0 0 12px;font-size:1.25rem">${title}</h3>
-        <p style="color:#374151;line-height:1.7;margin:0 0 20px;font-size:.93rem">${body}</p>
-        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">${btns}</div>
-      </div>`;
-  }
-  window.makeAlert = makeAlert;
-
-  /* ============================================================
-     VERIFY PORTAL — Issues 3,4,5,6,7
-     Single form, 3 buttons, result hides form, colored alerts
+     CERTIFICATE VERIFICATION + CHARITY LEDGER
+     Single form — 3 buttons — result as modal
   ============================================================ */
   const verifyForm        = document.getElementById("verifyForm");
   const verifyMsg         = document.getElementById("verifyMsg");
-  const certResult        = document.getElementById("certResult");
   const verifyBtn         = document.getElementById("verifyBtn");
   const verifyDonationBtn = document.getElementById("verifyDonationBtn");
   const verifyClearBtn    = document.getElementById("verifyClearBtn");
-  const memberLookupCard  = document.getElementById("memberLookupCard");
 
   function getVerifyVals() {
     return {
@@ -433,35 +496,27 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  function validateVerify(cnic, dob) {
+  function validateVerify() {
+    const { cnic, dob } = getVerifyVals();
     if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic)) {
       if (verifyMsg) { verifyMsg.textContent="⚠️ Valid CNIC required: 00000-0000000-0"; verifyMsg.classList.add("error"); }
       return false;
     }
     if (!/^\d{2}-\d{2}-\d{4}$/.test(dob)) {
-      if (verifyMsg) { verifyMsg.textContent="⚠️ DOB format: dd-mm-yyyy"; verifyMsg.classList.add("error"); }
+      if (verifyMsg) { verifyMsg.textContent="⚠️ Date of Birth required (dd-mm-yyyy)"; verifyMsg.classList.add("error"); }
       return false;
     }
-    return true;
-  }
-
-  function showVerifyResult(html) {
-    // Hide form, show result — Issue 5: screen ke samne
-    if (memberLookupCard) memberLookupCard.style.display = "none";
-    if (certResult) { certResult.innerHTML = html; certResult.scrollIntoView({ behavior:"smooth", block:"start" }); }
     if (verifyMsg) { verifyMsg.textContent=""; verifyMsg.className="form-msg"; }
+    return true;
   }
 
   if (verifyForm) {
     verifyForm.addEventListener("submit", e => { e.preventDefault(); doVerifyCert(); });
   }
 
-  // ---- Verify Certificate ----
   function doVerifyCert() {
-    if (verifyMsg) { verifyMsg.textContent=""; verifyMsg.className="form-msg"; }
-    if (certResult) certResult.innerHTML = "";
+    if (!validateVerify()) return;
     const { cnic, dob } = getVerifyVals();
-    if (!validateVerify(cnic, dob)) return;
     setLoading(verifyBtn, true, "Verifying...");
     if (!window.RHS) { setLoading(verifyBtn, false); return; }
     RHS.getMemberByCredentials(cnic, dob).then(res => {
@@ -470,20 +525,29 @@ document.addEventListener("DOMContentLoaded", () => {
         const m = res.member;
         const s = (m.status || "").toLowerCase();
         if (s === "active") {
-          // Show digital certificate
-          showVerifyResult(renderCertCard(m));
+          // Show certificate in inline area (needs scroll for PDF)
+          hideVerifyForm();
+          const certResult = document.getElementById("certResult");
+          if (certResult) {
+            certResult.innerHTML = renderCertCard(m);
+            certResult.scrollIntoView({ behavior:"smooth", block:"start" });
+          }
         } else {
-          // Issue 3,4: Status-based colored alert with name
-          const statusConfig = {
-            underprocess: { color:"yellow", icon:"fa-hourglass-half", title:`Membership Underprocess`, msg:`Dear <strong>${m.fullName}</strong>, Your Membership Status is <strong>Underprocess</strong>. Your application is being reviewed. Please contact us for more information.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}` },
-            expired:      { color:"orange", icon:"fa-clock",           title:`Membership Expired`,      msg:`Dear <strong>${m.fullName}</strong>, Your Membership Status is <strong>Expired</strong>. Please contact us to renew your membership.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}` },
-            banned:       { color:"red",    icon:"fa-ban",             title:`Membership Banned`,       msg:`Dear <strong>${m.fullName}</strong>, Your Membership Status is <strong>Banned</strong>. Please contact us for more information.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}` },
+          // Status alert — modal center screen
+          const statusCfg = {
+            underprocess: { color:"yellow", icon:"fa-hourglass-half", title:"Membership Underprocess",
+              msg:`Dear <strong>${m.fullName}</strong>, Your Membership Status is <strong>Underprocess</strong>.<br>Your application is being reviewed by our team.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}` },
+            expired:      { color:"orange", icon:"fa-clock",          title:"Membership Expired",
+              msg:`Dear <strong>${m.fullName}</strong>, Your Membership Status is <strong>Expired</strong>.<br>Please contact us to renew your membership.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}` },
+            banned:       { color:"red",    icon:"fa-ban",            title:"Membership Banned",
+              msg:`Dear <strong>${m.fullName}</strong>, Your Membership Status is <strong>Banned</strong>.<br>Please contact us for more information.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}` },
           };
-          const cfg = statusConfig[s] || { color:"yellow", icon:"fa-circle-info", title:`Status: ${m.status}`, msg:`Dear <strong>${m.fullName}</strong>, Your Membership Status is <strong>${m.status}</strong>. Please contact us.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}` };
-          showVerifyResult(makeAlert(cfg.color, cfg.icon, cfg.title, cfg.msg, [
-            {label:"<i class='fa-solid fa-arrow-left'></i> Back", fn:"backToVerifyForm()"},
-            {label:"<i class='fa-solid fa-house'></i> Main Menu", fn:"backToMemberPortalMain()"}
-          ]));
+          const cfg = statusCfg[s] || { color:"yellow", icon:"fa-circle-info", title:`Status: ${m.status}`,
+            msg:`Dear <strong>${m.fullName}</strong>, Your Membership Status is <strong>${m.status}</strong>.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}` };
+          showAlertModal(cfg.color, cfg.icon, cfg.title, cfg.msg, [
+            { label:"<i class='fa-solid fa-arrow-left'></i> Back",       fn:"backToVerifyForm()" },
+            { label:"<i class='fa-solid fa-house'></i> Main Menu",       fn:"backToMemberPortalMain()" }
+          ]);
         }
       } else {
         if (verifyMsg) { verifyMsg.textContent = res.message || "No record found with these credentials."; verifyMsg.classList.add("error"); }
@@ -491,13 +555,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }).catch(() => { setLoading(verifyBtn, false); if (verifyMsg) { verifyMsg.textContent="Network error."; verifyMsg.classList.add("error"); } });
   }
 
-  // ---- Verify Charity Donation ----
   if (verifyDonationBtn) {
     verifyDonationBtn.addEventListener("click", () => {
-      if (verifyMsg) { verifyMsg.textContent=""; verifyMsg.className="form-msg"; }
-      if (certResult) certResult.innerHTML = "";
+      if (!validateVerify()) return;
       const { cnic, dob } = getVerifyVals();
-      if (!validateVerify(cnic, dob)) return;
       setLoading(verifyDonationBtn, true, "Loading...");
       if (!window.RHS) { setLoading(verifyDonationBtn, false); return; }
       RHS.getCharityLedger(cnic, dob).then(res => {
@@ -506,37 +567,32 @@ document.addEventListener("DOMContentLoaded", () => {
           if (verifyMsg) { verifyMsg.textContent = res.message || "No record found."; verifyMsg.classList.add("error"); }
           return;
         }
-        showVerifyResult(renderLedger(res));
+        hideVerifyForm();
+        const certResult = document.getElementById("certResult");
+        if (certResult) {
+          certResult.innerHTML = renderLedger(res);
+          certResult.scrollIntoView({ behavior:"smooth", block:"start" });
+        }
       }).catch(() => { setLoading(verifyDonationBtn, false); if (verifyMsg) { verifyMsg.textContent="Network error."; verifyMsg.classList.add("error"); } });
     });
   }
 
-  // ---- Clear Button ----
   if (verifyClearBtn) {
     verifyClearBtn.addEventListener("click", () => {
-      clearVerifyForm();
-      if (certResult) certResult.innerHTML = "";
-      if (memberLookupCard) memberLookupCard.style.display = "block";
+      clearVerifyInputs();
+      hideVerifyResult();
+      showVerifyForm();
     });
   }
 
-  // Back to verify form (from result)
-  window.backToVerifyForm = function() {
-    if (certResult) certResult.innerHTML = "";
-    if (memberLookupCard) memberLookupCard.style.display = "block";
-    clearVerifyForm();
-    const vp = document.getElementById("verifyPortalWrap");
-    if (vp) vp.scrollIntoView({ behavior:"smooth" });
-  };
-
-  // ---- Certificate Card Renderer ----
+  /* Certificate Card HTML */
   function renderCertCard(m) {
     const photoHtml = m.photo
       ? `<img src="${m.photo}" alt="${m.fullName}" style="width:100%;height:100%;object-fit:cover">`
       : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#EEF8F1;color:#8A9A96;font-size:2.5rem"><i class="fa-solid fa-user"></i></div>`;
     const mData = JSON.stringify(m).replace(/"/g, "&quot;");
     return `
-      <div class="cert-card">
+      <div class="cert-card" style="margin-top:0">
         <div class="cert-top-bar">
           <img src="images/logo.png" class="cert-logo" alt="RHS">
           <div class="cert-org-info">
@@ -549,7 +605,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="cert-photo">${photoHtml}</div>
           <div class="cert-details">
             <div class="cert-member-name">${m.fullName}</div>
-            <div class="cert-member-type">${m.membershipType||"Member"}</div>
+            <div class="cert-member-type">${m.membershipType || "Member"}</div>
             <div class="cert-grid">
               <div class="cert-item"><span class="lbl">Reg No</span><span class="val">${m.registrationNo}</span></div>
               <div class="cert-item"><span class="lbl">CNIC</span><span class="val">${m.cnic}</span></div>
@@ -591,25 +647,23 @@ document.addEventListener("DOMContentLoaded", () => {
           <h1 style="color:#14534F;margin:0">${window.NGO.name}</h1>
           <p style="color:#E8A33D;letter-spacing:3px;margin:4px 0;font-size:.85rem">DIGITAL MEMBERSHIP CERTIFICATE</p>
         </div>
-        <table style="width:100%;border-collapse:collapse">
-          <tr>
-            <td style="width:28%;vertical-align:top;padding-right:20px">
-              ${m.photo?`<img src="${m.photo}" style="width:110px;height:130px;object-fit:cover;border:2px solid #14534F">`:`<div style="width:110px;height:130px;background:#eee;border:2px solid #14534F;display:flex;align-items:center;justify-content:center;font-size:3rem;color:#aaa">👤</div>`}
-            </td>
-            <td style="vertical-align:top">
-              <h2 style="color:#14534F;margin:0 0 4px">${m.fullName}</h2>
-              <p style="color:#888;margin:0 0 10px">${m.membershipType||"Member"}</p>
-              <table style="width:100%;font-size:.9rem">
-                <tr><td style="padding:3px 0;font-weight:bold;width:130px">Reg No:</td><td>${m.registrationNo}</td></tr>
-                <tr><td style="padding:3px 0;font-weight:bold">CNIC:</td><td>${m.cnic}</td></tr>
-                <tr><td style="padding:3px 0;font-weight:bold">Father/Husband:</td><td>${m.fatherName||"—"}</td></tr>
-                <tr><td style="padding:3px 0;font-weight:bold">Mobile:</td><td>${m.mobile||"—"}</td></tr>
-                <tr><td style="padding:3px 0;font-weight:bold">Valid Upto:</td><td style="color:#1a9e5c;font-weight:bold">${m.validUpto||"—"}</td></tr>
-                <tr><td style="padding:3px 0;font-weight:bold">Address:</td><td>${m.address||"—"}</td></tr>
-              </table>
-            </td>
-          </tr>
-        </table>
+        <table style="width:100%;border-collapse:collapse"><tr>
+          <td style="width:28%;vertical-align:top;padding-right:20px">
+            ${m.photo?`<img src="${m.photo}" style="width:110px;height:130px;object-fit:cover;border:2px solid #14534F">`:`<div style="width:110px;height:130px;background:#eee;border:2px solid #14534F;display:flex;align-items:center;justify-content:center;font-size:3rem;color:#aaa">👤</div>`}
+          </td>
+          <td style="vertical-align:top">
+            <h2 style="color:#14534F;margin:0 0 4px">${m.fullName}</h2>
+            <p style="color:#888;margin:0 0 10px">${m.membershipType||"Member"}</p>
+            <table style="width:100%;font-size:.9rem">
+              <tr><td style="padding:3px 0;font-weight:bold;width:130px">Reg No:</td><td>${m.registrationNo}</td></tr>
+              <tr><td style="padding:3px 0;font-weight:bold">CNIC:</td><td>${m.cnic}</td></tr>
+              <tr><td style="padding:3px 0;font-weight:bold">Father/Husband:</td><td>${m.fatherName||"—"}</td></tr>
+              <tr><td style="padding:3px 0;font-weight:bold">Mobile:</td><td>${m.mobile||"—"}</td></tr>
+              <tr><td style="padding:3px 0;font-weight:bold">Valid Upto:</td><td style="color:#1a9e5c;font-weight:bold">${m.validUpto||"—"}</td></tr>
+              <tr><td style="padding:3px 0;font-weight:bold">Address:</td><td>${m.address||"—"}</td></tr>
+            </table>
+          </td>
+        </tr></table>
         <div style="text-align:center;margin-top:24px;padding-top:16px;border-top:1px solid #E7DFD2;color:#888;font-size:.75rem">
           ${window.NGO.address} &nbsp;·&nbsp; ${window.NGO.phone} &nbsp;·&nbsp; ${window.NGO.email}
         </div>
@@ -618,7 +672,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => { pa.innerHTML=""; }, 3000);
   };
 
-  // ---- Charity Ledger Renderer ----
+  /* Charity Ledger HTML */
   function renderLedger(res) {
     const m = res.member;
     const donations = res.donations || [];
@@ -658,7 +712,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </tr></thead>
             <tbody>${rows}</tbody>
             <tfoot><tr style="background:#EEF8F1">
-              <td colspan="2" style="padding:12px 14px;font-weight:700;color:#14534F">Total Charity Contributed</td>
+              <td colspan="2" style="padding:12px 14px;font-weight:700;color:#14534F">Total Charity</td>
               <td colspan="2" style="padding:12px 14px;font-weight:700;color:#14534F;font-size:1rem">Rs. ${res.total.toLocaleString()}</td>
             </tr></tfoot>
           </table>
@@ -666,30 +720,193 @@ document.addEventListener("DOMContentLoaded", () => {
         <p class="cert-footnote">${window.NGO.name} &nbsp;|&nbsp; ${window.NGO.phone} &nbsp;|&nbsp; ${window.NGO.email}</p>
         <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
           <button class="btn btn-primary" onclick="window.print()"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
-          <button class="btn btn-ghost" onclick="backToVerifyForm()"><i class="fa-solid fa-arrow-left"></i> Back</button>
-          <button class="btn btn-ghost" onclick="backToMemberPortalMain()"><i class="fa-solid fa-house"></i> Main Menu</button>
+          <button class="btn btn-ghost"   onclick="backToVerifyForm()"><i class="fa-solid fa-arrow-left"></i> Back</button>
+          <button class="btn btn-ghost"   onclick="backToMemberPortalMain()"><i class="fa-solid fa-house"></i> Main Menu</button>
         </div>
       </div>`;
   }
 
-  /* PHOTO PREVIEW */
-  window.previewRegPhoto = function(input) {
-    const file = input.files?.[0];
-    if (!file) return;
-    const preview = document.getElementById("regPhotoPreview");
-    if (!preview) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      preview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`;
-    };
-    reader.readAsDataURL(file);
+  /* ============================================================
+     CHARITY HELP DESK
+  ============================================================ */
+  window.showHelpSection = function(which) {
+    const btns           = document.getElementById("helpdeskBtns");
+    const grantFormWrap  = document.getElementById("grantFormWrap");
+    const grantStatusWrap= document.getElementById("grantStatusWrap");
+    if (btns) btns.style.display = "none";
+    if (grantFormWrap)   grantFormWrap.style.display   = (which === "grant")  ? "block" : "none";
+    if (grantStatusWrap) grantStatusWrap.style.display = (which === "status") ? "block" : "none";
+    const desk = document.getElementById("charityDesk");
+    if (desk) desk.scrollIntoView({ behavior:"smooth" });
   };
+
+  window.hideHelpSection = function() {
+    const btns           = document.getElementById("helpdeskBtns");
+    const grantFormWrap  = document.getElementById("grantFormWrap");
+    const grantStatusWrap= document.getElementById("grantStatusWrap");
+    const grantForm2     = document.getElementById("grantForm");
+    const grantResult2   = document.getElementById("grantResult");
+    if (btns) btns.style.display = "flex";
+    if (grantFormWrap)   grantFormWrap.style.display   = "none";
+    if (grantStatusWrap) grantStatusWrap.style.display = "none";
+    if (grantForm2) grantForm2.style.display = "block";
+    if (grantResult2) { grantResult2.style.display="none"; grantResult2.innerHTML=""; }
+    const desk = document.getElementById("charityDesk");
+    if (desk) desk.scrollIntoView({ behavior:"smooth" });
+  };
+
+  /* GRANT FORM */
+  const grantForm      = document.getElementById("grantForm");
+  const grantMsg       = document.getElementById("grantMsg");
+  const grantResult    = document.getElementById("grantResult");
+  const grantSubmitBtn = document.getElementById("grantSubmitBtn");
+
+  if (grantForm) {
+    grantForm.addEventListener("submit", e => {
+      e.preventDefault();
+      if (grantMsg) { grantMsg.textContent=""; grantMsg.className="form-msg"; }
+
+      const cnic     = document.getElementById("gCnic")?.value.trim()    || "";
+      const dob      = document.getElementById("gDob")?.value.trim()     || "";
+      const name     = document.getElementById("gName")?.value.trim()    || "";
+      const father   = document.getElementById("gFather")?.value.trim()  || "";
+      const gender   = document.getElementById("gGender")?.value         || "";
+      const mobile   = document.getElementById("gMobile")?.value.trim()  || "";
+      const helpType = document.getElementById("gHelpType")?.value       || "";
+      const amount   = document.getElementById("gAmount")?.value         || "";
+      const address  = document.getElementById("gAddress")?.value.trim() || "";
+      const email    = document.getElementById("gEmail")?.value.trim()   || "";
+
+      // All fields required
+      if (!cnic)     { grantMsg.textContent="⚠️ CNIC is required";               grantMsg.classList.add("error"); return; }
+      if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic)) { grantMsg.textContent="⚠️ Valid CNIC: 00000-0000000-0"; grantMsg.classList.add("error"); return; }
+      if (!dob)      { grantMsg.textContent="⚠️ Date of Birth is required";      grantMsg.classList.add("error"); return; }
+      if (!/^\d{2}-\d{2}-\d{4}$/.test(dob)) { grantMsg.textContent="⚠️ DOB format: dd-mm-yyyy"; grantMsg.classList.add("error"); return; }
+      if (!name)     { grantMsg.textContent="⚠️ Full Name is required";          grantMsg.classList.add("error"); return; }
+      if (!father)   { grantMsg.textContent="⚠️ Father/Husband Name is required";grantMsg.classList.add("error"); return; }
+      if (!gender)   { grantMsg.textContent="⚠️ Please select Gender";           grantMsg.classList.add("error"); return; }
+      if (!mobile)   { grantMsg.textContent="⚠️ Mobile Number is required";      grantMsg.classList.add("error"); return; }
+      if (!/^\d{4}-\d{7}$/.test(mobile)) { grantMsg.textContent="⚠️ Mobile format: 0300-0000000"; grantMsg.classList.add("error"); return; }
+      if (!helpType) { grantMsg.textContent="⚠️ Please select Help Type";        grantMsg.classList.add("error"); return; }
+      if (!amount || Number(amount) < 1) { grantMsg.textContent="⚠️ Amount Required must be greater than 0"; grantMsg.classList.add("error"); return; }
+      if (!address)  { grantMsg.textContent="⚠️ Full Address is required";       grantMsg.classList.add("error"); return; }
+
+      setLoading(grantSubmitBtn, true, "Submitting...");
+      if (!window.RHS) { setLoading(grantSubmitBtn, false); return; }
+
+      RHS.submitGrant({ cnic, dob, name, fatherName:father, gender, email, mobile, helpType, amountRequired:Number(amount), address })
+      .then(res => {
+        setLoading(grantSubmitBtn, false);
+        if (res.success) {
+          grantForm.style.display = "none";
+          showAlertModal("green","fa-circle-check","Charity Request Submitted!",
+            `Dear <strong>${name}</strong>, Your Charity Help Request has been Successfully Received.<br><br>
+             Your Case Reference Number is <strong>${res.crn||""}</strong>. Our team will review and contact you soon.<br><br>
+             📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}`,
+            [{ label:"<i class='fa-solid fa-arrow-left'></i> Back", fn:"hideHelpSection()" }]
+          );
+        } else if (res.code === "DUPLICATE_CASE") {
+          grantForm.style.display = "none";
+          showAlertModal("yellow","fa-circle-info","Case Already Submitted",
+            res.message || `Dear <strong>${name}</strong>, You already have an active case registered.`,
+            [{ label:"<i class='fa-solid fa-arrow-left'></i> Back", fn:"hideHelpSection()" }]
+          );
+        } else {
+          grantMsg.textContent = res.message || "Something went wrong.";
+          grantMsg.classList.add("error");
+        }
+      }).catch(() => { setLoading(grantSubmitBtn, false); grantMsg.textContent="Network error."; grantMsg.classList.add("error"); });
+    });
+  }
+
+  /* GRANT STATUS */
+  const grantStatusForm    = document.getElementById("grantStatusForm");
+  const gsMsg              = document.getElementById("gsMsg");
+  const grantStatusResult  = document.getElementById("grantStatusResult");
+
+  if (grantStatusForm) {
+    grantStatusForm.addEventListener("reset", () => {
+      setTimeout(() => {
+        if (gsMsg) { gsMsg.textContent=""; gsMsg.className="form-msg"; }
+        if (grantStatusResult) grantStatusResult.innerHTML="";
+      }, 0);
+    });
+
+    grantStatusForm.addEventListener("submit", e => {
+      e.preventDefault();
+      if (gsMsg) { gsMsg.textContent=""; gsMsg.className="form-msg"; }
+      if (grantStatusResult) grantStatusResult.innerHTML="";
+      const cnic = document.getElementById("gsCnic")?.value.trim() || "";
+      const dob  = document.getElementById("gsDob")?.value.trim()  || "";
+      if (!cnic) { gsMsg.textContent="⚠️ CNIC is required";               gsMsg.classList.add("error"); return; }
+      if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic)) { gsMsg.textContent="⚠️ Valid CNIC: 00000-0000000-0"; gsMsg.classList.add("error"); return; }
+      if (!dob)  { gsMsg.textContent="⚠️ Date of Birth is required";      gsMsg.classList.add("error"); return; }
+      if (!/^\d{2}-\d{2}-\d{4}$/.test(dob)) { gsMsg.textContent="⚠️ DOB format: dd-mm-yyyy"; gsMsg.classList.add("error"); return; }
+
+      const gsBtn = grantStatusForm.querySelector('[type="submit"]');
+      setLoading(gsBtn, true, "Checking...");
+      if (!window.RHS) { setLoading(gsBtn, false); return; }
+
+      RHS.getGrantStatus(cnic, dob).then(res => {
+        setLoading(gsBtn, false);
+        if (!res.success||!res.grants||!res.grants.length) {
+          showAlertModal("red","fa-circle-xmark","No Request Found",
+            res.message || "No charity request found with these credentials. Please check your CNIC and Date of Birth.",
+            [{ label:"<i class='fa-solid fa-rotate-left'></i> Try Again", fn:"closeAlertModal()" }]
+          );
+          return;
+        }
+        const active = res.grants.filter(g=>(g.status||"").toLowerCase()!=="closed");
+        const list   = active.length ? active : res.grants;
+        let html="";
+        list.forEach(g => {
+          const s = (g.status||"").toLowerCase();
+          const d = (g.decision||"").toLowerCase();
+          let color,icon,title,msg;
+          if (s==="new") {
+            color="yellow"; icon="fa-hourglass-half"; title=`Request Received — ${g.crn}`;
+            msg=`Dear <strong>${g.name}</strong>, Your Charity Help Request <strong>${g.crn}</strong> has been received. Our team will review and contact you soon.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}`;
+          } else if (s==="assigned") {
+            color="teal"; icon="fa-user-check"; title=`Case Assigned — ${g.crn}`;
+            msg=`Dear <strong>${g.name}</strong>, Your case <strong>${g.crn}</strong> has been assigned to our team. They will contact you. Please cooperate.<br><br>📞 ${window.NGO.alert}`;
+          } else if (s==="completed") {
+            color="yellow"; icon="fa-clipboard-check"; title=`Verification Done — ${g.crn}`;
+            msg=`Dear <strong>${g.name}</strong>, Verification for case <strong>${g.crn}</strong> is completed. Please wait for the final decision.<br><br>📞 ${window.NGO.alert}`;
+          } else if (d==="approved"&&s!=="closed") {
+            color="green"; icon="fa-circle-check"; title=`Case APPROVED ✅ — ${g.crn}`;
+            msg=`Dear <strong>${g.name}</strong>, Congratulations! 🎉 Your Charity Case <strong>${g.crn}</strong> has been <strong>Approved</strong>. Our team will contact you and deliver your help.<br><br>📞 ${window.NGO.alert}`;
+          } else if (d==="rejected"&&s!=="closed") {
+            color="red"; icon="fa-circle-xmark"; title=`Case Rejected — ${g.crn}`;
+            msg=`Dear <strong>${g.name}</strong>, Your case <strong>${g.crn}</strong> was <strong>Rejected</strong> as it does not match our current criteria. To appeal, please meet our President with Case No.<br><br>📞 ${window.NGO.alert}`;
+          } else if (s==="closed"&&d!=="rejected") {
+            color="green"; icon="fa-lock"; title=`Successfully Closed — ${g.crn}`;
+            msg=`Dear <strong>${g.name}</strong>, Your case <strong>${g.crn}</strong> has been <strong>Successfully Closed</strong> after granting. Jazak Allah Khair! 🤲`;
+          } else if (s==="closed"&&d==="rejected") {
+            color="red"; icon="fa-lock"; title=`Case Closed — ${g.crn}`;
+            msg=`Dear <strong>${g.name}</strong>, Your case <strong>${g.crn}</strong> has been Closed after Rejection. To appeal, please meet our President.<br><br>📞 ${window.NGO.alert}`;
+          } else {
+            color="yellow"; icon="fa-hourglass-half"; title=`Under Process — ${g.crn}`;
+            msg=`Dear <strong>${g.name}</strong>, Your case is under process. Please contact us.<br><br>📞 ${window.NGO.alert}`;
+          }
+          // Show as modal — screen ke center mein
+          showAlertModal(color, icon, title,
+            msg+`<br><br><small style="color:#6B7280">Help: ${g.helpType||"—"} &nbsp;|&nbsp; Applied: ${g.timestamp||"—"} &nbsp;|&nbsp; Amount: Rs. ${Number(g.amountRequired||0).toLocaleString()}</small>`,
+            [{ label:"<i class='fa-solid fa-rotate-left'></i> Check Again", fn:"closeAlertModal()" }]
+          );
+        });
+      }).catch(() => { setLoading(gsBtn, false); if (gsMsg) { gsMsg.textContent="Network error."; gsMsg.classList.add("error"); } });
+    });
+  }
+
+  /* TEAM */
   function loadTeam() {
     if (!window.RHS) { setTimeout(loadTeam, 500); return; }
     const teamGrid = document.getElementById("teamGrid");
     if (!teamGrid) return;
     RHS.getTeam().then(res => {
-      if (!res.success || !res.team || !res.team.length) return;
+      if (!res.success||!res.team||!res.team.length) {
+        teamGrid.innerHTML=""; return;
+      }
       teamGrid.innerHTML = "";
       res.team.forEach(member => {
         const card = document.createElement("div");
@@ -706,186 +923,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* CONTACT FORM */
   const contactForm = document.getElementById("contactForm");
-  const contactMsg = document.getElementById("contactMsg");
+  const contactMsg  = document.getElementById("contactMsg");
   if (contactForm) {
-    contactForm.addEventListener("submit", (e) => {
+    contactForm.addEventListener("submit", e => {
       e.preventDefault();
       if (!contactMsg) return;
-      contactMsg.textContent = "";
-      contactMsg.className = "form-msg";
-      const name    = document.getElementById("cName")?.value.trim() || "";
+      contactMsg.textContent=""; contactMsg.className="form-msg";
+      const name    = document.getElementById("cName")?.value.trim()  || "";
       const email   = document.getElementById("cEmail")?.value.trim() || "";
-      const message = document.getElementById("cMsg")?.value.trim() || "";
-      if (!name || !email || !message) { contactMsg.textContent = "⚠️ Please fill all fields."; contactMsg.classList.add("error"); return; }
+      const message = document.getElementById("cMsg")?.value.trim()   || "";
+      if (!name||!email||!message) { contactMsg.textContent="⚠️ Please fill all fields."; contactMsg.classList.add("error"); return; }
       const sendBtn = contactForm.querySelector("button[type='submit']");
       setLoading(sendBtn, true, "Sending...");
       if (!window.RHS) { setLoading(sendBtn, false); return; }
       RHS.submitContactMessage({ name, email, message }).then(res => {
         setLoading(sendBtn, false);
-        if (res.success) { contactMsg.textContent = "✅ Thank you! Message sent."; contactMsg.classList.add("success"); contactForm.reset(); }
-        else { contactMsg.textContent = res.message || "Something went wrong."; contactMsg.classList.add("error"); }
-      }).catch(() => { setLoading(sendBtn, false); contactMsg.textContent = "⚠️ Network error."; contactMsg.classList.add("error"); });
-    });
-  }
-
-  /* TEAM */
-  window.showHelpSection = function(which) {
-    const btns = document.getElementById("helpdeskBtns");
-    const grantFormWrap = document.getElementById("grantFormWrap");
-    const grantStatusWrap = document.getElementById("grantStatusWrap");
-    if (btns) btns.style.display = "none";
-    if (grantFormWrap) grantFormWrap.style.display = (which === "grant") ? "block" : "none";
-    if (grantStatusWrap) grantStatusWrap.style.display = (which === "status") ? "block" : "none";
-    const desk = document.getElementById("charityDesk");
-    if (desk) desk.scrollIntoView({ behavior:"smooth" });
-  };
-
-  window.hideHelpSection = function() {
-    const btns = document.getElementById("helpdeskBtns");
-    const grantFormWrap = document.getElementById("grantFormWrap");
-    const grantStatusWrap = document.getElementById("grantStatusWrap");
-    if (btns) btns.style.display = "flex";
-    if (grantFormWrap) grantFormWrap.style.display = "none";
-    if (grantStatusWrap) grantStatusWrap.style.display = "none";
-    const grantForm2 = document.getElementById("grantForm");
-    if (grantForm2) grantForm2.style.display = "block";
-    const grantResult2 = document.getElementById("grantResult");
-    if (grantResult2) { grantResult2.style.display="none"; grantResult2.innerHTML=""; }
-    const desk = document.getElementById("charityDesk");
-    if (desk) desk.scrollIntoView({ behavior:"smooth" });
-  };
-
-  /* GRANT FORM — Issue 1: Submission message */
-  const grantForm = document.getElementById("grantForm");
-  const grantMsg  = document.getElementById("grantMsg");
-  const grantResult = document.getElementById("grantResult");
-  const grantSubmitBtn = document.getElementById("grantSubmitBtn");
-
-  if (grantForm) {
-    grantForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      if (grantMsg) { grantMsg.textContent=""; grantMsg.className="form-msg"; }
-      const cnic     = document.getElementById("gCnic")?.value.trim() || "";
-      const dob      = document.getElementById("gDob")?.value.trim() || "";
-      const name     = document.getElementById("gName")?.value.trim() || "";
-      const father   = document.getElementById("gFather")?.value.trim() || "";
-      const gender   = document.getElementById("gGender")?.value || "";
-      const mobile   = document.getElementById("gMobile")?.value.trim() || "";
-      const helpType = document.getElementById("gHelpType")?.value || "";
-      const amount   = document.getElementById("gAmount")?.value || "";
-      const address  = document.getElementById("gAddress")?.value.trim() || "";
-      const email    = document.getElementById("gEmail")?.value.trim() || "";
-      if (!cnic||!dob||!name||!father||!gender||!mobile||!helpType||!amount||!address) {
-        if (grantMsg) { grantMsg.textContent="Please fill all required fields."; grantMsg.classList.add("error"); }
-        return;
-      }
-      setLoading(grantSubmitBtn, true, "Submitting...");
-      if (!window.RHS) { setLoading(grantSubmitBtn, false); return; }
-      RHS.submitGrant({ cnic, dob, name, fatherName:father, gender, email, mobile, helpType, amountRequired:Number(amount), address })
-      .then(res => {
-        setLoading(grantSubmitBtn, false);
         if (res.success) {
-          grantForm.style.display = "none";
-          if (grantResult) {
-            grantResult.style.display = "block";
-            grantResult.innerHTML = makeAlert("green","fa-circle-check","Request Submitted Successfully!",
-              `Dear <strong>${name}</strong>, Your Charity Help Request has been Successfully Received.<br><br>
-               Your <strong>Case Reference Number</strong> is <strong>${res.crn||""}</strong>. Our team will contact you soon.<br><br>
-               📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}`,
-              [{label:"<i class='fa-solid fa-arrow-left'></i> Back", fn:"hideHelpSection()"}]
-            );
-          }
-        } else if (res.code === "DUPLICATE_CASE") {
-          grantForm.style.display = "none";
-          if (grantResult) {
-            grantResult.style.display = "block";
-            grantResult.innerHTML = makeAlert("yellow","fa-circle-info","Case Already Submitted",
-              res.message || `Dear <strong>${name}</strong>, You already have an active case.`,
-              [{label:"<i class='fa-solid fa-arrow-left'></i> Back", fn:"hideHelpSection()"}]
-            );
-          }
-        } else {
-          if (grantMsg) { grantMsg.textContent=res.message||"Something went wrong."; grantMsg.classList.add("error"); }
-        }
-      }).catch(() => { setLoading(grantSubmitBtn, false); if (grantMsg) { grantMsg.textContent="Network error."; grantMsg.classList.add("error"); } });
-    });
-  }
-
-  /* GRANT STATUS — Issue 7: charity approval status, Issue 8: proper status display */
-  const grantStatusForm   = document.getElementById("grantStatusForm");
-  const gsMsg             = document.getElementById("gsMsg");
-  const grantStatusResult = document.getElementById("grantStatusResult");
-
-  if (grantStatusForm) {
-    grantStatusForm.addEventListener("reset", () => {
-      setTimeout(() => {
-        if (gsMsg) { gsMsg.textContent=""; gsMsg.className="form-msg"; }
-        if (grantStatusResult) grantStatusResult.innerHTML="";
-      }, 0);
-    });
-
-    grantStatusForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      if (gsMsg) { gsMsg.textContent=""; gsMsg.className="form-msg"; }
-      if (grantStatusResult) grantStatusResult.innerHTML="";
-      const cnic = document.getElementById("gsCnic")?.value.trim() || "";
-      const dob  = document.getElementById("gsDob")?.value.trim() || "";
-      if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic)||!/^\d{2}-\d{2}-\d{4}$/.test(dob)) {
-        if (gsMsg) { gsMsg.textContent="Please enter valid CNIC and DOB."; gsMsg.classList.add("error"); }
-        return;
-      }
-      const gsBtn = grantStatusForm.querySelector('[type="submit"]');
-      setLoading(gsBtn, true, "Checking...");
-      if (!window.RHS) { setLoading(gsBtn, false); return; }
-      RHS.getGrantStatus(cnic, dob).then(res => {
-        setLoading(gsBtn, false);
-        if (!res.success||!res.grants||!res.grants.length) {
-          if (grantStatusResult) grantStatusResult.innerHTML = makeAlert("red","fa-circle-xmark","No Request Found",
-            res.message||"No charity request found with these credentials. Please check your CNIC and Date of Birth.",
-            [{label:"<i class='fa-solid fa-rotate-left'></i> Try Again", fn:"document.getElementById('grantStatusForm').reset()"}]
+          showAlertModal("green","fa-envelope-circle-check","Message Sent!",
+            `Dear <strong>${name}</strong>, Thank you for contacting us. We will get back to you soon.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}`,
+            [{ label:"<i class='fa-solid fa-check'></i> OK", fn:"closeAlertModal()" }]
           );
-          return;
+          contactForm.reset();
+        } else {
+          contactMsg.textContent = res.message || "Something went wrong.";
+          contactMsg.classList.add("error");
         }
-        const active = res.grants.filter(g=>(g.status||"").toLowerCase()!=="closed");
-        const closed = res.grants.filter(g=>(g.status||"").toLowerCase()==="closed");
-        const list = active.length ? active : closed;
-        let html = "";
-        list.forEach(g => {
-          const s = (g.status||"").toLowerCase();
-          const d = (g.decision||"").toLowerCase();
-          let color, icon, title, msg;
-          if (s==="new") {
-            color="yellow"; icon="fa-hourglass-half"; title=`Case Received — ${g.crn}`;
-            msg=`Dear <strong>${g.name}</strong>, Your Charity Help Request <strong>${g.crn}</strong> has been received. Our team will review and contact you soon.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}`;
-          } else if (s==="assigned") {
-            color="teal"; icon="fa-user-check"; title=`Case Assigned — ${g.crn}`;
-            msg=`Dear <strong>${g.name}</strong>, Your case <strong>${g.crn}</strong> has been assigned to our team member <strong>${g.assignedTo||"our team"}</strong>. They will contact you soon. Please cooperate.<br><br>📞 ${window.NGO.alert}`;
-          } else if (s==="completed") {
-            color="yellow"; icon="fa-clipboard-check"; title=`Verification Completed — ${g.crn}`;
-            msg=`Dear <strong>${g.name}</strong>, The verification for your case <strong>${g.crn}</strong> has been completed. Please wait for the final decision.<br><br>📞 ${window.NGO.alert}`;
-          } else if (d==="approved"&&s!=="closed") {
-            color="green"; icon="fa-circle-check"; title=`Case APPROVED — ${g.crn}`;
-            msg=`Dear <strong>${g.name}</strong>, Congratulations! 🎉 Your Charity Case <strong>${g.crn}</strong> has been <strong>Approved</strong>. Our team will contact you and deliver your help at your doorstep.<br><br>📞 ${window.NGO.alert}`;
-          } else if (d==="rejected"&&s!=="closed") {
-            color="red"; icon="fa-circle-xmark"; title=`Case Rejected — ${g.crn}`;
-            msg=`Dear <strong>${g.name}</strong>, Your case <strong>${g.crn}</strong> has been <strong>Rejected</strong> as it does not match our current criteria. To reopen or appeal, please physically meet our President with your Case No.<br><br>📞 ${window.NGO.alert}`;
-          } else if (s==="closed"&&d!=="rejected") {
-            color="green"; icon="fa-lock"; title=`Case Closed — Successfully Granted`;
-            msg=`Dear <strong>${g.name}</strong>, Your case <strong>${g.crn}</strong> has been <strong>Successfully Closed</strong> after granting. Jazak Allah Khair! 🤲`;
-          } else if (s==="closed"&&d==="rejected") {
-            color="red"; icon="fa-lock"; title=`Case Closed — ${g.crn}`;
-            msg=`Dear <strong>${g.name}</strong>, Your case <strong>${g.crn}</strong> has been Closed after Rejection. To appeal, please meet our President.<br><br>📞 ${window.NGO.alert}`;
-          } else {
-            color="yellow"; icon="fa-hourglass-half"; title=`Case Under Process — ${g.crn}`;
-            msg=`Dear <strong>${g.name}</strong>, Your case <strong>${g.crn}</strong> is under process. Please contact us for more information.<br><br>📞 ${window.NGO.alert}`;
-          }
-          html += `<div style="margin-bottom:16px">${makeAlert(color, icon, title,
-            msg + `<br><br><small style="color:#6B7280">Help Type: ${g.helpType||"—"} &nbsp;|&nbsp; Applied: ${g.timestamp||"—"} &nbsp;|&nbsp; Amount: Rs. ${Number(g.amountRequired||g.amount||0).toLocaleString()}</small>`,
-            []
-          )}</div>`;
-        });
-        if (grantStatusResult) grantStatusResult.innerHTML = html;
-      }).catch(() => { setLoading(gsBtn, false); if (gsMsg) { gsMsg.textContent="Network error."; gsMsg.classList.add("error"); } });
+      }).catch(() => { setLoading(sendBtn, false); contactMsg.textContent="⚠️ Network error."; contactMsg.classList.add("error"); });
     });
   }
 
@@ -894,12 +957,12 @@ document.addEventListener("DOMContentLoaded", () => {
   window.toggleLang = function() {
     isUrdu = !isUrdu;
     const label = document.getElementById("langLabel");
-    const html = document.getElementById("htmlRoot");
+    const html  = document.getElementById("htmlRoot");
     if (label) label.textContent = isUrdu ? "English" : "اردو";
-    if (html) { html.setAttribute("lang", isUrdu ? "ur" : "en"); if (isUrdu) html.setAttribute("dir","rtl"); else html.removeAttribute("dir"); }
+    if (html) { html.setAttribute("lang", isUrdu?"ur":"en"); if(isUrdu) html.setAttribute("dir","rtl"); else html.removeAttribute("dir"); }
     document.querySelectorAll("[data-ur]").forEach(el => {
-      if (isUrdu) { el._origText = el.textContent; el.textContent = el.getAttribute("data-ur"); }
-      else if (el._origText) el.textContent = el._origText;
+      if (isUrdu) { el._origText=el.textContent; el.textContent=el.getAttribute("data-ur"); }
+      else if (el._origText) el.textContent=el._origText;
     });
   };
 
@@ -907,16 +970,16 @@ document.addEventListener("DOMContentLoaded", () => {
   function loadNews() {
     const grid = document.getElementById("newsGrid");
     if (!grid) return;
-    grid.innerHTML = '<div class="news-loading"><i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem"></i><p>Loading news...</p></div>';
+    grid.innerHTML='<div class="news-loading"><i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem"></i><p>Loading news...</p></div>';
     if (!window.RHS) { setTimeout(loadNews, 800); return; }
     RHS.getNews().then(res => {
-      if (!res.news || !res.news.length) {
-        grid.innerHTML = '<div class="news-loading"><i class="fa-solid fa-newspaper" style="font-size:2rem;display:block;margin-bottom:8px"></i>No news yet. Check back soon!</div>';
+      if (!res.news||!res.news.length) {
+        grid.innerHTML='<div class="news-loading"><i class="fa-solid fa-newspaper" style="font-size:2rem;display:block;margin-bottom:8px"></i>No news yet.</div>';
         return;
       }
       grid.innerHTML = res.news.map(n => `
         <article class="news-card">
-          ${n.imageURL ? `<img src="${n.imageURL}" alt="${n.title}" class="news-card-img" loading="lazy">` : `<div class="news-card-img" style="background:#EEF8F1;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-newspaper" style="font-size:2rem;color:#8A9A96"></i></div>`}
+          ${n.imageURL?`<img src="${n.imageURL}" alt="${n.title}" class="news-card-img" loading="lazy">`:`<div class="news-card-img" style="background:#EEF8F1;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-newspaper" style="font-size:2rem;color:#8A9A96"></i></div>`}
           <div class="news-card-body">
             <span class="news-tag">${n.category||"News"}</span>
             <div class="news-card-date"><i class="fa-regular fa-calendar"></i> ${n.date||""}</div>
@@ -924,40 +987,65 @@ document.addEventListener("DOMContentLoaded", () => {
             <p class="news-card-text">${n.body||n.content||""}</p>
           </div>
         </article>`).join("");
-    }).catch(() => {
-      grid.innerHTML = '<div class="news-loading">Could not load news.</div>';
-    });
+    }).catch(() => { grid.innerHTML='<div class="news-loading">Could not load news.</div>'; });
   }
+  loadNews();
 
   /* STORIES */
   function loadStories() {
     const grid = document.getElementById("storiesGrid");
     if (!grid) return;
-    grid.innerHTML = '<div class="news-loading"><i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem"></i><p>Loading stories...</p></div>';
+    grid.innerHTML='<div class="news-loading"><i class="fa-solid fa-spinner fa-spin"></i></div>';
     if (!window.RHS) { setTimeout(loadStories, 800); return; }
     RHS.getStories().then(res => {
-      if (!res.stories || !res.stories.length) {
-        grid.innerHTML = '<div class="news-loading"><i class="fa-solid fa-heart" style="font-size:2rem;display:block;margin-bottom:8px;color:var(--coral)"></i>Stories coming soon!</div>';
+      if (!res.stories||!res.stories.length) {
+        grid.innerHTML='<div class="news-loading">No stories yet.</div>';
         return;
       }
       grid.innerHTML = res.stories.map(s => `
         <article class="story-card">
-          <span class="story-badge">${s.helpType||"Community"}</span>
-          ${s.photoURL ? `<img src="${s.photoURL}" alt="${s.name}" class="story-card-img" loading="lazy">` : `<div class="story-card-img" style="background:#EEF8F1;display:flex;align-items:center;justify-content:center;font-size:2.5rem">🤲</div>`}
+          ${s.photo?`<img src="${s.photo}" alt="${s.name}" class="story-card-img" loading="lazy">`:`<div class="story-card-img placeholder"><i class="fa-solid fa-heart"></i></div>`}
+          <span class="story-badge">${s.category||"Story"}</span>
           <div class="story-card-body">
             <div class="story-card-name">${s.name||""}</div>
-            <div class="story-card-location"><i class="fa-solid fa-location-dot"></i> ${s.location||"Khairpur Tamewali"}</div>
+            <div class="story-card-location"><i class="fa-solid fa-location-dot"></i> ${s.location||""}</div>
             <p class="story-card-text">${s.story||""}</p>
           </div>
         </article>`).join("");
-    }).catch(() => {
-      grid.innerHTML = '<div class="news-loading">Could not load stories.</div>';
-    });
+    }).catch(() => { grid.innerHTML='<div class="news-loading">Could not load stories.</div>'; });
   }
-
-  /* LOAD ALL */
-  loadNGOSettings();
-  loadNews();
   loadStories();
 
-}); // END DOMContentLoaded
+  /* SOCIAL LINKS */
+  function loadContact() {
+    if (!window.RHS) { setTimeout(loadContact, 500); return; }
+    RHS.getContact().then(res => {
+      if (!res.success) return;
+      const fb = document.getElementById("socialFb");
+      const ig = document.getElementById("socialIg");
+      const wa = document.getElementById("socialWa");
+      const yt = document.getElementById("socialYt");
+      if (fb && res.facebook) fb.href = res.facebook;
+      if (ig && res.instagram) ig.href = res.instagram;
+      if (wa && res.whatsapp) wa.href = "https://wa.me/" + res.whatsapp.replace(/\D/g,"");
+      if (yt && res.youtube) yt.href = res.youtube;
+    }).catch(() => {});
+  }
+  loadContact();
+
+  /* INIT */
+  loadNGOSettings();
+
+}); // end DOMContentLoaded
+
+// Add animation CSS for modal
+(function() {
+  const style = document.createElement("style");
+  style.textContent = `
+    @keyframes rhsModalIn {
+      from { opacity:0; transform:scale(0.85) translateY(-10px); }
+      to   { opacity:1; transform:scale(1)    translateY(0); }
+    }
+  `;
+  document.head.appendChild(style);
+})();
