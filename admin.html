@@ -518,46 +518,6 @@
       </div>
     </div>
 
-  </main>
-</div>
-
-<!-- MEMBER DETAIL MODAL -->
-<div class="modal-overlay hidden" id="memberModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h3 id="modalMemberName">Member Detail</h3>
-      <button onclick="closeModal('memberModal')"><i class="fa fa-times"></i></button>
-    </div>
-    <div class="modal-body" id="memberModalBody"></div>
-  </div>
-</div>
-
-<!-- GRANT DETAIL MODAL -->
-<div class="modal-overlay hidden" id="grantModal">
-  <div class="modal modal-lg">
-    <div class="modal-header">
-      <h3 id="modalGrantCrn">Grant Case</h3>
-      <button onclick="closeModal('grantModal')"><i class="fa fa-times"></i></button>
-    </div>
-    <div class="modal-body" id="grantModalBody"></div>
-  </div>
-</div>
-
-<!-- THANK YOU LETTER MODAL -->
-<div class="modal-overlay hidden" id="letterModal">
-  <div class="modal modal-lg">
-    <div class="modal-header">
-      <h3>Thank You Letter — RHS</h3>
-      <button onclick="closeModal('letterModal')"><i class="fa fa-times"></i></button>
-    </div>
-    <div class="modal-body" id="letterModalBody"></div>
-    <div class="modal-footer">
-      <button class="btn btn-primary" onclick="printLetter()"><i class="fa fa-print"></i> Print / Download</button>
-      <button class="btn btn-ghost" onclick="closeModal('letterModal')">Close</button>
-    </div>
-  </div>
-</div>
-
     <!-- ===== TAB: MESSAGES ===== -->
     <div class="tab-content hidden" id="tab-messages">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
@@ -690,6 +650,49 @@
 
     </div>
     <!-- END SETUP TAB -->
+
+  </main>
+</div>
+
+<!-- MEMBER DETAIL MODAL -->
+<div class="modal-overlay hidden" id="memberModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalMemberName">Member Detail</h3>
+      <button onclick="closeModal('memberModal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="memberModalBody"></div>
+  </div>
+</div>
+
+<!-- GRANT DETAIL MODAL -->
+<div class="modal-overlay hidden" id="grantModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3 id="modalGrantCrn">Grant Case</h3>
+      <button onclick="closeModal('grantModal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="grantModalBody"></div>
+  </div>
+</div>
+
+<!-- THANK YOU LETTER MODAL -->
+<div class="modal-overlay hidden" id="letterModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3>Thank You Letter — RHS</h3>
+      <button onclick="closeModal('letterModal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="letterModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="printLetter()"><i class="fa fa-print"></i> Print / Download</button>
+      <button class="btn btn-ghost" onclick="closeModal('letterModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+
+
 
 <div id="printArea" class="print-area"></div>
 <!-- Firebase SDK -->
