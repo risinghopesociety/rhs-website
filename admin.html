@@ -572,21 +572,21 @@
     <!-- ===== TAB: SETUP ===== -->
     <div class="tab-content hidden" id="tab-setup">
 
-      <!-- SETUP TOP MENU -->
-      <div class="setup-top-menu">
-        <button class="setup-menu-btn active" onclick="showSetupSection('adminSettings', this)">
+      <!-- SETUP TOP MENU - same style as filter buttons -->
+      <div class="tab-filters" style="flex-wrap:wrap;gap:8px;margin-bottom:20px">
+        <button class="filter-btn active" onclick="showSetupSection('adminSettings', this)">
           <i class="fa fa-cog"></i> Admin Settings
         </button>
-        <button class="setup-menu-btn" onclick="showSetupSection('content', this)">
+        <button class="filter-btn" onclick="showSetupSection('content', this)">
           <i class="fa fa-edit"></i> Content
         </button>
-        <button class="setup-menu-btn" onclick="showSetupSection('team', this)">
+        <button class="filter-btn" onclick="showSetupSection('team', this)">
           <i class="fa fa-users"></i> Team
         </button>
-        <button class="setup-menu-btn" onclick="showSetupSection('contact', this)">
+        <button class="filter-btn" onclick="showSetupSection('contact', this)">
           <i class="fa fa-address-book"></i> Contact
         </button>
-        <button class="setup-menu-btn" onclick="showSetupSection('statistics', this)">
+        <button class="filter-btn" onclick="showSetupSection('statistics', this)">
           <i class="fa fa-chart-bar"></i> Statistics
         </button>
       </div>

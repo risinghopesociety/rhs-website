@@ -162,7 +162,7 @@ function switchTab(name){
 // ====== SETUP SECTION TOGGLE ======
 function showSetupSection(section, btn){
   document.querySelectorAll(".setup-section").forEach(s=>s.classList.add("hidden"));
-  document.querySelectorAll(".setup-menu-btn").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll("#tab-setup .filter-btn").forEach(b=>b.classList.remove("active"));
   const el = document.getElementById("setup-"+section);
   if(el) el.classList.remove("hidden");
   if(btn) btn.classList.add("active");
