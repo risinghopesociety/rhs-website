@@ -386,6 +386,16 @@ function loadAdminStats(){
     // Badges
     document.getElementById("pendingBadge").textContent=res.pendingMembers||0;
     document.getElementById("grantBadge").textContent=res.newGrants||0;
+    // Extra stats (Issue 5 & 6) - update if elements exist
+    const setEl=(id,val)=>{ const el=document.getElementById(id); if(el) el.textContent=val; };
+    setEl("st-total-members", res.totalMembers||0);
+    setEl("st-male",          res.maleMembers||0);
+    setEl("st-female",        res.femaleMembers||0);
+    setEl("st-active-charity",res.activeCharity30||0);
+    setEl("st-inactive-charity",res.inactiveCharity30||0);
+    setEl("st-assigned",      res.assignedGrants||0);
+    setEl("st-closed-grants",   res.closedCases||0);
+    setEl("st-newgrants",       res.newGrants||0);
     // Sync to reports tab if visible
     ["pending","active","expired","banned"].forEach(k=>{
       const el=document.getElementById("rp-"+k);
@@ -427,9 +437,9 @@ function loadMembers(filter,btn){
 }
 
 // Quick status change from table row buttons
-function quickStatus(row, status, name){
+function quickStatus(memberId, status, name){
   if(!confirm(`Change ${name} status to "${status}"?`)) return;
-  apiPost({action:"updateMemberStatus",row:row,status:status}).then(res=>{
+  RHS.updateMemberStatus(memberId, status).then(res=>{
     if(res.success){
       loadMembers(currentMemberFilter);
       loadAdminStats();
@@ -495,18 +505,18 @@ function viewMember(m){
         const s=(m.status||"").toLowerCase();
         let btns="";
         if(s==="underprocess"||s==="under process"){
-          btns+=`<button class="btn btn-approve btn-sm" onclick="changeMemberStatus(${m.row},'Active')"><i class="fa fa-check"></i> Approve → Active</button>`;
-          btns+=`<button class="btn btn-ban btn-sm" onclick="changeMemberStatus(${m.row},'Expired')"><i class="fa fa-clock"></i> Mark Expired</button>`;
-          btns+=`<button class="btn btn-reject btn-sm" onclick="changeMemberStatus(${m.row},'Banned')"><i class="fa fa-ban"></i> Ban</button>`;
+          btns+=`<button class="btn btn-approve btn-sm" onclick="changeMemberStatus('${m.id}','Active')"><i class="fa fa-check"></i> Approve → Active</button>`;
+          btns+=`<button class="btn btn-ban btn-sm" onclick="changeMemberStatus('${m.id}','Expired')"><i class="fa fa-clock"></i> Mark Expired</button>`;
+          btns+=`<button class="btn btn-reject btn-sm" onclick="changeMemberStatus('${m.id}','Banned')"><i class="fa fa-ban"></i> Ban</button>`;
         } else if(s==="active"){
-          btns+=`<button class="btn btn-ban btn-sm" onclick="changeMemberStatus(${m.row},'Expired')"><i class="fa fa-clock"></i> Mark Expired</button>`;
-          btns+=`<button class="btn btn-reject btn-sm" onclick="changeMemberStatus(${m.row},'Banned')"><i class="fa fa-ban"></i> Ban</button>`;
+          btns+=`<button class="btn btn-ban btn-sm" onclick="changeMemberStatus('${m.id}','Expired')"><i class="fa fa-clock"></i> Mark Expired</button>`;
+          btns+=`<button class="btn btn-reject btn-sm" onclick="changeMemberStatus('${m.id}','Banned')"><i class="fa fa-ban"></i> Ban</button>`;
         } else if(s==="expired"){
-          btns+=`<button class="btn btn-approve btn-sm" onclick="changeMemberStatus(${m.row},'Active')"><i class="fa fa-check"></i> Activate</button>`;
-          btns+=`<button class="btn btn-reject btn-sm" onclick="changeMemberStatus(${m.row},'Banned')"><i class="fa fa-ban"></i> Ban</button>`;
+          btns+=`<button class="btn btn-approve btn-sm" onclick="changeMemberStatus('${m.id}','Active')"><i class="fa fa-check"></i> Activate</button>`;
+          btns+=`<button class="btn btn-reject btn-sm" onclick="changeMemberStatus('${m.id}','Banned')"><i class="fa fa-ban"></i> Ban</button>`;
         } else if(s==="banned"){
-          btns+=`<button class="btn btn-approve btn-sm" onclick="changeMemberStatus(${m.row},'Active')"><i class="fa fa-check"></i> Activate</button>`;
-          btns+=`<button class="btn btn-ban btn-sm" onclick="changeMemberStatus(${m.row},'Expired')"><i class="fa fa-clock"></i> Mark Expired</button>`;
+          btns+=`<button class="btn btn-approve btn-sm" onclick="changeMemberStatus('${m.id}','Active')"><i class="fa fa-check"></i> Activate</button>`;
+          btns+=`<button class="btn btn-ban btn-sm" onclick="changeMemberStatus('${m.id}','Expired')"><i class="fa fa-clock"></i> Mark Expired</button>`;
         }
         return btns;
       })()}
@@ -515,13 +525,27 @@ function viewMember(m){
   document.getElementById("memberModal").classList.remove("hidden");
 }
 
-function changeMemberStatus(row,status){
+function changeMemberStatus(memberId,status){
   const memType=document.getElementById("mMemType")?.value||"";
   const desig=document.getElementById("mDesig")?.value||"";
   const comment=document.getElementById("mComment")?.value||"";
   showMsg("memberActionMsg","Updating...","");
-  apiPost({action:"updateMemberStatus",row:row,status:status,membershipType:memType,designation:desig,adminComments:comment}).then(res=>{
+  // Update status first, then update extra fields
+  const updates = {status};
+  if(memType) updates.membershipType=memType;
+  if(desig) updates.designation=desig;
+  if(comment) updates.adminComments=comment;
+  // Use Firestore directly for extra fields
+  RHS.updateMemberStatus(memberId, status).then(res=>{
     if(res.success){
+      // Save extra fields if provided
+      if(memType||desig||comment){
+        const extraUpdates={};
+        if(memType) extraUpdates.membershipType=memType;
+        if(desig) extraUpdates.designation=desig;
+        if(comment) extraUpdates.adminComments=comment;
+        window.__fs.updateDoc(window.__fs.doc(window.__db,"members",memberId), extraUpdates).catch(()=>{});
+      }
       showMsg("memberActionMsg","✅ Status updated to: "+status,"success");
       loadMembers(currentMemberFilter);
       loadAdminStats();
@@ -584,21 +608,21 @@ function renderMembersTable(members, q = "") {
     let actionBtns = "";
     if (s === "underprocess" || s === "under process") {
       actionBtns = `
-        <button class="btn btn-sm btn-approve" onclick='quickStatus(${m.row},"Active","${escHtml(m.fullName)}")' title="Approve"><i class="fa fa-check"></i></button>
-        <button class="btn btn-sm btn-ban" onclick='quickStatus(${m.row},"Expired","${escHtml(m.fullName)}")' title="Expired"><i class="fa fa-clock"></i></button>
-        <button class="btn btn-sm btn-reject" onclick='quickStatus(${m.row},"Banned","${escHtml(m.fullName)}")' title="Ban"><i class="fa fa-ban"></i></button>`;
+        <button class="btn btn-sm btn-approve" onclick='quickStatus('${m.id}',"Active","${escHtml(m.fullName)}")' title="Approve"><i class="fa fa-check"></i></button>
+        <button class="btn btn-sm btn-ban" onclick='quickStatus('${m.id}',"Expired","${escHtml(m.fullName)}")' title="Expired"><i class="fa fa-clock"></i></button>
+        <button class="btn btn-sm btn-reject" onclick='quickStatus('${m.id}',"Banned","${escHtml(m.fullName)}")' title="Ban"><i class="fa fa-ban"></i></button>`;
     } else if (s === "active") {
       actionBtns = `
-        <button class="btn btn-sm btn-ban" onclick='quickStatus(${m.row},"Expired","${escHtml(m.fullName)}")' title="Mark Expired"><i class="fa fa-clock"></i></button>
-        <button class="btn btn-sm btn-reject" onclick='quickStatus(${m.row},"Banned","${escHtml(m.fullName)}")' title="Ban"><i class="fa fa-ban"></i></button>`;
+        <button class="btn btn-sm btn-ban" onclick='quickStatus('${m.id}',"Expired","${escHtml(m.fullName)}")' title="Mark Expired"><i class="fa fa-clock"></i></button>
+        <button class="btn btn-sm btn-reject" onclick='quickStatus('${m.id}',"Banned","${escHtml(m.fullName)}")' title="Ban"><i class="fa fa-ban"></i></button>`;
     } else if (s === "expired") {
       actionBtns = `
-        <button class="btn btn-sm btn-approve" onclick='quickStatus(${m.row},"Active","${escHtml(m.fullName)}")' title="Activate"><i class="fa fa-check"></i></button>
-        <button class="btn btn-sm btn-reject" onclick='quickStatus(${m.row},"Banned","${escHtml(m.fullName)}")' title="Ban"><i class="fa fa-ban"></i></button>`;
+        <button class="btn btn-sm btn-approve" onclick='quickStatus('${m.id}',"Active","${escHtml(m.fullName)}")' title="Activate"><i class="fa fa-check"></i></button>
+        <button class="btn btn-sm btn-reject" onclick='quickStatus('${m.id}',"Banned","${escHtml(m.fullName)}")' title="Ban"><i class="fa fa-ban"></i></button>`;
     } else if (s === "banned") {
       actionBtns = `
-        <button class="btn btn-sm btn-approve" onclick='quickStatus(${m.row},"Active","${escHtml(m.fullName)}")' title="Activate"><i class="fa fa-check"></i></button>
-        <button class="btn btn-sm btn-ban" onclick='quickStatus(${m.row},"Expired","${escHtml(m.fullName)}")' title="Mark Expired"><i class="fa fa-clock"></i></button>`;
+        <button class="btn btn-sm btn-approve" onclick='quickStatus('${m.id}',"Active","${escHtml(m.fullName)}")' title="Activate"><i class="fa fa-check"></i></button>
+        <button class="btn btn-sm btn-ban" onclick='quickStatus('${m.id}',"Expired","${escHtml(m.fullName)}")' title="Mark Expired"><i class="fa fa-clock"></i></button>`;
     }
     html += `<tr>
       <td>${i + 1}</td>
@@ -732,36 +756,37 @@ function submitCharity(){
   const charityBtn = document.querySelector('#tab-charity .btn-primary');
   setLoading(charityBtn, true, 'Saving...');
   const payload={
-    action:"addCharityEntry",
-    cnic:selectedMember.cnic, name:selectedMember.fullName,
-    mobile:selectedMember.mobile, email:selectedMember.email||"",
+    cnic:selectedMember.cnic,
+    memberName:selectedMember.fullName,
+    name:selectedMember.fullName,
+    memberId:selectedMember.id,
+    mobile:selectedMember.mobile,
+    email:selectedMember.email||"",
     address:selectedMember.address||"",
-    paymentMethod:method, amount:Number(amount),
+    paymentMethod:method,
+    amount:Number(amount),
     date:formatDateForServer(date),
     slipRef:document.getElementById("charitySlip").value,
-    note:document.getElementById("charityNote").value,
-    sendEmail:sendEmail
+    note:document.getElementById("charityNote").value
   };
-  apiPost(payload).then(res=>{
+  RHS.addCharityEntry(payload).then(res=>{
     setLoading(charityBtn, false);
     if(res.success){
-      let msg="✅ Charity entry saved! Valid Upto: "+res.validUpto;
-      if(sendEmail&&res.emailSent) msg+=" | 📧 Email sent!";
-      if(sendEmail&&!res.emailSent&&res.memberEmail) msg+=" | ⚠️ Email failed";
-      if(sendEmail&&!res.memberEmail) msg+=" | ⚠️ No email on file";
-      showMsg("charityMsg",msg,"success");
+      let msg="✅ Charity entry saved!";
+      if(res.validUpto) msg+=" Valid Upto: "+res.validUpto;
 
       // WhatsApp
       if(sendWA&&selectedMember.mobile){
         const mob=selectedMember.mobile.replace(/\D/g,"");
         const waNum="92"+mob.slice(1);
         const waMsg=encodeURIComponent(
-          `Assalam-u-Alaikum Dear ${selectedMember.fullName},\n\nYour charity of Rs. ${Number(amount).toLocaleString()} has been received by ${window.NGO.name}.\n\nPayment: ${method}\nDate: ${formatDateForServer(date)}\nValid Upto: ${res.validUpto}\n\nJazak Allah Khair! 🤲\n\n${window.NGO.name}\n${window.NGO.address}\n${window.NGO.phone}`
+          `Assalam-u-Alaikum Dear ${selectedMember.fullName},\n\nYour charity of Rs. ${Number(amount).toLocaleString()} has been received by ${window.NGO.name}.\n\nPayment: ${method}\nDate: ${formatDateForServer(date)}\nValid Upto: ${res.validUpto||"—"}\n\nJazak Allah Khair! 🤲\n\n${window.NGO.name}\n${window.NGO.address}\n${window.NGO.phone}`
         );
         window.open(`https://wa.me/${waNum}?text=${waMsg}`,"_blank");
       }
 
-      if(sendEmail) openThankYouLetter(selectedMember,payload,res.validUpto);
+      if(sendEmail) openThankYouLetter(selectedMember,payload,res.validUpto||"");
+      showMsg("charityMsg",msg,"success");
       clearCharityForm();
       loadCharityList();
       loadAdminStats();
@@ -902,7 +927,7 @@ function viewGrant(g){
           <input class="modal-input" id="gAssignContact" value="${escHtml(g.assignedContact||"")}" placeholder="0300-0000000">
         </div>
       </div>
-      <button class="btn btn-assign btn-sm" onclick="doAssignGrant(${g.row})"><i class="fa fa-user-tag"></i> Assign Case</button>
+      <button class="btn btn-assign btn-sm" onclick="doAssignGrant('${g.id}')"><i class="fa fa-user-tag"></i> Assign Case</button>
       `:""}
 
       ${stLower==="assigned"||stLower==="completed"?`
@@ -913,35 +938,35 @@ function viewGrant(g){
         <textarea id="verifyComment" rows="3" class="modal-input" style="width:100%;resize:vertical;font-family:'Inter',sans-serif;font-size:0.9rem" 
           placeholder="Write your verification notes here... e.g. Physically visited, documents checked, beneficiary confirmed...">${g.decisionNote&&g.decisionNote.startsWith("Verification Notes:")?g.decisionNote.replace("Verification Notes:","").trim():""}</textarea>
       </div>
-      ${stLower==="assigned"?`<button class="btn btn-sm" style="background:#F0EBFF;color:#6D28D9;border:1px solid #C4B5FD;margin-top:10px" onclick="doVerificationComplete(${g.row})">
+      ${stLower==="assigned"?`<button class="btn btn-sm" style="background:#F0EBFF;color:#6D28D9;border:1px solid #C4B5FD;margin-top:10px" onclick="doVerificationComplete('${g.id}')">
         <i class="fa fa-clipboard-check"></i> Mark Verification Complete → Case Completed
       </button>`:""}
       `:""}
 
       ${stLower==="completed"?`
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-        <button class="btn btn-approve btn-sm" onclick="doDecision(${g.row},'Approved','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-check-circle"></i> ✅ Case Approved</button>
-        <button class="btn btn-reject btn-sm" onclick="doDecision(${g.row},'Rejected','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-times-circle"></i> ❌ Case Rejected</button>
+        <button class="btn btn-approve btn-sm" onclick="doDecision('${g.id}','Approved','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-check-circle"></i> ✅ Case Approved</button>
+        <button class="btn btn-reject btn-sm" onclick="doDecision('${g.id}','Rejected','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-times-circle"></i> ❌ Case Rejected</button>
       </div>`:""}
 
       ${g.verificationStatus==="Completed"&&decLower!==""&&decLower!=="approved"&&decLower!=="rejected"?`
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-        <button class="btn btn-approve btn-sm" onclick="doDecision(${g.row},'Approved','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-check-circle"></i> Approve</button>
-        <button class="btn btn-reject btn-sm" onclick="doDecision(${g.row},'Rejected','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-times-circle"></i> Reject</button>
+        <button class="btn btn-approve btn-sm" onclick="doDecision('${g.id}','Approved','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-check-circle"></i> Approve</button>
+        <button class="btn btn-reject btn-sm" onclick="doDecision('${g.id}','Rejected','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-times-circle"></i> Reject</button>
       </div>`:""}
 
       ${decLower==="approved"&&stLower!=="closed"?`
-      <button class="btn btn-sm" style="background:#1F2E2B;color:#fff;margin-top:10px" onclick="doCloseGrant(${g.row})">
+      <button class="btn btn-sm" style="background:#1F2E2B;color:#fff;margin-top:10px" onclick="doCloseGrant('${g.id}')">
         <i class="fa fa-lock"></i> Close — Successfully Granted
       </button>`:""}
     </div>`:""}
 
     ${stLower==="rejected"?`
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
-      <button class="btn btn-sm" style="background:#1F2E2B;color:#fff" onclick="doCloseGrant(${g.row})">
+      <button class="btn btn-sm" style="background:#1F2E2B;color:#fff" onclick="doCloseGrant('${g.id}')">
         <i class="fa fa-lock"></i> Close Case
       </button>
-      <button class="btn btn-assign btn-sm" onclick="doSendBackToCompleted(${g.row})">
+      <button class="btn btn-assign btn-sm" onclick="doSendBackToCompleted('${g.id}')">
         <i class="fa fa-undo"></i> Send Back to Completed
       </button>
     </div>`:""}
@@ -949,7 +974,7 @@ function viewGrant(g){
     ${stLower==="closed"?`
     <div style="margin-top:16px">
       ${decLower==="rejected"?`
-      <button class="btn btn-approve btn-sm" onclick="doReopenGrant(${g.row})">
+      <button class="btn btn-approve btn-sm" onclick="doReopenGrant('${g.id}')">
         <i class="fa fa-redo"></i> Reopen → Case Completed
       </button>`:`
       <p style="color:#8A9A96;font-size:0.88rem;font-style:italic">
@@ -1013,25 +1038,24 @@ function viewGrant(g){
   }
 }
 
-function doAssignGrant(row){
-  const name=document.getElementById("gAssignName")?.value||"";
-  const contact=document.getElementById("gAssignContact")?.value||"";
+function doAssignGrant(grantId){
+  const name=document.getElementById("gAssignName")?.value.trim()||"";
+  const contact=document.getElementById("gAssignContact")?.value.trim()||"";
   if(!name||!contact){showMsg("grantActionMsg","Please enter name and contact.","error");return;}
+  if(!grantId){showMsg("grantActionMsg","Grant ID missing. Please close and reopen this case.","error");return;}
   showMsg("grantActionMsg","Assigning...","");
-  apiPost({action:"assignGrant",row:row,assignedTo:name,assignedContact:contact}).then(res=>{
+  RHS.updateGrant(grantId,{status:"Assigned",assignedTo:name,assignedContact:contact}).then(res=>{
     if(res.success){showMsg("grantActionMsg","✅ Case assigned to "+name,"success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
   }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
 }
 
-function doVerificationComplete(row){
+function doVerificationComplete(grantId){
   const comment = document.getElementById("verifyComment")?.value?.trim() || "";
-  const btn = document.querySelector(`button[onclick="doVerificationComplete(${row})"]`);
+  const btn = document.querySelector(`button[onclick="doVerificationComplete('${grantId}')"]`);
   setLoading(btn, true, "Saving...");
   showMsg("grantActionMsg","Updating...","");
-  apiPost({
-    action:"updateGrantStatus",
-    row:row,
+  RHS.updateGrant(grantId, {
     verificationStatus:"Completed",
     status:"Completed",
     decisionNote: comment ? "Verification Notes: "+comment : ""
@@ -1044,42 +1068,39 @@ function doVerificationComplete(row){
     } else {
       showMsg("grantActionMsg",res.message||"Failed.","error");
     }
-  }).catch(()=>{
-    setLoading(btn, false);
-    showMsg("grantActionMsg","Network error.","error");
-  });
+  }).catch(()=>{ setLoading(btn, false); showMsg("grantActionMsg","Network error.","error"); });
 }
 
-function doDecision(row,decision,name,crn){
+function doDecision(grantId,decision,name,crn){
   showMsg("grantActionMsg","Processing...","");
   const note=decision==="Approved"
     ?`Dear ${name}, Congratulations your case no ${crn} Successfully Approved and our team will contact you with your need at your door step.`
     :`Dear ${name}, Your ${crn} Case doesn't match our organization policy so your case has been closed. To reopen your case please physically meet our President with Case No ${crn} or reopen your case.`;
-  apiPost({action:"updateGrantStatus",row:row,decision:decision,decisionNote:note}).then(res=>{
+  RHS.updateGrant(grantId,{decision:decision,decisionNote:note}).then(res=>{
     if(res.success){showMsg("grantActionMsg","✅ Decision: "+decision,"success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
   }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
 }
 
-function doCloseGrant(row){
+function doCloseGrant(grantId){
   showMsg("grantActionMsg","Closing case...","");
-  apiPost({action:"updateGrantStatus",row:row,decision:"Closed",decisionNote:"Successfully Granted"}).then(res=>{
-    if(res.success){showMsg("grantActionMsg","✅ Case closed — Successfully Granted.","success");loadGrants(currentGrantFilter);}
+  RHS.updateGrant(grantId,{status:"Closed",decisionNote:"Successfully Granted"}).then(res=>{
+    if(res.success){showMsg("grantActionMsg","✅ Case closed — Successfully Granted.","success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
   }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
 }
 
-function doSendBackToCompleted(row){
+function doSendBackToCompleted(grantId){
   showMsg("grantActionMsg","Sending back...","");
-  apiPost({action:"updateGrantStatus",row:row,status:"Completed",decision:"",decisionNote:""}).then(res=>{
+  RHS.updateGrant(grantId,{status:"Completed",decision:"",decisionNote:""}).then(res=>{
     if(res.success){showMsg("grantActionMsg","✅ Case sent back to Case Completed tab.","success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
   }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
 }
 
-function doReopenGrant(row){
+function doReopenGrant(grantId){
   showMsg("grantActionMsg","Reopening...","");
-  apiPost({action:"updateGrantStatus",row:row,status:"Completed",decision:"",decisionNote:""}).then(res=>{
+  RHS.updateGrant(grantId,{status:"Completed",decision:"",decisionNote:""}).then(res=>{
     if(res.success){showMsg("grantActionMsg","✅ Case reopened → moved to Case Completed tab.","success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
   }).catch(()=>showMsg("grantActionMsg","Network error.","error"));

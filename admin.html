@@ -163,6 +163,46 @@
         </button>
       </div>
 
+      <!-- ROW 1B: Gender + Total (Issue 5) -->
+      <div class="stats-row-4" style="margin-top:10px">
+        <button class="stat-box-btn purple" onclick="switchTab('members');loadMembers('all')">
+          <i class="fa fa-users"></i>
+          <div><span id="st-total-members">0</span><small>Total Members</small></div>
+        </button>
+        <button class="stat-box-btn blue" onclick="switchTab('members');loadMembers('all')">
+          <i class="fa fa-male"></i>
+          <div><span id="st-male">0</span><small>Male Members</small></div>
+        </button>
+        <button class="stat-box-btn gold" onclick="switchTab('members');loadMembers('all')">
+          <i class="fa fa-female"></i>
+          <div><span id="st-female">0</span><small>Female Members</small></div>
+        </button>
+        <button class="stat-box-btn teal2" onclick="switchTab('charity')">
+          <i class="fa fa-hand-holding-heart"></i>
+          <div><span id="st-active-charity">0</span><small>Active (Last 30 Days)</small></div>
+        </button>
+      </div>
+
+      <!-- ROW 1C: 30-day inactive + Grant new/assigned (Issue 5 & 6) -->
+      <div class="stats-row-4" style="margin-top:10px">
+        <button class="stat-box-btn orange" onclick="switchTab('members');loadMembers('active')">
+          <i class="fa fa-user-slash"></i>
+          <div><span id="st-inactive-charity">0</span><small>Inactive (No Charity 30d)</small></div>
+        </button>
+        <button class="stat-box-btn red" onclick="switchTab('grants');loadGrants('new')">
+          <i class="fa fa-file-alt"></i>
+          <div><span id="st-newgrants">0</span><small>New Grant Requests</small></div>
+        </button>
+        <button class="stat-box-btn teal" onclick="switchTab('grants');loadGrants('assigned')">
+          <i class="fa fa-user-tag"></i>
+          <div><span id="st-assigned">0</span><small>Assigned Cases</small></div>
+        </button>
+        <button class="stat-box-btn green" onclick="switchTab('grants');loadGrants('closed')">
+          <i class="fa fa-lock"></i>
+          <div><span id="st-closed-grants">0</span><small>Projects Completed</small></div>
+        </button>
+      </div>
+
       <!-- ROW 2: Financials -->
       <div class="stats-row-4" style="margin-top:14px">
         <button class="stat-box-btn blue" onclick="switchTab('charity')">
