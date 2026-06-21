@@ -210,7 +210,6 @@
       <h2>Membership &amp; Certificate Portal</h2>
       <p>New registration, verify your digital membership certificate, or check your charity donation history.</p>
     </div>
-    <!-- Main Buttons -->
     <div class="helpdesk-btns" id="memberPortalBtns">
       <button class="btn btn-primary" onclick="showMemberSection('registration')">
         <i class="fa-solid fa-user-plus"></i> New Member Registration
@@ -219,7 +218,6 @@
         <i class="fa-solid fa-id-card"></i> Certificate &amp; Donation Verify
       </button>
     </div>
-
     <!-- VERIFY PORTAL — hidden by default -->
     <div id="verifyPortalWrap" style="display:none;margin-top:32px">
       <div class="form-card narrow" id="memberLookupCard">
@@ -253,7 +251,6 @@
           <p class="form-msg" id="verifyMsg"></p>
         </form>
       </div>
-      <!-- Certificate / Ledger renders here -->
       <div id="certResult" style="margin-top:24px"></div>
     </div>
   </div>
@@ -333,25 +330,36 @@
             <label for="regAddress">Full Address <span class="req">*</span></label>
             <textarea id="regAddress" rows="2" placeholder="House no, street, area, city…" required autocomplete="off"></textarea>
           </div>
-          <!-- PHOTO UPLOAD — Required, uploaded to Cloudinary, shown on certificate -->
+
+          <!-- ===== PHOTO UPLOAD — label based, works on all devices ===== -->
           <div class="field full-col">
             <label>Passport Size Photo <span class="req">*</span></label>
-            <div class="photo-upload-row">
-              <div class="photo-preview-box" id="regPhotoPreview" onclick="document.getElementById('regPhoto').click()">
-                <i class="fa-solid fa-camera"></i>
-                <span>Click to upload</span>
-              </div>
-              <div class="photo-upload-info">
-                <p><i class="fa-solid fa-circle-info" style="color:var(--teal)"></i> Upload a clear passport-size photo</p>
-                <p style="color:#8A9A96;font-size:.8rem">Format: JPG / PNG &nbsp;|&nbsp; Max: 3MB &nbsp;|&nbsp; <strong style="color:#DC2626">Required</strong></p>
-                <p style="color:#1a9e5c;font-size:.8rem"><i class="fa-solid fa-cloud"></i> Photo saved to Cloudinary · shown on certificate</p>
-                <input type="file" id="regPhoto" accept="image/*" style="display:none" onchange="previewRegPhoto(this)">
-                <button type="button" class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="document.getElementById('regPhoto').click()">
-                  <i class="fa-solid fa-upload"></i> Choose Photo
-                </button>
-              </div>
+            <div class="photo-upload-wrap">
+              <!-- Hidden file input — label ke saath connected via for/id -->
+              <input type="file" id="regPhoto" name="regPhoto" accept="image/jpeg,image/jpg,image/png,image/webp" style="position:absolute;opacity:0;width:0;height:0;pointer-events:none" tabindex="-1">
+              <!-- Label click se file picker khulta hai — 100% reliable -->
+              <label for="regPhoto" class="photo-label" id="regPhotoLabel">
+                <div class="photo-preview-box" id="regPhotoPreview">
+                  <i class="fa-solid fa-camera" style="font-size:1.8rem;color:#4CAF8A;margin-bottom:6px;display:block"></i>
+                  <span style="font-size:.8rem;color:#8A9A96">Tap to select photo</span>
+                </div>
+                <div class="photo-label-info">
+                  <div style="font-weight:600;color:#14534F;margin-bottom:4px"><i class="fa-solid fa-camera"></i> Select Passport Photo</div>
+                  <div style="font-size:.82rem;color:#6B7280;line-height:1.6">
+                    • Format: JPG, PNG, WebP<br>
+                    • Max size: 3MB<br>
+                    • <strong style="color:#DC2626">Required for registration</strong><br>
+                    • Photo will appear on your membership certificate
+                  </div>
+                  <div class="btn btn-ghost btn-sm" style="margin-top:10px;display:inline-flex;pointer-events:none">
+                    <i class="fa-solid fa-upload"></i> &nbsp;Choose Photo
+                  </div>
+                </div>
+              </label>
+              <p class="form-msg" id="photoMsg" style="margin-top:6px"></p>
             </div>
           </div>
+
         </div>
         <div class="form-actions">
           <button type="submit" class="btn btn-primary" id="submitBtn">
