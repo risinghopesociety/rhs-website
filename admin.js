@@ -144,7 +144,12 @@ function switchTab(name){
   document.querySelectorAll(".tab-content").forEach(t=>t.classList.add("hidden"));
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
   const tabEl = document.getElementById("tab-"+name);
-  if(tabEl) tabEl.classList.remove("hidden");
+  if(tabEl){
+    tabEl.classList.remove("hidden");
+    // Scroll to top of page
+    window.scrollTo(0,0);
+    document.querySelector(".main-content")?.scrollTo(0,0);
+  }
   const navEl = document.getElementById("nav-"+name);
   if(navEl) navEl.classList.add("active");
   const titles={home:"Dashboard",members:"Members Management",charity:"Charity Entry",grants:"Grant Cases (CRN)",cashbook:"Cash Book",adminexp:"Admin Expenses",reports:"Reports",messages:"Messages",setup:"Setup"};
