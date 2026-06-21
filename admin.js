@@ -143,16 +143,215 @@ function toggleSidebar(){document.getElementById("sidebar").classList.toggle("op
 function switchTab(name){
   document.querySelectorAll(".tab-content").forEach(t=>t.classList.add("hidden"));
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
-  document.getElementById("tab-"+name).classList.remove("hidden");
-  document.getElementById("nav-"+name).classList.add("active");
-  const titles={home:"Dashboard",members:"Members Management",charity:"Charity Entry",grants:"Grant Cases (CRN)",cashbook:"Cash Book",adminexp:"Admin Expenses",reports:"Reports"};
+  const tabEl = document.getElementById("tab-"+name);
+  if(tabEl) tabEl.classList.remove("hidden");
+  const navEl = document.getElementById("nav-"+name);
+  if(navEl) navEl.classList.add("active");
+  const titles={home:"Dashboard",members:"Members Management",charity:"Charity Entry",grants:"Grant Cases (CRN)",cashbook:"Cash Book",adminexp:"Admin Expenses",reports:"Reports",messages:"Messages",setup:"Setup"};
   document.getElementById("pageTitle").textContent=titles[name]||"Dashboard";
   if(name==="members") loadMembers("all");
   if(name==="charity"){loadCharityList();setDefaultDates();}
   if(name==="grants") loadGrants("all");
   if(name==="cashbook"){loadCashBook();setDefaultDates();}
   if(name==="adminexp"){loadAdminExpenses();setDefaultDates();}
+  if(name==="messages") loadMessages();
+  if(name==="setup") loadSetupData();
   if(window.innerWidth<=900) document.getElementById("sidebar").classList.remove("open");
+}
+
+// ====== SETUP SECTION TOGGLE ======
+function showSetupSection(section, btn){
+  document.querySelectorAll(".setup-section").forEach(s=>s.classList.add("hidden"));
+  document.querySelectorAll(".setup-menu-btn").forEach(b=>b.classList.remove("active"));
+  const el = document.getElementById("setup-"+section);
+  if(el) el.classList.remove("hidden");
+  if(btn) btn.classList.add("active");
+}
+
+// ====== LOAD ALL SETUP DATA ======
+function loadSetupData(){
+  if(!window.RHS){setTimeout(loadSetupData,500);return;}
+  // Load NGO Settings
+  RHS.getNGOSettings().then(res=>{
+    if(!res) return;
+    const fields = {
+      "set-ngoName":res.ngoName||"","set-ngoPhone":res.ngoPhone||"",
+      "set-ngoEmail":res.ngoEmail||"","set-alertNumber":res.alertNumber||"",
+      "set-ngoAddress":res.ngoAddress||"","set-bankAccount":res.bankAccount||"",
+      "set-ourTeamTitle":res.ourTeamTitle||"","set-ourTeamMatter":res.ourTeamMatter||""
+    };
+    Object.entries(fields).forEach(([id,val])=>{
+      const el=document.getElementById(id);
+      if(el) el.value=val;
+    });
+  }).catch(()=>{});
+  // Load Statistics
+  RHS.getStatistics().then(res=>{
+    if(!res) return;
+    ["members","families","projects","volunteers"].forEach(k=>{
+      const el=document.getElementById("set-"+k);
+      if(el) el.value=res[k]||0;
+    });
+  }).catch(()=>{});
+  // Load Contact
+  RHS.getContact().then(res=>{
+    if(!res) return;
+    ["facebook","instagram","whatsapp","youtube"].forEach(k=>{
+      const el=document.getElementById("set-"+k);
+      if(el) el.value=res[k]||"";
+    });
+  }).catch(()=>{});
+  // Load Team list
+  loadTeamList();
+}
+
+// ====== SAVE ADMIN SETTINGS ======
+function saveAdminSettings(){
+  if(!window.RHS){return;}
+  const data={
+    ngoName:document.getElementById("set-ngoName")?.value||"",
+    ngoPhone:document.getElementById("set-ngoPhone")?.value||"",
+    ngoEmail:document.getElementById("set-ngoEmail")?.value||"",
+    alertNumber:document.getElementById("set-alertNumber")?.value||"",
+    ngoAddress:document.getElementById("set-ngoAddress")?.value||"",
+    bankAccount:document.getElementById("set-bankAccount")?.value||"",
+    ourTeamTitle:document.getElementById("set-ourTeamTitle")?.value||"",
+    ourTeamMatter:document.getElementById("set-ourTeamMatter")?.value||""
+  };
+  const btn=document.querySelector('#setup-adminSettings .btn-primary');
+  setLoading(btn,true,"Saving...");
+  RHS.saveNGOSettings(data).then(()=>{
+    setLoading(btn,false);
+    showMsg("adminSettingsMsg","✅ Settings saved!","success");
+    loadNGOSettings();
+  }).catch(()=>{setLoading(btn,false);showMsg("adminSettingsMsg","Failed to save.","error");});
+}
+
+// ====== SAVE STATISTICS ======
+function saveStatistics(){
+  if(!window.RHS){return;}
+  const data={
+    members:Number(document.getElementById("set-members")?.value)||0,
+    families:Number(document.getElementById("set-families")?.value)||0,
+    projects:Number(document.getElementById("set-projects")?.value)||0,
+    volunteers:Number(document.getElementById("set-volunteers")?.value)||0
+  };
+  const btn=document.querySelector('#setup-statistics .btn-primary');
+  setLoading(btn,true,"Saving...");
+  window.__fs.updateDoc(window.__fs.doc(window.__db,"settings","statistics"),data)
+    .then(()=>{setLoading(btn,false);showMsg("statisticsMsg","✅ Statistics updated!","success");})
+    .catch(()=>{setLoading(btn,false);showMsg("statisticsMsg","Failed.","error");});
+}
+
+// ====== SAVE CONTACT ======
+function saveContactSettings(){
+  if(!window.RHS){return;}
+  const data={
+    facebook:document.getElementById("set-facebook")?.value||"",
+    instagram:document.getElementById("set-instagram")?.value||"",
+    whatsapp:document.getElementById("set-whatsapp")?.value||"",
+    youtube:document.getElementById("set-youtube")?.value||""
+  };
+  const btn=document.querySelector('#setup-contact .btn-primary');
+  setLoading(btn,true,"Saving...");
+  RHS.saveContact(data).then(()=>{
+    setLoading(btn,false);
+    showMsg("contactSettingsMsg","✅ Contact saved!","success");
+  }).catch(()=>{setLoading(btn,false);showMsg("contactSettingsMsg","Failed.","error");});
+}
+
+// ====== TEAM MANAGEMENT ======
+function previewTeamPhoto(input){
+  const file=input.files?.[0];
+  if(!file) return;
+  const preview=document.getElementById("team-photo-preview");
+  if(!preview) return;
+  const reader=new FileReader();
+  reader.onload=e=>{preview.innerHTML=`<img src="${e.target.result}" alt="Preview">`;};
+  reader.readAsDataURL(file);
+}
+
+async function addTeamMember(){
+  if(!window.RHS){return;}
+  const name=document.getElementById("team-name")?.value.trim();
+  const desig=document.getElementById("team-designation")?.value.trim();
+  const order=Number(document.getElementById("team-order")?.value)||99;
+  const bio=document.getElementById("team-bio")?.value.trim()||"";
+  if(!name||!desig){showMsg("teamMsg","Name and Designation required.","error");return;}
+  const btn=document.querySelector('#setup-team .btn-primary');
+  setLoading(btn,true,"Adding...");
+  let photoUrl="";
+  const photoFile=document.getElementById("team-photo")?.files?.[0];
+  if(photoFile){
+    try{photoUrl=await RHS.uploadImage(photoFile,"rhs/team");}catch(e){}
+  }
+  RHS.addTeamMember({name,designation:desig,order,bio,photo:photoUrl}).then(()=>{
+    setLoading(btn,false);
+    showMsg("teamMsg","✅ Team member added!","success");
+    document.getElementById("team-name").value="";
+    document.getElementById("team-designation").value="";
+    document.getElementById("team-bio").value="";
+    document.getElementById("team-order").value="";
+    document.getElementById("team-photo-preview").innerHTML="";
+    loadTeamList();
+  }).catch(()=>{setLoading(btn,false);showMsg("teamMsg","Failed.","error");});
+}
+
+function loadTeamList(){
+  if(!window.RHS){setTimeout(loadTeamList,500);return;}
+  const wrap=document.getElementById("teamListWrap");
+  if(!wrap) return;
+  wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i></div>';
+  RHS.getTeam().then(res=>{
+    if(!res.team||!res.team.length){wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:20px">No team members yet.</p>';return;}
+    let html='<table class="data-table"><thead><tr><th>Photo</th><th>Name</th><th>Designation</th><th>Order</th><th>Action</th></tr></thead><tbody>';
+    res.team.forEach(m=>{
+      html+=`<tr>
+        <td>${m.photo?`<img src="${m.photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover">`:"—"}</td>
+        <td><strong>${escHtml(m.name)}</strong></td>
+        <td>${escHtml(m.designation)}</td>
+        <td>${m.order||"—"}</td>
+        <td><button class="btn btn-sm btn-reject" onclick="deleteTeamMember('${m.id}','${escHtml(m.name)}')"><i class="fa fa-trash"></i></button></td>
+      </tr>`;
+    });
+    html+='</tbody></table>';
+    wrap.innerHTML=html;
+  }).catch(()=>{wrap.innerHTML='<p style="color:#D9483A">Failed to load team.</p>';});
+}
+
+function deleteTeamMember(id,name){
+  if(!confirm(`Delete "${name}" from team?`)) return;
+  RHS.deleteTeamMember(id).then(()=>{
+    loadTeamList();
+    showMsg("teamMsg","✅ Member deleted.","success");
+  }).catch(()=>showMsg("teamMsg","Failed to delete.","error"));
+}
+
+// ====== MESSAGES ======
+function loadMessages(){
+  if(!window.RHS){setTimeout(loadMessages,500);return;}
+  const wrap=document.getElementById("messagesWrap");
+  if(!wrap) return;
+  wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
+  RHS.getContactMessages().then(res=>{
+    if(!res.messages||!res.messages.length){
+      wrap.innerHTML='<div class="empty-state"><i class="fa fa-envelope"></i><p>No messages yet.</p></div>';
+      return;
+    }
+    let html='';
+    res.messages.forEach(m=>{
+      const date=m.createdAt?.toDate?m.createdAt.toDate().toLocaleDateString("en-PK"):"—";
+      html+=`<div class="message-card">
+        <div class="msg-header">
+          <span class="msg-name"><i class="fa fa-user"></i> ${escHtml(m.name||"")}</span>
+          <span class="msg-date">${date}</span>
+        </div>
+        <div class="msg-email"><i class="fa fa-envelope"></i> ${escHtml(m.email||"")}</div>
+        <div class="msg-text">${escHtml(m.message||"")}</div>
+      </div>`;
+    });
+    wrap.innerHTML=html;
+  }).catch(()=>{wrap.innerHTML='<div class="empty-state">Failed to load messages.</div>';});
 }
 
 function setDefaultDates(){

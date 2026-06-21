@@ -110,6 +110,13 @@
       <button class="nav-item" onclick="switchTab('reports')" id="nav-reports">
         <i class="fa fa-chart-bar"></i><span>Reports</span>
       </button>
+      <button class="nav-item" onclick="switchTab('messages')" id="nav-messages">
+        <i class="fa fa-envelope"></i><span>Messages</span>
+      </button>
+      <div class="nav-divider"></div>
+      <button class="nav-item" onclick="switchTab('setup')" id="nav-setup">
+        <i class="fa fa-cog"></i><span>Setup</span>
+      </button>
     </nav>
     <button class="logout-btn" onclick="doLogout()"><i class="fa fa-sign-out-alt"></i> Logout</button>
   </aside>
@@ -128,6 +135,14 @@
 
     <!-- ===== TAB: HOME ===== -->
     <div class="tab-content" id="tab-home">
+
+      <!-- WELCOME CARD - UPAR -->
+      <div class="welcome-card" style="margin-bottom:20px">
+        <h3><i class="fa fa-hands-helping"></i> Welcome, Admin!</h3>
+        <p class="ngo-name" style="color:rgba(255,255,255,0.9)">Rising Hope Society</p>
+        <p style="margin-top:4px;color:rgba(255,255,255,0.7);font-size:0.88rem" class="ngo-address">Khairpur Tamewali, Bahawalpur</p>
+      </div>
+
       <!-- ROW 1: Members -->
       <div class="stats-row-4" id="adminStatsRow">
         <button class="stat-box-btn teal" onclick="switchTab('members');loadMembers('pending')">
@@ -186,12 +201,6 @@
           <i class="fa fa-lock"></i>
           <div><span id="st-closed">0</span><small>Closed Cases</small></div>
         </button>
-      </div>
-
-      <div class="welcome-card" style="margin-top:16px">
-        <h3><i class="fa fa-hands-helping"></i> Welcome, Admin!</h3>
-        <p class="ngo-name" style="color:rgba(255,255,255,0.9)">Rising Hope Society</p>
-        <p style="margin-top:4px;color:rgba(255,255,255,0.7);font-size:0.88rem" class="ngo-address">Khairpur Tamewali, Bahawalpur</p>
       </div>
     </div>
 
@@ -548,6 +557,139 @@
     </div>
   </div>
 </div>
+
+    <!-- ===== TAB: MESSAGES ===== -->
+    <div class="tab-content hidden" id="tab-messages">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <h3 style="font-family:'Fraunces',serif;color:var(--teal);margin:0"><i class="fa fa-envelope"></i> Contact Messages</h3>
+        <button class="btn btn-sm btn-ghost" onclick="loadMessages()"><i class="fa fa-refresh"></i> Refresh</button>
+      </div>
+      <div id="messagesWrap" class="table-wrap">
+        <div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading messages...</div>
+      </div>
+    </div>
+
+    <!-- ===== TAB: SETUP ===== -->
+    <div class="tab-content hidden" id="tab-setup">
+
+      <!-- SETUP TOP MENU -->
+      <div class="setup-top-menu">
+        <button class="setup-menu-btn active" onclick="showSetupSection('adminSettings', this)">
+          <i class="fa fa-cog"></i> Admin Settings
+        </button>
+        <button class="setup-menu-btn" onclick="showSetupSection('content', this)">
+          <i class="fa fa-edit"></i> Content
+        </button>
+        <button class="setup-menu-btn" onclick="showSetupSection('team', this)">
+          <i class="fa fa-users"></i> Team
+        </button>
+        <button class="setup-menu-btn" onclick="showSetupSection('contact', this)">
+          <i class="fa fa-address-book"></i> Contact
+        </button>
+        <button class="setup-menu-btn" onclick="showSetupSection('statistics', this)">
+          <i class="fa fa-chart-bar"></i> Statistics
+        </button>
+      </div>
+
+      <!-- ADMIN SETTINGS -->
+      <div class="setup-section" id="setup-adminSettings">
+        <div class="card" style="margin-top:16px">
+          <h3 class="card-title"><i class="fa fa-cog"></i> Admin Settings</h3>
+          <div class="charity-form-grid">
+            <div class="field"><label>NGO Name</label><input type="text" id="set-ngoName" placeholder="Rising Hope Society"></div>
+            <div class="field"><label>Phone</label><input type="text" id="set-ngoPhone" placeholder="0346-4800064"></div>
+            <div class="field"><label>Email</label><input type="email" id="set-ngoEmail" placeholder="email@example.com"></div>
+            <div class="field"><label>Alert Number</label><input type="text" id="set-alertNumber" placeholder="0346-4800064"></div>
+            <div class="field" style="grid-column:1/-1"><label>Address</label><input type="text" id="set-ngoAddress" placeholder="Full Address"></div>
+            <div class="field"><label>Bank Account</label><input type="text" id="set-bankAccount" placeholder="Bank Account No"></div>
+            <div class="field"><label>Team Section Title</label><input type="text" id="set-ourTeamTitle" placeholder="Our Team"></div>
+            <div class="field" style="grid-column:1/-1"><label>Team Section Text</label><textarea id="set-ourTeamMatter" rows="2" placeholder="Description..."></textarea></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="saveAdminSettings()"><i class="fa fa-save"></i> Save Settings</button>
+          </div>
+          <p class="form-msg" id="adminSettingsMsg"></p>
+        </div>
+      </div>
+
+      <!-- CONTENT -->
+      <div class="setup-section hidden" id="setup-content">
+        <div class="card" style="margin-top:16px">
+          <h3 class="card-title"><i class="fa fa-edit"></i> Website Content</h3>
+          <div class="charity-form-grid">
+            <div class="field"><label>Hero Eyebrow Text</label><input type="text" id="set-heroEyebrow" placeholder="e.g. Serving Humanity"></div>
+            <div class="field"><label>Hero Heading</label><input type="text" id="set-heroHeading" placeholder="Main heading"></div>
+            <div class="field" style="grid-column:1/-1"><label>Hero Description</label><textarea id="set-heroText" rows="2" placeholder="Hero description..."></textarea></div>
+            <div class="field"><label>About Title</label><input type="text" id="set-aboutTitle" placeholder="About Us"></div>
+            <div class="field" style="grid-column:1/-1"><label>About Text</label><textarea id="set-aboutText" rows="3" placeholder="About us description..."></textarea></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="saveContent()"><i class="fa fa-save"></i> Save Content</button>
+          </div>
+          <p class="form-msg" id="contentMsg"></p>
+        </div>
+      </div>
+
+      <!-- TEAM -->
+      <div class="setup-section hidden" id="setup-team">
+        <div class="card" style="margin-top:16px">
+          <h3 class="card-title"><i class="fa fa-users"></i> Team Members</h3>
+          <div class="charity-form-grid">
+            <div class="field"><label>Name *</label><input type="text" id="team-name" placeholder="Full Name"></div>
+            <div class="field"><label>Designation *</label><input type="text" id="team-designation" placeholder="e.g. President"></div>
+            <div class="field"><label>Order (1,2,3...)</label><input type="number" id="team-order" placeholder="1" min="1"></div>
+            <div class="field"><label>Bio</label><input type="text" id="team-bio" placeholder="Short introduction"></div>
+            <div class="field">
+              <label>Photo</label>
+              <input type="file" id="team-photo" accept="image/*" onchange="previewTeamPhoto(this)">
+              <div id="team-photo-preview" style="margin-top:8px"></div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="addTeamMember()"><i class="fa fa-plus"></i> Add Member</button>
+          </div>
+          <p class="form-msg" id="teamMsg"></p>
+          <div id="teamListWrap" style="margin-top:20px"></div>
+        </div>
+      </div>
+
+      <!-- CONTACT -->
+      <div class="setup-section hidden" id="setup-contact">
+        <div class="card" style="margin-top:16px">
+          <h3 class="card-title"><i class="fa fa-address-book"></i> Contact & Social Links</h3>
+          <div class="charity-form-grid">
+            <div class="field"><label>Facebook URL</label><input type="url" id="set-facebook" placeholder="https://facebook.com/..."></div>
+            <div class="field"><label>Instagram URL</label><input type="url" id="set-instagram" placeholder="https://instagram.com/..."></div>
+            <div class="field"><label>WhatsApp Number</label><input type="text" id="set-whatsapp" placeholder="923464800064"></div>
+            <div class="field"><label>YouTube URL</label><input type="url" id="set-youtube" placeholder="https://youtube.com/..."></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="saveContactSettings()"><i class="fa fa-save"></i> Save Contact</button>
+          </div>
+          <p class="form-msg" id="contactSettingsMsg"></p>
+        </div>
+      </div>
+
+      <!-- STATISTICS -->
+      <div class="setup-section hidden" id="setup-statistics">
+        <div class="card" style="margin-top:16px">
+          <h3 class="card-title"><i class="fa fa-chart-bar"></i> Website Statistics</h3>
+          <p style="color:#8A9A96;font-size:.88rem;margin-bottom:16px">These numbers show on the main website homepage.</p>
+          <div class="charity-form-grid">
+            <div class="field"><label>Members Served</label><input type="number" id="set-members" placeholder="0" min="0"></div>
+            <div class="field"><label>Families Helped</label><input type="number" id="set-families" placeholder="0" min="0"></div>
+            <div class="field"><label>Projects Completed</label><input type="number" id="set-projects" placeholder="0" min="0"></div>
+            <div class="field"><label>Volunteers</label><input type="number" id="set-volunteers" placeholder="0" min="0"></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="saveStatistics()"><i class="fa fa-save"></i> Save Statistics</button>
+          </div>
+          <p class="form-msg" id="statisticsMsg"></p>
+        </div>
+      </div>
+
+    </div>
+    <!-- END SETUP TAB -->
 
 <div id="printArea" class="print-area"></div>
 <!-- Firebase SDK -->
