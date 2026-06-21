@@ -1,11 +1,8 @@
 /* ============================================================
-   RISING HOPE SOCIETY — ADMIN.JS
+   RISING HOPE SOCIETY — ADMIN.JS — Firebase Mode
    ============================================================ */
 
-// Firebase Auth + Firestore mode
-
-// ====== API HELPERS ======
-// NGO Settings — loaded from AdminSettings sheet
+// NGO Settings defaults
 window.NGO = {
   name: "Rising Hope Society",
   phone: "0346-4800064",
@@ -16,8 +13,9 @@ window.NGO = {
 };
 
 function loadNGOSettings() {
-  apiGet({ action: "getPublicSettings" }).then(res => {
-    if (!res.success) return;
+  if (!window.RHS) { setTimeout(loadNGOSettings, 500); return; }
+  RHS.getNGOSettings().then(res => {
+    if (!res) return;
     window.NGO = {
       name:    res.ngoName    || window.NGO.name,
       phone:   res.ngoPhone   || window.NGO.phone,
@@ -26,11 +24,12 @@ function loadNGOSettings() {
       bank:    res.bankAccount|| window.NGO.bank,
       alert:   res.alertNumber|| res.ngoPhone || window.NGO.alert
     };
+    document.querySelectorAll(".ngo-name").forEach(el => el.textContent = window.NGO.name);
+    document.querySelectorAll(".ngo-address").forEach(el => el.textContent = window.NGO.address);
   }).catch(() => {});
 }
 
-
-/* ===================== LOADING BUTTON UTILITY ===================== */
+/* ===================== LOADING BUTTON ===================== */
 function setLoading(btn, loading, text="") {
   if (!btn) return;
   if (loading) {
@@ -45,21 +44,80 @@ function setLoading(btn, loading, text="") {
   }
 }
 
-/* Apply autocomplete off to all inputs */
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("input, textarea, select, form").forEach(el => {
     el.setAttribute("autocomplete", "off");
   });
 });
 
-function apiGet(params){
-  const url=new URL(API_URL);
-  Object.keys(params).forEach(k=>url.searchParams.append(k,params[k]));
-  return fetch(url.toString()).then(r=>r.json());
+// Dummy apiGet/apiPost for any remaining old calls
+function apiGet(params){ return Promise.resolve({success:false}); }
+function apiPost(data){ return Promise.resolve({success:false}); }
+
+/* ===================== LOGIN ===================== */
+function doLogin(){
+  const email = document.getElementById("loginEmail")?.value.trim();
+  const pass  = document.getElementById("loginPass")?.value.trim();
+  const msg   = document.getElementById("loginMsg");
+  if (!email || !pass) { if(msg){msg.textContent="Please enter email and password.";} return; }
+  if (msg) { msg.textContent=""; }
+  const loginBtn = document.getElementById("loginSubmitBtn");
+  if (loginBtn) { loginBtn.disabled=true; loginBtn.innerHTML='<i class="fa fa-spinner fa-spin"></i> Logging in...'; }
+
+  if (!window.__fauth || !window.__auth) {
+    setTimeout(doLogin, 800); return;
+  }
+
+  window.__fauth.signInWithEmailAndPassword(window.__auth, email, pass)
+    .then(() => {
+      if (loginBtn) { loginBtn.disabled=false; loginBtn.innerHTML='<i class="fa fa-sign-in-alt"></i> Login to Dashboard'; }
+      document.getElementById("loginScreen")?.classList.add("hidden");
+      document.getElementById("dashboard")?.classList.remove("hidden");
+      loadNGOSettings();
+      loadAdminStats();
+      setDefaultDates();
+    })
+    .catch(err => {
+      if (loginBtn) { loginBtn.disabled=false; loginBtn.innerHTML='<i class="fa fa-sign-in-alt"></i> Login to Dashboard'; }
+      let errMsg = "Login failed. Check email and password.";
+      if (err.code==="auth/user-not-found") errMsg = "Email not registered.";
+      if (err.code==="auth/wrong-password" || err.code==="auth/invalid-credential") errMsg = "Wrong password.";
+      if (err.code==="auth/too-many-requests") errMsg = "Too many attempts. Try later.";
+      if (msg) { msg.textContent = errMsg; msg.style.color="#D9483A"; }
+    });
 }
-function apiPost(payload){
-  return fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)}).then(r=>r.json());
+
+/* ===================== FORGOT PASSWORD ===================== */
+function doForgotPassword(){
+  const email = document.getElementById("loginEmail")?.value.trim();
+  const msg   = document.getElementById("loginMsg");
+  if (!email) { if(msg){msg.textContent="Enter your email first."; msg.style.color="#D9483A";} return; }
+  if (!window.__fauth || !window.__auth) { setTimeout(()=>doForgotPassword(), 800); return; }
+  window.__fauth.sendPasswordResetEmail(window.__auth, email)
+    .then(() => {
+      if(msg){ msg.textContent="✅ Password reset email sent! Check your inbox."; msg.style.color="#2E9E5B"; }
+    })
+    .catch(err => {
+      if(msg){ msg.textContent="Failed: "+err.message; msg.style.color="#D9483A"; }
+    });
 }
+
+function hideForgotPassword(){
+  const fb = document.getElementById("forgotBox");
+  if(fb) fb.style.display="none";
+}
+
+/* ===================== LOGOUT ===================== */
+function doLogout(){
+  if(window.__fauth && window.__auth){
+    window.__fauth.signOut(window.__auth).catch(()=>{});
+  }
+  document.getElementById("loginScreen")?.classList.remove("hidden");
+  document.getElementById("dashboard")?.classList.add("hidden");
+  document.getElementById("loginEmail").value="";
+  document.getElementById("loginPass").value="";
+}
+
 
 // ====== HELPERS ======
 function Rs(n){return"Rs. "+(Number(n)||0).toLocaleString("en-PK");}
@@ -77,75 +135,6 @@ function togglePass(){
   else{inp.type="password";btn.innerHTML='<i class="fa fa-eye"></i>';}
 }
 
-function doLogin(){
-  const email=document.getElementById("loginEmail").value.trim();
-  const pass=document.getElementById("loginPass").value.trim();
-  const msg=document.getElementById("loginMsg");
-  if(!email||!pass){msg.textContent="Please enter email and password.";return;}
-  msg.textContent="";
-  const loginBtn=document.getElementById("loginSubmitBtn");
-  if(loginBtn){loginBtn.disabled=true;loginBtn.innerHTML='<i class="fa fa-spinner fa-spin"></i> Logging in...';}
-  
-  window.__fauth.signInWithEmailAndPassword(window.__auth, email, pass)
-    .then(userCredential=>{
-      if(loginBtn){loginBtn.disabled=false;loginBtn.innerHTML='<i class="fa fa-sign-in-alt"></i> Login to Dashboard';}
-      document.getElementById("loginScreen").classList.add("hidden");
-      document.getElementById("dashboard").classList.remove("hidden");
-      loadNGOSettings();
-      loadAdminStats();
-      setDefaultDates();
-    })
-    .catch(err=>{
-      if(loginBtn){loginBtn.disabled=false;loginBtn.innerHTML='<i class="fa fa-sign-in-alt"></i> Login to Dashboard';}
-      let errMsg="Login failed. Check email and password.";
-      if(err.code==="auth/user-not-found") errMsg="Email not found.";
-      if(err.code==="auth/wrong-password") errMsg="Wrong password.";
-      if(err.code==="auth/too-many-requests") errMsg="Too many attempts. Try later.";
-      msg.textContent=errMsg;
-      msg.style.color="#D9483A";
-    });
-}
-
-// ====== FORGOT PASSWORD ======
-function showForgotPassword(){}
-function hideForgotPassword(){
-  document.getElementById("forgotBox").classList.add("hidden");
-  document.getElementById("loginScreen").querySelector(".login-box").classList.remove("hidden");
-  document.getElementById("forgotMsg").textContent="";
-}
-function doForgotPassword(){
-  const loginBox=document.getElementById("loginScreen").querySelector(".login-box");
-  const forgotBox=document.getElementById("forgotBox");
-  const msg=document.getElementById("forgotMsg");
-  
-  // Show loading state first
-  loginBox.classList.add("hidden");
-  forgotBox.classList.remove("hidden");
-  const fpBtn = document.querySelector('#forgotBox .btn-primary');
-  setLoading(fpBtn, true, 'Sending...');
-  msg.textContent="";
-
-  apiGet({action:"forgotPassword",email:"risinghopesociety@gmail.com"}).then(res=>{
-    setLoading(fpBtn, false);
-    if(res.success){
-      msg.textContent="";
-    } else {
-      msg.textContent="⚠️ "+res.message;
-      msg.style.color="#D9483A";
-    }
-  }).catch(()=>{
-    msg.textContent="⚠️ Network error. Please try again.";
-    msg.style.color="#D9483A";
-  });
-}
-
-function doLogout(){
-  document.getElementById("dashboard").classList.add("hidden");
-  document.getElementById("loginScreen").classList.remove("hidden");
-  document.getElementById("loginEmail").value="";
-  document.getElementById("loginPass").value="";
-  document.getElementById("loginMsg").textContent="";
-}
 
 // ====== SIDEBAR ======
 function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open");}
@@ -220,7 +209,7 @@ function loadMembers(filter,btn){
   if(btn){document.querySelectorAll("#tab-members .filter-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");}
   const wrap=document.getElementById("membersTableWrap");
   wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading members...</div>';
-  RHS.getMembers(,filter:currentMemberFilter}).then(res=>{
+  RHS.getMembers(currentMemberFilter).then(res=>{
     if(!res.success||!res.members.length){
       document.getElementById("membersTableWrap").innerHTML='<div class="empty-state"><i class="fa fa-users"></i><p>No members found.</p></div>';
       allMembersData=[];
@@ -660,7 +649,7 @@ function loadGrants(filter,btn){
   if(btn){document.querySelectorAll("#tab-grants .filter-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");}
   const wrap=document.getElementById("grantsTableWrap");
   wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading cases...</div>';
-  RHS.getGrants(,filter:currentGrantFilter}).then(res=>{
+  RHS.getGrants(currentGrantFilter).then(res=>{
     if(!res.grants||!res.grants.length){
       wrap.innerHTML='<div class="empty-state"><i class="fa fa-file-alt"></i><p>No cases found.</p></div>';
       allGrantsData=[];
@@ -896,7 +885,7 @@ function doReopenGrant(row){
 function loadCaseExpenses(crn){
   const wrap = document.getElementById("expensesList");
   if(!wrap) return;
-  RHS.getCaseExpenses(, crn:crn}).then(res=>{
+  RHS.getCaseExpenses(crn).then(res=>{
     if(!res.expenses||!res.expenses.length){
       wrap.innerHTML='<div style="text-align:center;color:#8A9A96;font-size:0.88rem;padding:10px;font-style:italic">No expenses recorded yet.</div>';
       return;
@@ -1058,7 +1047,7 @@ function loadAdminExpenses(from="",to=""){
   const wrap=document.getElementById("adminExpWrap");
   if(!wrap) return;
   wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
-  RHS.getAdminExpenses(,from:from,to:to}).then(res=>{
+  RHS.getAdminExpenses(from, to).then(res=>{
     document.getElementById("ae-total").textContent=Rs(res.total||0);
     adminExpData=res.expenses||[];
     if(!adminExpData.length){
@@ -1229,7 +1218,7 @@ function reportBusy(btn, fnName, param){
 
 // ====== MEMBER REPORTS BY STATUS ======
 function printMemberReport(filter){
-  RHS.getMembers(,filter:filter||"all"}).then(res=>{
+  RHS.getMembers(currentMemberFilter).then(res=>{
     const filterLabel={all:"All",pending:"Underprocess",active:"Active",expired:"Expired",banned:"Banned"};
     let html=`<style>@page{margin:12mm;size:A4;}body{-webkit-print-color-adjust:exact;}</style>
     <div style="font-family:Georgia,serif;max-width:720px;margin:0 auto">
@@ -1362,7 +1351,7 @@ function printCashReportFiltered(){
 function printAdminExpFiltered(){
   const from=formatDateForServer(document.getElementById("aeRptFrom")?.value||"");
   const to=formatDateForServer(document.getElementById("aeRptTo")?.value||"");
-  RHS.getAdminExpenses(,from:from,to:to}).then(res=>{
+  RHS.getAdminExpenses(from, to).then(res=>{
     let running=0;
     let rows=(res.expenses||[]).map((e,i)=>{
       running+=Number(e.amount)||0;
@@ -1465,7 +1454,7 @@ function numberToWords(n){
 }
 
 function printMemberList(){
-  RHS.getMembers(,filter:"all"}).then(res=>{
+  RHS.getMembers(currentMemberFilter).then(res=>{
     let html=`<div style="font-family:sans-serif;padding:20px">
       <div style="text-align:center;margin-bottom:20px">
         <h2 style="color:#14534F">${window.NGO.name}</h2>
@@ -1567,7 +1556,7 @@ function printCashReport(){
 }
 
 function printGrantReport(){
-  RHS.getGrants(,filter:"all"}).then(res=>{
+  RHS.getGrants(currentGrantFilter).then(res=>{
     let html=`<div style="font-family:sans-serif;padding:20px">
       <div style="text-align:center;margin-bottom:20px">
         <h2 style="color:#14534F">${window.NGO.name}</h2>
