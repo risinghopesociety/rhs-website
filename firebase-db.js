@@ -133,6 +133,12 @@ async function submitContactMessage(data) {
   return { success: true, message: "Message sent successfully!" };
 }
 
+async function deleteContactMessage(id) {
+  await waitForFB();
+  await fs().deleteDoc(fs().doc(db(), "contactMessages", id));
+  return { success: true };
+}
+
 async function getContactMessages() {
   await waitForFB();
   const q = fs().query(fs().collection(db(), "contactMessages"), fs().orderBy("createdAt", "desc"));
@@ -346,8 +352,6 @@ async function addCharityEntry(data) {
 async function getCharityLedger(cnic, dob) {
   await waitForFB();
   const cnicF = generateCNIC(cnic);
-
-  // Find member by CNIC + DOB
   const memberQ = fs().query(
     fs().collection(db(), "members"),
     fs().where("cnic", "==", cnicF),
@@ -355,36 +359,17 @@ async function getCharityLedger(cnic, dob) {
   );
   const memberSnaps = await fs().getDocs(memberQ);
   if (memberSnaps.empty) return { success: false, message: "No member found with these credentials." };
-
   const member = { id: memberSnaps.docs[0].id, ...memberSnaps.docs[0].data() };
-
-  // Get donations — only filter by cnic (no orderBy to avoid composite index error)
-  const donQ = fs().query(
-    fs().collection(db(), "charityDonations"),
-    fs().where("cnic", "==", cnicF)
-  );
+  // Only filter by cnic — no orderBy (avoids composite index requirement)
+  const donQ = fs().query(fs().collection(db(), "charityDonations"), fs().where("cnic", "==", cnicF));
   const donSnaps = await fs().getDocs(donQ);
   const donations = [];
-  donSnaps.forEach(d => {
-    donations.push({ id: d.id, ...d.data() });
-  });
-
-  // Sort by date in JS (dd-mm-yyyy format)
-  function parseDDMMYYYY(s) {
-    if (!s) return 0;
-    const p = s.split("-");
-    if (p.length !== 3) return 0;
-    return new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0])).getTime();
-  }
-  donations.sort((a, b) => parseDDMMYYYY(a.date) - parseDDMMYYYY(b.date));
-
-  // Calculate running total
+  donSnaps.forEach(d => donations.push({ id: d.id, ...d.data() }));
+  // Sort by date in JS (dd-mm-yyyy)
+  const p = s => { if(!s) return 0; const x=s.split("-"); return x.length===3?new Date(+x[2],+x[1]-1,+x[0]).getTime():0; };
+  donations.sort((a,b) => p(a.date) - p(b.date));
   let total = 0;
-  const donationsWithTotal = donations.map(d => {
-    total += Number(d.amount) || 0;
-    return { ...d, runningTotal: total };
-  });
-
+  const donationsWithTotal = donations.map(d => { total += Number(d.amount)||0; return { ...d, runningTotal: total }; });
   return { success: true, member, donations: donationsWithTotal, total };
 }
 
@@ -554,8 +539,7 @@ async function getCaseExpenses(crn) {
   await waitForFB();
   const q = fs().query(
     fs().collection(db(), "caseExpenses"),
-    fs().where("crn", "==", crn),
-    fs().orderBy("date", "asc")
+    fs().where("crn", "==", crn)
   );
   const snaps = await fs().getDocs(q);
   const expenses = [];
@@ -564,6 +548,11 @@ async function getCaseExpenses(crn) {
     const dd = d.data();
     total += Number(dd.amount) || 0;
     expenses.push({ id: d.id, ...dd });
+  });
+  // Sort by date in JS
+  expenses.sort((a,b) => {
+    const p = s => { if(!s) return 0; const x=s.split("-"); return x.length===3?new Date(+x[2],+x[1]-1,+x[0]).getTime():0; };
+    return p(a.date) - p(b.date);
   });
   return { success: true, expenses, total };
 }
@@ -738,7 +727,7 @@ window.RHS = {
   // Stats
   getAdminStats,
   // Messages
-  submitContactMessage, getContactMessages,
+  submitContactMessage, getContactMessages, deleteContactMessage,
   // Image
   uploadImage, imgUrl,
   // Utils

@@ -339,17 +339,27 @@ function loadMessages(){
   if(!wrap) return;
   wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
   RHS.getContactMessages().then(res=>{
+    // Update sidebar badge (Issue 11)
+    const msgBadge=document.getElementById("msgBadge");
+    const count=(res.messages||[]).length;
+    if(msgBadge) msgBadge.textContent=count;
+
     if(!res.messages||!res.messages.length){
       wrap.innerHTML='<div class="empty-state"><i class="fa fa-envelope"></i><p>No messages yet.</p></div>';
       return;
     }
     let html='';
     res.messages.forEach(m=>{
-      const date=m.createdAt?.toDate?m.createdAt.toDate().toLocaleDateString("en-PK"):"—";
-      html+=`<div class="message-card">
+      const date=m.createdAt?.toDate?m.createdAt.toDate().toLocaleDateString("en-PK"):(m.createdAt||"—");
+      html+=`<div class="message-card" id="msgCard_${m.id}">
         <div class="msg-header">
           <span class="msg-name"><i class="fa fa-user"></i> ${escHtml(m.name||"")}</span>
-          <span class="msg-date">${date}</span>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="msg-date">${date}</span>
+            <button class="btn btn-sm" style="background:#FEF2F2;color:#DC2626;border:1px solid #DC2626;padding:3px 10px;font-size:.75rem;border-radius:6px" onclick="deleteMessage('${m.id}')">
+              <i class="fa fa-trash"></i> Delete
+            </button>
+          </div>
         </div>
         <div class="msg-email"><i class="fa fa-envelope"></i> ${escHtml(m.email||"")}</div>
         <div class="msg-text">${escHtml(m.message||"")}</div>
@@ -357,6 +367,22 @@ function loadMessages(){
     });
     wrap.innerHTML=html;
   }).catch(()=>{wrap.innerHTML='<div class="empty-state">Failed to load messages.</div>';});
+}
+
+function deleteMessage(id){
+  if(!confirm("Delete this message?")) return;
+  if(!window.RHS) return;
+  RHS.deleteContactMessage(id).then(res=>{
+    if(res.success){
+      const card=document.getElementById("msgCard_"+id);
+      if(card) card.remove();
+      // Update badge
+      const msgBadge=document.getElementById("msgBadge");
+      if(msgBadge) msgBadge.textContent=Math.max(0,(parseInt(msgBadge.textContent)||1)-1);
+    } else {
+      alert("Failed to delete message.");
+    }
+  }).catch(()=>alert("Network error."));
 }
 
 function setDefaultDates(){
@@ -386,16 +412,6 @@ function loadAdminStats(){
     // Badges
     document.getElementById("pendingBadge").textContent=res.pendingMembers||0;
     document.getElementById("grantBadge").textContent=res.newGrants||0;
-    // Extra stats (Issue 5 & 6) - update if elements exist
-    const setEl=(id,val)=>{ const el=document.getElementById(id); if(el) el.textContent=val; };
-    setEl("st-total-members", res.totalMembers||0);
-    setEl("st-male",          res.maleMembers||0);
-    setEl("st-female",        res.femaleMembers||0);
-    setEl("st-active-charity",res.activeCharity30||0);
-    setEl("st-inactive-charity",res.inactiveCharity30||0);
-    setEl("st-assigned",      res.assignedGrants||0);
-    setEl("st-closed-grants",   res.closedCases||0);
-    setEl("st-newgrants",       res.newGrants||0);
     // Sync to reports tab if visible
     ["pending","active","expired","banned"].forEach(k=>{
       const el=document.getElementById("rp-"+k);
@@ -437,9 +453,9 @@ function loadMembers(filter,btn){
 }
 
 // Quick status change from table row buttons
-function quickStatus(memberId, status, name){
+function quickStatus(row, status, name){
   if(!confirm(`Change ${name} status to "${status}"?`)) return;
-  RHS.updateMemberStatus(memberId, status).then(res=>{
+  apiPost({action:"updateMemberStatus",row:row,status:status}).then(res=>{
     if(res.success){
       loadMembers(currentMemberFilter);
       loadAdminStats();
@@ -505,18 +521,18 @@ function viewMember(m){
         const s=(m.status||"").toLowerCase();
         let btns="";
         if(s==="underprocess"||s==="under process"){
-          btns+=`<button class="btn btn-approve btn-sm" onclick="changeMemberStatus('${m.id}','Active')"><i class="fa fa-check"></i> Approve → Active</button>`;
-          btns+=`<button class="btn btn-ban btn-sm" onclick="changeMemberStatus('${m.id}','Expired')"><i class="fa fa-clock"></i> Mark Expired</button>`;
-          btns+=`<button class="btn btn-reject btn-sm" onclick="changeMemberStatus('${m.id}','Banned')"><i class="fa fa-ban"></i> Ban</button>`;
+          btns+=`<button class="btn btn-approve btn-sm" onclick="changeMemberStatus(${m.row},'Active')"><i class="fa fa-check"></i> Approve → Active</button>`;
+          btns+=`<button class="btn btn-ban btn-sm" onclick="changeMemberStatus(${m.row},'Expired')"><i class="fa fa-clock"></i> Mark Expired</button>`;
+          btns+=`<button class="btn btn-reject btn-sm" onclick="changeMemberStatus(${m.row},'Banned')"><i class="fa fa-ban"></i> Ban</button>`;
         } else if(s==="active"){
-          btns+=`<button class="btn btn-ban btn-sm" onclick="changeMemberStatus('${m.id}','Expired')"><i class="fa fa-clock"></i> Mark Expired</button>`;
-          btns+=`<button class="btn btn-reject btn-sm" onclick="changeMemberStatus('${m.id}','Banned')"><i class="fa fa-ban"></i> Ban</button>`;
+          btns+=`<button class="btn btn-ban btn-sm" onclick="changeMemberStatus(${m.row},'Expired')"><i class="fa fa-clock"></i> Mark Expired</button>`;
+          btns+=`<button class="btn btn-reject btn-sm" onclick="changeMemberStatus(${m.row},'Banned')"><i class="fa fa-ban"></i> Ban</button>`;
         } else if(s==="expired"){
-          btns+=`<button class="btn btn-approve btn-sm" onclick="changeMemberStatus('${m.id}','Active')"><i class="fa fa-check"></i> Activate</button>`;
-          btns+=`<button class="btn btn-reject btn-sm" onclick="changeMemberStatus('${m.id}','Banned')"><i class="fa fa-ban"></i> Ban</button>`;
+          btns+=`<button class="btn btn-approve btn-sm" onclick="changeMemberStatus(${m.row},'Active')"><i class="fa fa-check"></i> Activate</button>`;
+          btns+=`<button class="btn btn-reject btn-sm" onclick="changeMemberStatus(${m.row},'Banned')"><i class="fa fa-ban"></i> Ban</button>`;
         } else if(s==="banned"){
-          btns+=`<button class="btn btn-approve btn-sm" onclick="changeMemberStatus('${m.id}','Active')"><i class="fa fa-check"></i> Activate</button>`;
-          btns+=`<button class="btn btn-ban btn-sm" onclick="changeMemberStatus('${m.id}','Expired')"><i class="fa fa-clock"></i> Mark Expired</button>`;
+          btns+=`<button class="btn btn-approve btn-sm" onclick="changeMemberStatus(${m.row},'Active')"><i class="fa fa-check"></i> Activate</button>`;
+          btns+=`<button class="btn btn-ban btn-sm" onclick="changeMemberStatus(${m.row},'Expired')"><i class="fa fa-clock"></i> Mark Expired</button>`;
         }
         return btns;
       })()}
@@ -525,27 +541,13 @@ function viewMember(m){
   document.getElementById("memberModal").classList.remove("hidden");
 }
 
-function changeMemberStatus(memberId,status){
+function changeMemberStatus(row,status){
   const memType=document.getElementById("mMemType")?.value||"";
   const desig=document.getElementById("mDesig")?.value||"";
   const comment=document.getElementById("mComment")?.value||"";
   showMsg("memberActionMsg","Updating...","");
-  // Update status first, then update extra fields
-  const updates = {status};
-  if(memType) updates.membershipType=memType;
-  if(desig) updates.designation=desig;
-  if(comment) updates.adminComments=comment;
-  // Use Firestore directly for extra fields
-  RHS.updateMemberStatus(memberId, status).then(res=>{
+  apiPost({action:"updateMemberStatus",row:row,status:status,membershipType:memType,designation:desig,adminComments:comment}).then(res=>{
     if(res.success){
-      // Save extra fields if provided
-      if(memType||desig||comment){
-        const extraUpdates={};
-        if(memType) extraUpdates.membershipType=memType;
-        if(desig) extraUpdates.designation=desig;
-        if(comment) extraUpdates.adminComments=comment;
-        window.__fs.updateDoc(window.__fs.doc(window.__db,"members",memberId), extraUpdates).catch(()=>{});
-      }
       showMsg("memberActionMsg","✅ Status updated to: "+status,"success");
       loadMembers(currentMemberFilter);
       loadAdminStats();
@@ -608,21 +610,21 @@ function renderMembersTable(members, q = "") {
     let actionBtns = "";
     if (s === "underprocess" || s === "under process") {
       actionBtns = `
-        <button class="btn btn-sm btn-approve" onclick='quickStatus('${m.id}',"Active","${escHtml(m.fullName)}")' title="Approve"><i class="fa fa-check"></i></button>
-        <button class="btn btn-sm btn-ban" onclick='quickStatus('${m.id}',"Expired","${escHtml(m.fullName)}")' title="Expired"><i class="fa fa-clock"></i></button>
-        <button class="btn btn-sm btn-reject" onclick='quickStatus('${m.id}',"Banned","${escHtml(m.fullName)}")' title="Ban"><i class="fa fa-ban"></i></button>`;
+        <button class="btn btn-sm btn-approve" onclick='quickStatus(${m.row},"Active","${escHtml(m.fullName)}")' title="Approve"><i class="fa fa-check"></i></button>
+        <button class="btn btn-sm btn-ban" onclick='quickStatus(${m.row},"Expired","${escHtml(m.fullName)}")' title="Expired"><i class="fa fa-clock"></i></button>
+        <button class="btn btn-sm btn-reject" onclick='quickStatus(${m.row},"Banned","${escHtml(m.fullName)}")' title="Ban"><i class="fa fa-ban"></i></button>`;
     } else if (s === "active") {
       actionBtns = `
-        <button class="btn btn-sm btn-ban" onclick='quickStatus('${m.id}',"Expired","${escHtml(m.fullName)}")' title="Mark Expired"><i class="fa fa-clock"></i></button>
-        <button class="btn btn-sm btn-reject" onclick='quickStatus('${m.id}',"Banned","${escHtml(m.fullName)}")' title="Ban"><i class="fa fa-ban"></i></button>`;
+        <button class="btn btn-sm btn-ban" onclick='quickStatus(${m.row},"Expired","${escHtml(m.fullName)}")' title="Mark Expired"><i class="fa fa-clock"></i></button>
+        <button class="btn btn-sm btn-reject" onclick='quickStatus(${m.row},"Banned","${escHtml(m.fullName)}")' title="Ban"><i class="fa fa-ban"></i></button>`;
     } else if (s === "expired") {
       actionBtns = `
-        <button class="btn btn-sm btn-approve" onclick='quickStatus('${m.id}',"Active","${escHtml(m.fullName)}")' title="Activate"><i class="fa fa-check"></i></button>
-        <button class="btn btn-sm btn-reject" onclick='quickStatus('${m.id}',"Banned","${escHtml(m.fullName)}")' title="Ban"><i class="fa fa-ban"></i></button>`;
+        <button class="btn btn-sm btn-approve" onclick='quickStatus(${m.row},"Active","${escHtml(m.fullName)}")' title="Activate"><i class="fa fa-check"></i></button>
+        <button class="btn btn-sm btn-reject" onclick='quickStatus(${m.row},"Banned","${escHtml(m.fullName)}")' title="Ban"><i class="fa fa-ban"></i></button>`;
     } else if (s === "banned") {
       actionBtns = `
-        <button class="btn btn-sm btn-approve" onclick='quickStatus('${m.id}',"Active","${escHtml(m.fullName)}")' title="Activate"><i class="fa fa-check"></i></button>
-        <button class="btn btn-sm btn-ban" onclick='quickStatus('${m.id}',"Expired","${escHtml(m.fullName)}")' title="Mark Expired"><i class="fa fa-clock"></i></button>`;
+        <button class="btn btn-sm btn-approve" onclick='quickStatus(${m.row},"Active","${escHtml(m.fullName)}")' title="Activate"><i class="fa fa-check"></i></button>
+        <button class="btn btn-sm btn-ban" onclick='quickStatus(${m.row},"Expired","${escHtml(m.fullName)}")' title="Mark Expired"><i class="fa fa-clock"></i></button>`;
     }
     html += `<tr>
       <td>${i + 1}</td>
@@ -756,37 +758,36 @@ function submitCharity(){
   const charityBtn = document.querySelector('#tab-charity .btn-primary');
   setLoading(charityBtn, true, 'Saving...');
   const payload={
-    cnic:selectedMember.cnic,
-    memberName:selectedMember.fullName,
-    name:selectedMember.fullName,
-    memberId:selectedMember.id,
-    mobile:selectedMember.mobile,
-    email:selectedMember.email||"",
+    action:"addCharityEntry",
+    cnic:selectedMember.cnic, name:selectedMember.fullName,
+    mobile:selectedMember.mobile, email:selectedMember.email||"",
     address:selectedMember.address||"",
-    paymentMethod:method,
-    amount:Number(amount),
+    paymentMethod:method, amount:Number(amount),
     date:formatDateForServer(date),
     slipRef:document.getElementById("charitySlip").value,
-    note:document.getElementById("charityNote").value
+    note:document.getElementById("charityNote").value,
+    sendEmail:sendEmail
   };
-  RHS.addCharityEntry(payload).then(res=>{
+  apiPost(payload).then(res=>{
     setLoading(charityBtn, false);
     if(res.success){
-      let msg="✅ Charity entry saved!";
-      if(res.validUpto) msg+=" Valid Upto: "+res.validUpto;
+      let msg="✅ Charity entry saved! Valid Upto: "+res.validUpto;
+      if(sendEmail&&res.emailSent) msg+=" | 📧 Email sent!";
+      if(sendEmail&&!res.emailSent&&res.memberEmail) msg+=" | ⚠️ Email failed";
+      if(sendEmail&&!res.memberEmail) msg+=" | ⚠️ No email on file";
+      showMsg("charityMsg",msg,"success");
 
       // WhatsApp
       if(sendWA&&selectedMember.mobile){
         const mob=selectedMember.mobile.replace(/\D/g,"");
         const waNum="92"+mob.slice(1);
         const waMsg=encodeURIComponent(
-          `Assalam-u-Alaikum Dear ${selectedMember.fullName},\n\nYour charity of Rs. ${Number(amount).toLocaleString()} has been received by ${window.NGO.name}.\n\nPayment: ${method}\nDate: ${formatDateForServer(date)}\nValid Upto: ${res.validUpto||"—"}\n\nJazak Allah Khair! 🤲\n\n${window.NGO.name}\n${window.NGO.address}\n${window.NGO.phone}`
+          `Assalam-u-Alaikum Dear ${selectedMember.fullName},\n\nYour charity of Rs. ${Number(amount).toLocaleString()} has been received by ${window.NGO.name}.\n\nPayment: ${method}\nDate: ${formatDateForServer(date)}\nValid Upto: ${res.validUpto}\n\nJazak Allah Khair! 🤲\n\n${window.NGO.name}\n${window.NGO.address}\n${window.NGO.phone}`
         );
         window.open(`https://wa.me/${waNum}?text=${waMsg}`,"_blank");
       }
 
-      if(sendEmail) openThankYouLetter(selectedMember,payload,res.validUpto||"");
-      showMsg("charityMsg",msg,"success");
+      if(sendEmail) openThankYouLetter(selectedMember,payload,res.validUpto);
       clearCharityForm();
       loadCharityList();
       loadAdminStats();
@@ -956,15 +957,26 @@ function viewGrant(g){
       </div>`:""}
 
       ${decLower==="approved"&&stLower!=="closed"?`
-      <button class="btn btn-sm" style="background:#1F2E2B;color:#fff;margin-top:10px" onclick="doCloseGrant('${g.id}')">
-        <i class="fa fa-lock"></i> Close — Successfully Granted
-      </button>`:""}
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+        <button class="btn btn-sm" style="background:#1F2E2B;color:#fff" onclick="doCloseGrant('${g.id}')">
+          <i class="fa fa-lock"></i> Close — Successfully Granted
+        </button>
+        <button class="btn btn-reject btn-sm" onclick="doDecision('${g.id}','Rejected','${escHtml(g.name)}','${escHtml(g.crn)}')">
+          <i class="fa fa-times-circle"></i> Change to Rejected
+        </button>
+        <button class="btn btn-assign btn-sm" onclick="doSendBackToCompleted('${g.id}')">
+          <i class="fa fa-undo"></i> Send Back to Completed
+        </button>
+      </div>`:""}
     </div>`:""}
 
     ${stLower==="rejected"?`
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
       <button class="btn btn-sm" style="background:#1F2E2B;color:#fff" onclick="doCloseGrant('${g.id}')">
         <i class="fa fa-lock"></i> Close Case
+      </button>
+      <button class="btn btn-approve btn-sm" onclick="doDecision('${g.id}','Approved','${escHtml(g.name)}','${escHtml(g.crn)}')">
+        <i class="fa fa-check-circle"></i> Change to Approved
       </button>
       <button class="btn btn-assign btn-sm" onclick="doSendBackToCompleted('${g.id}')">
         <i class="fa fa-undo"></i> Send Back to Completed
@@ -1038,24 +1050,25 @@ function viewGrant(g){
   }
 }
 
-function doAssignGrant(grantId){
-  const name=document.getElementById("gAssignName")?.value.trim()||"";
-  const contact=document.getElementById("gAssignContact")?.value.trim()||"";
+function doAssignGrant(row){
+  const name=document.getElementById("gAssignName")?.value||"";
+  const contact=document.getElementById("gAssignContact")?.value||"";
   if(!name||!contact){showMsg("grantActionMsg","Please enter name and contact.","error");return;}
-  if(!grantId){showMsg("grantActionMsg","Grant ID missing. Please close and reopen this case.","error");return;}
   showMsg("grantActionMsg","Assigning...","");
-  RHS.updateGrant(grantId,{status:"Assigned",assignedTo:name,assignedContact:contact}).then(res=>{
+  apiPost({action:"assignGrant",row:row,assignedTo:name,assignedContact:contact}).then(res=>{
     if(res.success){showMsg("grantActionMsg","✅ Case assigned to "+name,"success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
   }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
 }
 
-function doVerificationComplete(grantId){
+function doVerificationComplete(row){
   const comment = document.getElementById("verifyComment")?.value?.trim() || "";
-  const btn = document.querySelector(`button[onclick="doVerificationComplete('${grantId}')"]`);
+  const btn = document.querySelector(`button[onclick="doVerificationComplete(${row})"]`);
   setLoading(btn, true, "Saving...");
   showMsg("grantActionMsg","Updating...","");
-  RHS.updateGrant(grantId, {
+  apiPost({
+    action:"updateGrantStatus",
+    row:row,
     verificationStatus:"Completed",
     status:"Completed",
     decisionNote: comment ? "Verification Notes: "+comment : ""
@@ -1068,39 +1081,48 @@ function doVerificationComplete(grantId){
     } else {
       showMsg("grantActionMsg",res.message||"Failed.","error");
     }
-  }).catch(()=>{ setLoading(btn, false); showMsg("grantActionMsg","Network error.","error"); });
+  }).catch(()=>{
+    setLoading(btn, false);
+    showMsg("grantActionMsg","Network error.","error");
+  });
 }
 
-function doDecision(grantId,decision,name,crn){
+function doDecision(row,decision,name,crn){
   showMsg("grantActionMsg","Processing...","");
-  const note=decision==="Approved"
-    ?`Dear ${name}, Congratulations your case no ${crn} Successfully Approved and our team will contact you with your need at your door step.`
-    :`Dear ${name}, Your ${crn} Case doesn't match our organization policy so your case has been closed. To reopen your case please physically meet our President with Case No ${crn} or reopen your case.`;
-  RHS.updateGrant(grantId,{decision:decision,decisionNote:note}).then(res=>{
-    if(res.success){showMsg("grantActionMsg","✅ Decision: "+decision,"success");loadGrants(currentGrantFilter);loadAdminStats();}
+  const phone=(window.NGO&&window.NGO.alert)||"";
+  const email=(window.NGO&&window.NGO.email)||"";
+  let note;
+  if(decision==="Approved"){
+    note=`Dear ${name}, Congratulations! 🎉 Your Charity Case ${crn} has been Successfully Approved. Our team will contact you at your doorstep with your required help. Jazak Allah Khair!\n\n📞 ${phone} | 📧 ${email}`;
+  } else {
+    note=`Dear ${name}, Unfortunately your Case ${crn} does not qualify under our current organization policy. Your case has been Rejected.\n\nTo reopen or appeal, please physically meet our President with Case No: ${crn}.\n\n📞 ${phone} | 📧 ${email}`;
+  }
+  // Use RHS.updateGrant with grant id stored in row (now a string id)
+  RHS.updateGrant(row,{decision:decision,decisionNote:note}).then(res=>{
+    if(res.success){showMsg("grantActionMsg","✅ Decision recorded: "+decision,"success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
   }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
 }
 
-function doCloseGrant(grantId){
+function doCloseGrant(row){
   showMsg("grantActionMsg","Closing case...","");
-  RHS.updateGrant(grantId,{status:"Closed",decisionNote:"Successfully Granted"}).then(res=>{
+  RHS.updateGrant(row,{status:"Closed",decisionNote:"Successfully Granted & Closed"}).then(res=>{
     if(res.success){showMsg("grantActionMsg","✅ Case closed — Successfully Granted.","success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
   }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
 }
 
-function doSendBackToCompleted(grantId){
+function doSendBackToCompleted(row){
   showMsg("grantActionMsg","Sending back...","");
-  RHS.updateGrant(grantId,{status:"Completed",decision:"",decisionNote:""}).then(res=>{
+  RHS.updateGrant(row,{status:"Completed",decision:"",decisionNote:""}).then(res=>{
     if(res.success){showMsg("grantActionMsg","✅ Case sent back to Case Completed tab.","success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
   }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
 }
 
-function doReopenGrant(grantId){
+function doReopenGrant(row){
   showMsg("grantActionMsg","Reopening...","");
-  RHS.updateGrant(grantId,{status:"Completed",decision:"",decisionNote:""}).then(res=>{
+  RHS.updateGrant(row,{status:"Completed",decision:"",decisionNote:""}).then(res=>{
     if(res.success){showMsg("grantActionMsg","✅ Case reopened → moved to Case Completed tab.","success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
   }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
@@ -1145,42 +1167,37 @@ function loadCaseExpenses(crn){
 }
 
 function addCaseExpense(crn,cnic,dob,name,fatherName,gender,email,mobile,address,helpType){
-  const date = document.getElementById("expDate")?.value;
+  const date   = document.getElementById("expDate")?.value;
   const detail = document.getElementById("expDetail")?.value?.trim();
   const amount = document.getElementById("expAmount")?.value;
-  const msg = document.getElementById("expMsg");
+  const msg    = document.getElementById("expMsg");
 
-  if(!date||!detail||!amount){
-    msg.textContent="⚠️ Please fill date, detail and amount.";
-    msg.className="form-msg error";
-    return;
-  }
+  if(!date)   { if(msg){msg.textContent="⚠️ Date is required"; msg.className="form-msg error";} return; }
+  if(!detail) { if(msg){msg.textContent="⚠️ Expense detail is required"; msg.className="form-msg error";} return; }
+  if(!amount||Number(amount)<1) { if(msg){msg.textContent="⚠️ Amount is required"; msg.className="form-msg error";} return; }
 
   const btn = document.querySelector('[onclick^="addCaseExpense"]');
   setLoading(btn, true, "Saving...");
-  msg.textContent="";
+  if(msg) { msg.textContent=""; msg.className="form-msg"; }
 
-  apiPost({
-    action:"addCaseExpense",
-    date: formatDateForServer(date),
-    crn, cnic, dob, name, fatherName, gender, email, mobile, address, helpType,
+  if(!window.RHS){setLoading(btn,false);return;}
+  RHS.addCaseExpense({
+    date: formatDateForServer(date), crn, cnic, dob, name,
+    fatherName, gender, email, mobile, address, helpType,
     detail, amount: Number(amount)
   }).then(res=>{
     setLoading(btn, false);
     if(res.success){
-      msg.textContent="✅ Expense added & debited from Cash Book!";
-      msg.className="form-msg success";
-      document.getElementById("expDetail").value="";
-      document.getElementById("expAmount").value="";
+      if(msg){ msg.textContent="✅ Expense added & debited from Cash Book!"; msg.className="form-msg success"; }
+      if(document.getElementById("expDetail")) document.getElementById("expDetail").value="";
+      if(document.getElementById("expAmount")) document.getElementById("expAmount").value="";
       loadCaseExpenses(crn);
     } else {
-      msg.textContent="❌ "+res.message;
-      msg.className="form-msg error";
+      if(msg){ msg.textContent="❌ "+(res.message||"Failed"); msg.className="form-msg error"; }
     }
-  }).catch(()=>{
+  }).catch(err=>{
     setLoading(btn, false);
-    msg.textContent="Network error.";
-    msg.className="form-msg error";
+    if(msg){ msg.textContent="❌ Error: "+(err.message||"Network error"); msg.className="form-msg error"; }
   });
 }
 

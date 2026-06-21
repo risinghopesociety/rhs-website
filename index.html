@@ -208,7 +208,7 @@
     <div class="section-head">
       <span class="eyebrow">Member Portal</span>
       <h2>Membership &amp; Certificate Portal</h2>
-      <p>New registration, verify your digital membership certificate, or view your complete charity donation history.</p>
+      <p>New registration, verify your digital membership certificate, or check your charity donation history.</p>
     </div>
     <!-- Main Buttons -->
     <div class="helpdesk-btns" id="memberPortalBtns">
@@ -333,7 +333,7 @@
             <label for="regAddress">Full Address <span class="req">*</span></label>
             <textarea id="regAddress" rows="2" placeholder="House no, street, area, city…" required autocomplete="off"></textarea>
           </div>
-          <!-- PHOTO UPLOAD — Required, saved to Cloudinary, shown on certificate -->
+          <!-- PHOTO UPLOAD — Required, uploaded to Cloudinary, shown on certificate -->
           <div class="field full-col">
             <label>Passport Size Photo <span class="req">*</span></label>
             <div class="photo-upload-row">
@@ -343,8 +343,8 @@
               </div>
               <div class="photo-upload-info">
                 <p><i class="fa-solid fa-circle-info" style="color:var(--teal)"></i> Upload a clear passport-size photo</p>
-                <p style="color:#8A9A96;font-size:.8rem">Format: JPG / PNG &nbsp;|&nbsp; Max: 2MB &nbsp;|&nbsp; <strong>Required</strong></p>
-                <p style="color:#1a9e5c;font-size:.8rem"><i class="fa-solid fa-cloud"></i> Photo will be saved to Cloudinary &amp; shown on your certificate</p>
+                <p style="color:#8A9A96;font-size:.8rem">Format: JPG / PNG &nbsp;|&nbsp; Max: 3MB &nbsp;|&nbsp; <strong style="color:#DC2626">Required</strong></p>
+                <p style="color:#1a9e5c;font-size:.8rem"><i class="fa-solid fa-cloud"></i> Photo saved to Cloudinary · shown on certificate</p>
                 <input type="file" id="regPhoto" accept="image/*" style="display:none" onchange="previewRegPhoto(this)">
                 <button type="button" class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="document.getElementById('regPhoto').click()">
                   <i class="fa-solid fa-upload"></i> Choose Photo
