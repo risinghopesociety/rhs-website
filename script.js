@@ -212,19 +212,10 @@ document.getElementById("prevSlide").addEventListener("click", () => { goToSlide
 startSlider();
 
 /* ===================== HELPERS ===================== */
-function apiGet(params) {
-  const url = new URL(API_URL);
-  Object.keys(params).forEach(k => url.searchParams.append(k, params[k]));
-  return fetch(url.toString()).then(r => r.json());
-}
+// Firebase mode — RHS.* functions handle all data
 
-function RHS.submitContactMessage(payload) {
-  return fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" }, // avoids CORS preflight on Apps Script
-    body: JSON.stringify(payload)
-  }).then(r => r.json());
-}
+// Firebase mode - RHS.* functions handle all data
+// Old apiGet/apiPost replaced by firebase-db.js
 
 /* CNIC auto-format: 00000-0000000-0 */
 function formatCnic(input) {
