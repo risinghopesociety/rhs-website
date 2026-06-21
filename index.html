@@ -202,15 +202,15 @@
   </div>
 </section>
 
-<!-- ===== MEMBER PORTAL (Registration + Verification) ===== -->
+<!-- ===== MEMBER PORTAL ===== -->
 <section class="member-portal" id="memberSection">
   <div class="container">
     <div class="section-head">
       <span class="eyebrow">Member Portal</span>
-      <h2>Membership & Certificate Portal</h2>
-      <p>Join as a new member, verify your digital membership certificate, or view your complete charity donation history.</p>
+      <h2>Membership &amp; Certificate Portal</h2>
+      <p>New registration, verify your digital membership certificate, or view your complete charity donation history.</p>
     </div>
-    <!-- Main Portal Buttons — always visible -->
+    <!-- Main Portal Buttons -->
     <div class="helpdesk-btns" id="memberPortalBtns">
       <button class="btn btn-primary" onclick="showMemberSection('registration')">
         <i class="fa-solid fa-user-plus"></i> New Member Registration
@@ -221,12 +221,12 @@
     </div>
 
     <!-- VERIFY PORTAL — hidden by default, shown on button click -->
-    <div id="verifyPortalWrap" style="display:none;margin-top:36px">
+    <div id="verifyPortalWrap" style="display:none;margin-top:32px">
       <div class="form-card narrow" id="memberLookupCard">
         <div style="text-align:center;margin-bottom:20px">
           <span class="eyebrow">Verification Portal</span>
-          <h3 style="font-family:'Fraunces',serif;color:var(--teal);margin:8px 0 4px;font-size:1.25rem">Enter your CNIC &amp; Date of Birth</h3>
-          <p style="color:#8A9A96;font-size:.88rem">Exactly as submitted during registration</p>
+          <h3 style="font-family:'Fraunces',serif;color:var(--teal);margin:8px 0 4px;font-size:1.2rem">Enter your CNIC &amp; Date of Birth</h3>
+          <p style="color:#8A9A96;font-size:.85rem">Exactly as submitted during registration</p>
         </div>
         <form id="verifyForm" novalidate autocomplete="off">
           <div class="form-grid two-col">
@@ -253,14 +253,14 @@
           <p class="form-msg" id="verifyMsg"></p>
         </form>
       </div>
-      <!-- Results render here -->
-      <div id="certResult" style="margin-top:28px"></div>
+      <!-- Results area — form hides, result shows fullscreen-center -->
+      <div id="certResult"></div>
     </div>
   </div>
 </section>
 
 <!-- ===== REGISTRATION FORM ===== -->
-<section class="registration" id="registration">
+<section class="registration" id="registration" style="display:none">
   <div class="container">
     <div class="section-head">
       <span class="eyebrow">Join Us</span>
@@ -333,16 +333,37 @@
             <label for="regAddress">Full Address <span class="req">*</span></label>
             <textarea id="regAddress" rows="2" placeholder="House no, street, area, city…" required autocomplete="off"></textarea>
           </div>
+          <!-- PHOTO UPLOAD -->
+          <div class="field full-col">
+            <label>Passport Size Photo <small>(optional)</small></label>
+            <div class="photo-upload-row">
+              <div class="photo-preview-box" id="regPhotoPreview" onclick="document.getElementById('regPhoto').click()">
+                <i class="fa-solid fa-camera"></i>
+                <span>Click to upload</span>
+              </div>
+              <div class="photo-upload-info">
+                <p><i class="fa-solid fa-circle-info" style="color:var(--teal)"></i> Upload a clear passport-size photo</p>
+                <p style="color:#8A9A96;font-size:.8rem">Format: JPG / PNG &nbsp;|&nbsp; Max: 2MB</p>
+                <input type="file" id="regPhoto" accept="image/*" style="display:none" onchange="previewRegPhoto(this)">
+                <button type="button" class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="document.getElementById('regPhoto').click()">
+                  <i class="fa-solid fa-upload"></i> Choose Photo
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="form-actions">
           <button type="submit" class="btn btn-primary" id="submitBtn">
-            Submit <i class="fa-solid fa-paper-plane"></i>
+            Submit Registration <i class="fa-solid fa-paper-plane"></i>
           </button>
           <button type="reset" class="btn btn-ghost">Clear Form</button>
+          <button type="button" class="btn btn-ghost" onclick="backToMemberPortalMain()">
+            <i class="fa-solid fa-arrow-left"></i> Back
+          </button>
         </div>
         <p class="form-msg" id="formMsg"></p>
       </form>
-      <div id="formResult" hidden class="result-card"></div>
+      <div id="formResult" hidden></div>
     </div>
   </div>
 </section>
@@ -435,16 +456,7 @@
         </div>
         <p class="form-msg" id="grantMsg"></p>
       </form>
-      <div id="grantResult" style="margin-top:24px;display:none">
-        <div class="status-msg status-green">
-          <i class="fa-solid fa-circle-check"></i>
-          <div class="status-title">Request Submitted!</div>
-          <p id="grantResultText"></p>
-          <div style="margin-top:16px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-            <button class="btn btn-ghost" onclick="hideHelpSection()"><i class="fa-solid fa-arrow-left"></i> Back</button>
-          </div>
-        </div>
-      </div>
+      <div id="grantResult" style="margin-top:24px"></div>
     </div>
 
     <!-- GRANT STATUS CHECK -->

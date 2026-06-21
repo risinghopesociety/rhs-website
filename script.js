@@ -147,13 +147,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll('[id*="cnic"],[id*="Cnic"],[placeholder*="00000-"]').forEach(el => {
     el.setAttribute("autocomplete", "new-password");
     el.addEventListener("input", function() {
-      const digits = this.value.replace(/\D/g, "").slice(0, 13);
-      let v = digits;
-      if (digits.length > 12) {
-        v = digits.slice(0,5) + "-" + digits.slice(5,12) + "-" + digits.slice(12,13);
-      } else if (digits.length > 5) {
-        v = digits.slice(0,5) + "-" + digits.slice(5);
-      }
+      let v = this.value.replace(/\D/g, "").slice(0, 13);
+      if (v.length > 12) v = v.slice(0,5) + "-" + v.slice(5,12) + "-" + v.slice(12);
+      else if (v.length > 5) v = v.slice(0,5) + "-" + v.slice(5);
       this.value = v;
     });
   });
@@ -229,16 +225,78 @@ document.addEventListener("DOMContentLoaded", () => {
   const yearEl = document.getElementById("year");
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-  /* REGISTRATION FORM */
-  const regForm = document.getElementById("regForm");
-  const formMsg = document.getElementById("formMsg");
-  const formResult = document.getElementById("formResult");
+  /* ============================================================
+     MEMBER PORTAL — Navigation helpers
+     Issues 5,6: alert screen ke samne aaye, Main Menu + Back
+  ============================================================ */
+
+  // Show/hide helpers
+  function showEl(id)  { const el=document.getElementById(id); if(el) el.style.display="block"; }
+  function hideEl(id)  { const el=document.getElementById(id); if(el) el.style.display="none";  }
+
+  // Back to root Member Portal (New Reg + Certificate Verify buttons)
+  window.backToMemberPortalMain = function() {
+    hideEl("registration");
+    hideEl("verifyPortalWrap");
+    const certResult = document.getElementById("certResult");
+    if (certResult) certResult.innerHTML = "";
+    const memberLookupCard = document.getElementById("memberLookupCard");
+    if (memberLookupCard) memberLookupCard.style.display = "block";
+    clearVerifyForm();
+    const ms = document.getElementById("memberSection");
+    if (ms) { ms.style.display="block"; ms.scrollIntoView({ behavior:"smooth" }); }
+  };
+
+  // Back to verify form (within verify portal)
+  window.backToVerifyForm = function() {
+    const certResult = document.getElementById("certResult");
+    if (certResult) certResult.innerHTML = "";
+    const memberLookupCard = document.getElementById("memberLookupCard");
+    if (memberLookupCard) memberLookupCard.style.display = "block";
+    clearVerifyForm();
+    const vp = document.getElementById("verifyPortalWrap");
+    if (vp) vp.scrollIntoView({ behavior:"smooth" });
+  };
+
+  function clearVerifyForm() {
+    const vCnic = document.getElementById("vCnic");
+    const vDob  = document.getElementById("vDob");
+    if (vCnic) vCnic.value = "";
+    if (vDob)  vDob.value = "";
+    const verifyMsg = document.getElementById("verifyMsg");
+    if (verifyMsg) { verifyMsg.textContent=""; verifyMsg.className="form-msg"; }
+  }
+
+  window.showMemberSection = function(which) {
+    if (which === "registration") {
+      hideEl("verifyPortalWrap");
+      showEl("registration");
+      document.getElementById("registration")?.scrollIntoView({ behavior:"smooth" });
+    } else if (which === "verify") {
+      hideEl("registration");
+      showEl("verifyPortalWrap");
+      const certResult = document.getElementById("certResult");
+      if (certResult) certResult.innerHTML = "";
+      const memberLookupCard = document.getElementById("memberLookupCard");
+      if (memberLookupCard) memberLookupCard.style.display = "block";
+      document.getElementById("verifyPortalWrap")?.scrollIntoView({ behavior:"smooth" });
+    }
+  };
+
+  /* ============================================================
+     REGISTRATION FORM — Issues 1,2,3
+  ============================================================ */
+  const regForm   = document.getElementById("regForm");
+  const formMsg   = document.getElementById("formMsg");
+  const formResult= document.getElementById("formResult");
   const submitBtn = document.getElementById("submitBtn");
 
   if (regForm) {
     regForm.addEventListener("reset", () => {
       setTimeout(() => {
-        if (formMsg) { formMsg.textContent = ""; formMsg.className = "form-msg"; }
+        if (formMsg) { formMsg.textContent=""; formMsg.className="form-msg"; }
+        const preview = document.getElementById("regPhotoPreview");
+        if (preview) preview.innerHTML = `<i class="fa-solid fa-camera"></i><span>Click to upload</span>`;
       }, 0);
     });
 
@@ -248,63 +306,69 @@ document.addEventListener("DOMContentLoaded", () => {
       formMsg.textContent = "";
       formMsg.className = "form-msg";
 
-      const cnic     = document.getElementById("regCnic")?.value.trim() || "";
-      const dob      = document.getElementById("regDob")?.value.trim() || "";
-      const fullName = document.getElementById("regName")?.value.trim() || "";
-      const father   = document.getElementById("regFather")?.value.trim() || "";
-      const gender   = document.getElementById("regGender")?.value || "";
-      const prof     = document.getElementById("regProfession")?.value.trim() || "";
-      const email    = document.getElementById("regEmail")?.value.trim() || "";
-      const mobile   = document.getElementById("regMobile")?.value.trim() || "";
-      const province = document.getElementById("regProvince")?.value || "";
-      const address  = document.getElementById("regAddress")?.value.trim() || "";
+      const cnic       = document.getElementById("regCnic")?.value.trim() || "";
+      const dob        = document.getElementById("regDob")?.value.trim() || "";
+      const fullName   = document.getElementById("regName")?.value.trim() || "";
+      const father     = document.getElementById("regFather")?.value.trim() || "";
+      const gender     = document.getElementById("regGender")?.value || "";
+      const prof       = document.getElementById("regProfession")?.value.trim() || "";
+      const email      = document.getElementById("regEmail")?.value.trim() || "";
+      const mobile     = document.getElementById("regMobile")?.value.trim() || "";
+      const province   = document.getElementById("regProvince")?.value || "";
       const membership = document.getElementById("regMembership")?.value || "";
+      const address    = document.getElementById("regAddress")?.value.trim() || "";
 
-      if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic)) { formMsg.textContent = "⚠️ Valid CNIC required: 00000-0000000-0"; formMsg.classList.add("error"); return; }
-      if (!/^\d{2}-\d{2}-\d{4}$/.test(dob)) { formMsg.textContent = "⚠️ DOB format: dd-mm-yyyy"; formMsg.classList.add("error"); return; }
-      if (!fullName) { formMsg.textContent = "⚠️ Full Name required."; formMsg.classList.add("error"); return; }
-      if (!father) { formMsg.textContent = "⚠️ Father/Husband Name required."; formMsg.classList.add("error"); return; }
-      if (!gender) { formMsg.textContent = "⚠️ Please select Gender."; formMsg.classList.add("error"); return; }
-      if (!prof) { formMsg.textContent = "⚠️ Profession required."; formMsg.classList.add("error"); return; }
-      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { formMsg.textContent = "⚠️ Valid Email format required."; formMsg.classList.add("error"); return; }
-      if (!/^\d{4}-\d{7}$/.test(mobile)) { formMsg.textContent = "⚠️ Mobile format: 0300-0000000"; formMsg.classList.add("error"); return; }
-      if (!province) { formMsg.textContent = "⚠️ Please select Province."; formMsg.classList.add("error"); return; }
-      if (!membership) { formMsg.textContent = "⚠️ Please select Membership Type."; formMsg.classList.add("error"); return; }
-      if (!address) { formMsg.textContent = "⚠️ Address required."; formMsg.classList.add("error"); return; }
+      if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic))  { formMsg.textContent="⚠️ Valid CNIC required: 00000-0000000-0"; formMsg.classList.add("error"); return; }
+      if (!/^\d{2}-\d{2}-\d{4}$/.test(dob))    { formMsg.textContent="⚠️ DOB format: dd-mm-yyyy"; formMsg.classList.add("error"); return; }
+      if (!fullName)   { formMsg.textContent="⚠️ Full Name required."; formMsg.classList.add("error"); return; }
+      if (!father)     { formMsg.textContent="⚠️ Father/Husband Name required."; formMsg.classList.add("error"); return; }
+      if (!gender)     { formMsg.textContent="⚠️ Please select Gender."; formMsg.classList.add("error"); return; }
+      if (!prof)       { formMsg.textContent="⚠️ Profession required."; formMsg.classList.add("error"); return; }
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { formMsg.textContent="⚠️ Valid Email format required."; formMsg.classList.add("error"); return; }
+      if (!/^\d{4}-\d{7}$/.test(mobile)) { formMsg.textContent="⚠️ Mobile format: 0300-0000000"; formMsg.classList.add("error"); return; }
+      if (!province)   { formMsg.textContent="⚠️ Please select Province."; formMsg.classList.add("error"); return; }
+      if (!membership) { formMsg.textContent="⚠️ Please select Membership Type."; formMsg.classList.add("error"); return; }
+      if (!address)    { formMsg.textContent="⚠️ Address required."; formMsg.classList.add("error"); return; }
 
-      setLoading(submitBtn, true, 'Submitting...');
+      setLoading(submitBtn, true, "Submitting...");
 
-      // Upload photo if selected
+      // Photo upload
       let photoUrl = "";
       const photoFile = document.getElementById("regPhoto")?.files?.[0];
       if (photoFile && window.RHS) {
         try { photoUrl = await RHS.uploadImage(photoFile, "rhs/members"); } catch(err) {}
       }
 
-      if (!window.RHS) { setLoading(submitBtn, false); formMsg.textContent = "Please wait, loading..."; return; }
+      if (!window.RHS) { setLoading(submitBtn, false); formMsg.textContent="Please wait, loading..."; return; }
 
       RHS.registerMember({ cnic, dob, fullName, fatherName: father, gender, profession: prof, email, mobile, province, address, membershipType: membership, photo: photoUrl })
       .then(res => {
         setLoading(submitBtn, false);
         if (res.success) {
-          if (regForm) regForm.hidden = true;
+          if (regForm) regForm.style.display = "none";
           if (formResult) {
             formResult.hidden = false;
-            formResult.classList.remove("error");
-            const resultTitle = document.getElementById("resultTitle");
-            const resultText = document.getElementById("resultText");
-            if (resultTitle) resultTitle.textContent = "Registration Submitted!";
-            if (resultText) resultText.textContent = res.message || "";
+            // Issue 2: Proper styled success alert
+            formResult.innerHTML = makeAlert("green", "fa-circle-check",
+              "Registration Submitted Successfully!",
+              `Dear <strong>${fullName}</strong>, Your Registration Request has been Successfully Received.<br><br>
+               Your Registration is now <strong>Underprocess</strong>. You will be notified after approval.<br><br>
+               📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}`,
+              [
+                {label:"<i class='fa-solid fa-house'></i> Main Menu", fn:"backToMemberPortalMain()"},
+                {label:"<i class='fa-solid fa-user-plus'></i> New Registration", fn:"restartRegistration()"}
+              ]
+            );
           }
         } else if (res.code === "DUPLICATE") {
-          if (regForm) regForm.hidden = true;
+          if (regForm) regForm.style.display = "none";
           if (formResult) {
             formResult.hidden = false;
-            formResult.classList.add("error");
-            const resultTitle = document.getElementById("resultTitle");
-            const resultText = document.getElementById("resultText");
-            if (resultTitle) resultTitle.textContent = "Already Registered";
-            if (resultText) resultText.textContent = res.message || "";
+            formResult.innerHTML = makeAlert("yellow", "fa-circle-info",
+              "Already Registered",
+              res.message || `Dear <strong>${fullName}</strong>, You are already registered.`,
+              [{label:"<i class='fa-solid fa-house'></i> Main Menu", fn:"backToMemberPortalMain()"}]
+            );
           }
         } else {
           formMsg.textContent = res.message || "Something went wrong.";
@@ -316,22 +380,43 @@ document.addEventListener("DOMContentLoaded", () => {
         formMsg.classList.add("error");
       });
     });
-
-    const newRegBtn = document.getElementById("newRegBtn");
-    if (newRegBtn) {
-      newRegBtn.addEventListener("click", () => {
-        regForm.reset();
-        regForm.hidden = false;
-        if (formResult) formResult.hidden = true;
-        if (formMsg) formMsg.textContent = "";
-      });
-    }
   }
 
+  window.restartRegistration = function() {
+    if (regForm) { regForm.style.display="block"; regForm.reset(); }
+    if (formResult) { formResult.hidden=true; formResult.innerHTML=""; }
+    if (formMsg) { formMsg.textContent=""; formMsg.className="form-msg"; }
+  };
+
   /* ============================================================
-     UNIFIED VERIFY PORTAL — Certificate + Charity History
-     Issues 7 & 8 fixed: portal hidden by default, 3 buttons,
-     result replaces form, Download PDF + Back buttons shown
+     ALERT BUILDER — Issues 4,5,6
+     Colors: green=Active/Success, yellow=Underprocess, red=Banned, orange=Expired
+  ============================================================ */
+  function makeAlert(color, icon, title, body, buttons) {
+    const colorMap = {
+      green:  { bg:"#EEF8F1", border:"#1a9e5c", title:"#1a9e5c", icon:"#1a9e5c" },
+      yellow: { bg:"#FFFBEB", border:"#D97706", title:"#92400E", icon:"#D97706" },
+      red:    { bg:"#FEF2F2", border:"#DC2626", title:"#991B1B", icon:"#DC2626" },
+      orange: { bg:"#FFF7ED", border:"#EA580C", title:"#9A3412", icon:"#EA580C" },
+      teal:   { bg:"#EEF8F1", border:"#14534F", title:"#14534F", icon:"#14534F" },
+    };
+    const c = colorMap[color] || colorMap.teal;
+    const btns = (buttons||[]).map(b =>
+      `<button class="btn btn-ghost" onclick="${b.fn}" style="margin:4px">${b.label}</button>`
+    ).join("");
+    return `
+      <div style="background:${c.bg};border:2px solid ${c.border};border-radius:16px;padding:32px 28px;max-width:540px;margin:0 auto;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.08)">
+        <i class="fa-solid ${icon}" style="font-size:2.5rem;color:${c.icon};margin-bottom:12px;display:block"></i>
+        <h3 style="font-family:'Fraunces',serif;color:${c.title};margin:0 0 12px;font-size:1.25rem">${title}</h3>
+        <p style="color:#374151;line-height:1.7;margin:0 0 20px;font-size:.93rem">${body}</p>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">${btns}</div>
+      </div>`;
+  }
+  window.makeAlert = makeAlert;
+
+  /* ============================================================
+     VERIFY PORTAL — Issues 3,4,5,6,7
+     Single form, 3 buttons, result hides form, colored alerts
   ============================================================ */
   const verifyForm        = document.getElementById("verifyForm");
   const verifyMsg         = document.getElementById("verifyMsg");
@@ -341,99 +426,116 @@ document.addEventListener("DOMContentLoaded", () => {
   const verifyClearBtn    = document.getElementById("verifyClearBtn");
   const memberLookupCard  = document.getElementById("memberLookupCard");
 
-  function getLookupVals() {
+  function getVerifyVals() {
     return {
       cnic: document.getElementById("vCnic")?.value.trim() || "",
       dob:  document.getElementById("vDob")?.value.trim()  || ""
     };
   }
 
-  function validateLookup(cnic, dob) {
+  function validateVerify(cnic, dob) {
     if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic)) {
-      if (verifyMsg) { verifyMsg.textContent = "⚠️ Valid CNIC required: 00000-0000000-0"; verifyMsg.classList.add("error"); }
+      if (verifyMsg) { verifyMsg.textContent="⚠️ Valid CNIC required: 00000-0000000-0"; verifyMsg.classList.add("error"); }
       return false;
     }
     if (!/^\d{2}-\d{2}-\d{4}$/.test(dob)) {
-      if (verifyMsg) { verifyMsg.textContent = "⚠️ DOB format: dd-mm-yyyy"; verifyMsg.classList.add("error"); }
+      if (verifyMsg) { verifyMsg.textContent="⚠️ DOB format: dd-mm-yyyy"; verifyMsg.classList.add("error"); }
       return false;
     }
     return true;
   }
 
-  function clearLookupMsg() {
-    if (verifyMsg) { verifyMsg.textContent = ""; verifyMsg.className = "form-msg"; }
-  }
-
-  function clearLookupResult() {
-    if (certResult) { certResult.innerHTML = ""; }
-  }
-
-  // Hide form, show result
-  function showResult(html) {
+  function showVerifyResult(html) {
+    // Hide form, show result — Issue 5: screen ke samne
     if (memberLookupCard) memberLookupCard.style.display = "none";
-    if (certResult) certResult.innerHTML = html;
+    if (certResult) { certResult.innerHTML = html; certResult.scrollIntoView({ behavior:"smooth", block:"start" }); }
+    if (verifyMsg) { verifyMsg.textContent=""; verifyMsg.className="form-msg"; }
   }
 
-  // Show form, clear result (Back button)
-  window.backToVerifyForm = function() {
-    if (memberLookupCard) memberLookupCard.style.display = "block";
-    clearLookupResult();
-    clearLookupMsg();
-  };
-
-  // Back to main Member Portal (show reg + verify buttons)
-  window.backToMemberPortalMain = function() {
-    const vp = document.getElementById("verifyPortalWrap");
-    if (vp) vp.style.display = "none";
-    clearLookupResult();
-    clearLookupMsg();
-    if (memberLookupCard) memberLookupCard.style.display = "block";
-    const vCnic = document.getElementById("vCnic");
-    const vDob  = document.getElementById("vDob");
-    if (vCnic) vCnic.value = "";
-    if (vDob)  vDob.value = "";
-    const ms = document.getElementById("memberSection");
-    if (ms) ms.scrollIntoView({ behavior: "smooth" });
-  };
-
-  // ---- VERIFY CERTIFICATE ----
   if (verifyForm) {
-    verifyForm.addEventListener("submit", (e) => { e.preventDefault(); doVerify(); });
+    verifyForm.addEventListener("submit", e => { e.preventDefault(); doVerifyCert(); });
   }
 
-  function doVerify() {
-    clearLookupMsg(); clearLookupResult();
-    const { cnic, dob } = getLookupVals();
-    if (!validateLookup(cnic, dob)) return;
+  // ---- Verify Certificate ----
+  function doVerifyCert() {
+    if (verifyMsg) { verifyMsg.textContent=""; verifyMsg.className="form-msg"; }
+    if (certResult) certResult.innerHTML = "";
+    const { cnic, dob } = getVerifyVals();
+    if (!validateVerify(cnic, dob)) return;
     setLoading(verifyBtn, true, "Verifying...");
     if (!window.RHS) { setLoading(verifyBtn, false); return; }
     RHS.getMemberByCredentials(cnic, dob).then(res => {
       setLoading(verifyBtn, false);
-      if (res.success && res.found && res.active) {
-        renderCertificate(res.member);
-      } else if (res.success && res.found) {
-        showResult(`<div class="status-msg status-yellow">
-          <i class="fa-solid fa-hourglass-half"></i>
-          <div class="status-title">Membership Status: ${res.member.status}</div>
-          <p>Your membership is <strong>${res.member.status}</strong>. Please contact us for more info.</p>
-          <p class="status-note">📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}</p>
-          <div style="margin-top:16px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-            <button class="btn btn-ghost" onclick="backToVerifyForm()"><i class="fa-solid fa-arrow-left"></i> Back</button>
-            <button class="btn btn-ghost" onclick="backToMemberPortalMain()"><i class="fa-solid fa-house"></i> Main Menu</button>
-          </div>
-        </div>`);
+      if (res.success && res.found) {
+        const m = res.member;
+        const s = (m.status || "").toLowerCase();
+        if (s === "active") {
+          // Show digital certificate
+          showVerifyResult(renderCertCard(m));
+        } else {
+          // Issue 3,4: Status-based colored alert with name
+          const statusConfig = {
+            underprocess: { color:"yellow", icon:"fa-hourglass-half", title:`Membership Underprocess`, msg:`Dear <strong>${m.fullName}</strong>, Your Membership Status is <strong>Underprocess</strong>. Your application is being reviewed. Please contact us for more information.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}` },
+            expired:      { color:"orange", icon:"fa-clock",           title:`Membership Expired`,      msg:`Dear <strong>${m.fullName}</strong>, Your Membership Status is <strong>Expired</strong>. Please contact us to renew your membership.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}` },
+            banned:       { color:"red",    icon:"fa-ban",             title:`Membership Banned`,       msg:`Dear <strong>${m.fullName}</strong>, Your Membership Status is <strong>Banned</strong>. Please contact us for more information.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}` },
+          };
+          const cfg = statusConfig[s] || { color:"yellow", icon:"fa-circle-info", title:`Status: ${m.status}`, msg:`Dear <strong>${m.fullName}</strong>, Your Membership Status is <strong>${m.status}</strong>. Please contact us.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}` };
+          showVerifyResult(makeAlert(cfg.color, cfg.icon, cfg.title, cfg.msg, [
+            {label:"<i class='fa-solid fa-arrow-left'></i> Back", fn:"backToVerifyForm()"},
+            {label:"<i class='fa-solid fa-house'></i> Main Menu", fn:"backToMemberPortalMain()"}
+          ]));
+        }
       } else {
         if (verifyMsg) { verifyMsg.textContent = res.message || "No record found with these credentials."; verifyMsg.classList.add("error"); }
       }
-    }).catch(() => { setLoading(verifyBtn, false); if (verifyMsg) { verifyMsg.textContent = "Network error. Please try again."; verifyMsg.classList.add("error"); } });
+    }).catch(() => { setLoading(verifyBtn, false); if (verifyMsg) { verifyMsg.textContent="Network error."; verifyMsg.classList.add("error"); } });
   }
 
-  function renderCertificate(m) {
+  // ---- Verify Charity Donation ----
+  if (verifyDonationBtn) {
+    verifyDonationBtn.addEventListener("click", () => {
+      if (verifyMsg) { verifyMsg.textContent=""; verifyMsg.className="form-msg"; }
+      if (certResult) certResult.innerHTML = "";
+      const { cnic, dob } = getVerifyVals();
+      if (!validateVerify(cnic, dob)) return;
+      setLoading(verifyDonationBtn, true, "Loading...");
+      if (!window.RHS) { setLoading(verifyDonationBtn, false); return; }
+      RHS.getCharityLedger(cnic, dob).then(res => {
+        setLoading(verifyDonationBtn, false);
+        if (!res.success) {
+          if (verifyMsg) { verifyMsg.textContent = res.message || "No record found."; verifyMsg.classList.add("error"); }
+          return;
+        }
+        showVerifyResult(renderLedger(res));
+      }).catch(() => { setLoading(verifyDonationBtn, false); if (verifyMsg) { verifyMsg.textContent="Network error."; verifyMsg.classList.add("error"); } });
+    });
+  }
+
+  // ---- Clear Button ----
+  if (verifyClearBtn) {
+    verifyClearBtn.addEventListener("click", () => {
+      clearVerifyForm();
+      if (certResult) certResult.innerHTML = "";
+      if (memberLookupCard) memberLookupCard.style.display = "block";
+    });
+  }
+
+  // Back to verify form (from result)
+  window.backToVerifyForm = function() {
+    if (certResult) certResult.innerHTML = "";
+    if (memberLookupCard) memberLookupCard.style.display = "block";
+    clearVerifyForm();
+    const vp = document.getElementById("verifyPortalWrap");
+    if (vp) vp.scrollIntoView({ behavior:"smooth" });
+  };
+
+  // ---- Certificate Card Renderer ----
+  function renderCertCard(m) {
     const photoHtml = m.photo
       ? `<img src="${m.photo}" alt="${m.fullName}" style="width:100%;height:100%;object-fit:cover">`
       : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#EEF8F1;color:#8A9A96;font-size:2.5rem"><i class="fa-solid fa-user"></i></div>`;
-    const mData = JSON.stringify(m).replace(/"/g, '&quot;');
-    showResult(`
+    const mData = JSON.stringify(m).replace(/"/g, "&quot;");
+    return `
       <div class="cert-card">
         <div class="cert-top-bar">
           <img src="images/logo.png" class="cert-logo" alt="RHS">
@@ -441,13 +543,13 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="cert-org-name">${window.NGO.name}</div>
             <div class="cert-org-addr">${window.NGO.address}</div>
           </div>
-          <span class="cert-badge" style="background:#1a9e5c">✓ Active Member</span>
+          <span class="cert-badge-active">✓ Active Member</span>
         </div>
         <div class="cert-body">
           <div class="cert-photo">${photoHtml}</div>
           <div class="cert-details">
             <div class="cert-member-name">${m.fullName}</div>
-            <div class="cert-member-type">${m.membershipType || "Member"}</div>
+            <div class="cert-member-type">${m.membershipType||"Member"}</div>
             <div class="cert-grid">
               <div class="cert-item"><span class="lbl">Reg No</span><span class="val">${m.registrationNo}</span></div>
               <div class="cert-item"><span class="lbl">CNIC</span><span class="val">${m.cnic}</span></div>
@@ -477,7 +579,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </button>
         </div>
         <p class="cert-footnote">This digital certificate is valid proof of membership in ${window.NGO.name}.</p>
-      </div>`);
+      </div>`;
   }
 
   window.printMemberCert = function(m) {
@@ -485,9 +587,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!pa) return;
     pa.innerHTML = `
       <div style="border:6px double #14534F;padding:40px;font-family:Georgia,serif;max-width:700px;margin:0 auto">
-        <div style="text-align:center;border-bottom:2px solid #E8A33D;padding-bottom:20px;margin-bottom:20px">
+        <div style="text-align:center;border-bottom:2px solid #E8A33D;padding-bottom:16px;margin-bottom:20px">
           <h1 style="color:#14534F;margin:0">${window.NGO.name}</h1>
-          <p style="color:#E8A33D;letter-spacing:3px;margin:4px 0;font-size:.9rem">DIGITAL MEMBERSHIP CERTIFICATE</p>
+          <p style="color:#E8A33D;letter-spacing:3px;margin:4px 0;font-size:.85rem">DIGITAL MEMBERSHIP CERTIFICATE</p>
         </div>
         <table style="width:100%;border-collapse:collapse">
           <tr>
@@ -508,55 +610,37 @@ document.addEventListener("DOMContentLoaded", () => {
             </td>
           </tr>
         </table>
-        <div style="text-align:center;margin-top:24px;padding-top:16px;border-top:1px solid #E7DFD2;color:#888;font-size:.78rem">
+        <div style="text-align:center;margin-top:24px;padding-top:16px;border-top:1px solid #E7DFD2;color:#888;font-size:.75rem">
           ${window.NGO.address} &nbsp;·&nbsp; ${window.NGO.phone} &nbsp;·&nbsp; ${window.NGO.email}
         </div>
       </div>`;
     window.print();
-    setTimeout(() => { pa.innerHTML = ""; }, 3000);
+    setTimeout(() => { pa.innerHTML=""; }, 3000);
   };
 
-  // ---- VERIFY CHARITY DONATION ----
-  if (verifyDonationBtn) {
-    verifyDonationBtn.addEventListener("click", () => {
-      clearLookupMsg(); clearLookupResult();
-      const { cnic, dob } = getLookupVals();
-      if (!validateLookup(cnic, dob)) return;
-      setLoading(verifyDonationBtn, true, "Loading...");
-      if (!window.RHS) { setLoading(verifyDonationBtn, false); return; }
-      RHS.getCharityLedger(cnic, dob).then(res => {
-        setLoading(verifyDonationBtn, false);
-        if (!res.success) {
-          if (verifyMsg) { verifyMsg.textContent = res.message || "No record found."; verifyMsg.classList.add("error"); }
-          return;
-        }
-        renderDonationLedger(res);
-      }).catch(() => { setLoading(verifyDonationBtn, false); if (verifyMsg) { verifyMsg.textContent = "Network error."; verifyMsg.classList.add("error"); } });
-    });
-  }
-
-  function renderDonationLedger(res) {
+  // ---- Charity Ledger Renderer ----
+  function renderLedger(res) {
     const m = res.member;
     const donations = res.donations || [];
-    let runningTotal = 0;
-    const rows = donations.length === 0
+    let runTotal = 0;
+    const rows = !donations.length
       ? `<tr><td colspan="4" style="text-align:center;padding:24px;color:#8A9A96;font-style:italic">No charity donations recorded yet.</td></tr>`
-      : donations.map((d, i) => {
-          runningTotal += Number(d.amount) || 0;
+      : donations.map((d,i) => {
+          runTotal += Number(d.amount)||0;
           return `<tr style="background:${i%2?"#F5F9F8":"#fff"}">
             <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2">${d.date||""}</td>
             <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2">${d.paymentMethod||d.method||"Cash"}</td>
             <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2;color:#2E9E5B;font-weight:600">Rs. ${Number(d.amount||0).toLocaleString()}</td>
-            <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2;font-weight:600">Rs. ${runningTotal.toLocaleString()}</td>
+            <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2;font-weight:600">Rs. ${runTotal.toLocaleString()}</td>
           </tr>`;
         }).join("");
-    showResult(`
+    return `
       <div class="ledger-wrap">
         <div class="ledger-header">
           <img src="images/logo.png" alt="RHS" class="ledger-logo">
           <div><h3>${window.NGO.name}</h3><small>${window.NGO.address}</small></div>
         </div>
-        <div class="ledger-title" style="text-align:center;margin:12px 0"><span class="eyebrow">Charity Donation Ledger</span></div>
+        <div style="text-align:center;margin:10px 0"><span class="eyebrow">Charity Donation Ledger</span></div>
         <div class="ledger-member-info">
           <div class="ledger-info-row"><span class="lbl">Member Name</span><span class="val">${m.fullName}</span></div>
           <div class="ledger-info-row"><span class="lbl">Reg No</span><span class="val">${m.registrationNo}</span></div>
@@ -568,44 +652,38 @@ document.addEventListener("DOMContentLoaded", () => {
           <table style="width:100%;border-collapse:collapse;font-size:.88rem">
             <thead><tr style="background:#14534F;color:#fff">
               <th style="padding:10px 14px;text-align:left">Date</th>
-              <th style="padding:10px 14px;text-align:left">Payment Method</th>
+              <th style="padding:10px 14px;text-align:left">Payment</th>
               <th style="padding:10px 14px;text-align:left">Amount</th>
               <th style="padding:10px 14px;text-align:left">Running Total</th>
             </tr></thead>
             <tbody>${rows}</tbody>
             <tfoot><tr style="background:#EEF8F1">
               <td colspan="2" style="padding:12px 14px;font-weight:700;color:#14534F">Total Charity Contributed</td>
-              <td colspan="2" style="padding:12px 14px;font-weight:700;color:#14534F;font-size:1.05rem">Rs. ${res.total.toLocaleString()}</td>
+              <td colspan="2" style="padding:12px 14px;font-weight:700;color:#14534F;font-size:1rem">Rs. ${res.total.toLocaleString()}</td>
             </tr></tfoot>
           </table>
         </div>
         <p class="cert-footnote">${window.NGO.name} &nbsp;|&nbsp; ${window.NGO.phone} &nbsp;|&nbsp; ${window.NGO.email}</p>
-        <div style="margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
           <button class="btn btn-primary" onclick="window.print()"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
           <button class="btn btn-ghost" onclick="backToVerifyForm()"><i class="fa-solid fa-arrow-left"></i> Back</button>
           <button class="btn btn-ghost" onclick="backToMemberPortalMain()"><i class="fa-solid fa-house"></i> Main Menu</button>
         </div>
-      </div>`);
+      </div>`;
   }
 
-  // ---- CLEAR BUTTON ----
-  if (verifyClearBtn) {
-    verifyClearBtn.addEventListener("click", () => {
-      const vCnic = document.getElementById("vCnic");
-      const vDob  = document.getElementById("vDob");
-      if (vCnic) vCnic.value = "";
-      if (vDob)  vDob.value = "";
-      clearLookupResult();
-      clearLookupMsg();
-      if (memberLookupCard) memberLookupCard.style.display = "block";
-    });
-  }
-
-  // Legacy aliases
-  window.closeLedger = window.backToVerifyForm;
-  window.closeMemberLookup = window.backToVerifyForm;
-
-  /* TEAM */
+  /* PHOTO PREVIEW */
+  window.previewRegPhoto = function(input) {
+    const file = input.files?.[0];
+    if (!file) return;
+    const preview = document.getElementById("regPhotoPreview");
+    if (!preview) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      preview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`;
+    };
+    reader.readAsDataURL(file);
+  };
   function loadTeam() {
     if (!window.RHS) { setTimeout(loadTeam, 500); return; }
     const teamGrid = document.getElementById("teamGrid");
@@ -650,63 +728,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* MEMBER PORTAL */
-  window.showMemberSection = function(which) {
-    if (which === "registration") {
-      const regSection = document.getElementById("registration");
-      if (regSection) {
-        regSection.classList.add("show");
-        regSection.style.display = "block";
-        regSection.scrollIntoView({ behavior: "smooth" });
-      }
-      // Hide verify portal
-      const vp = document.getElementById("verifyPortalWrap");
-      if (vp) vp.style.display = "none";
-    } else if (which === "verify") {
-      // Show verify portal, scroll to it
-      const vp = document.getElementById("verifyPortalWrap");
-      if (vp) {
-        vp.style.display = "block";
-        setTimeout(() => vp.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
-      }
-      // Clear any previous result
-      clearLookupResult();
-      clearLookupMsg();
-    }
-  };
-
-  // Back button — hide verify portal, show main buttons again
-  window.backToMemberPortal = function() {
-    const vp = document.getElementById("verifyPortalWrap");
-    if (vp) vp.style.display = "none";
-    clearLookupResult();
-    clearLookupMsg();
-    const vCnic = document.getElementById("vCnic");
-    const vDob  = document.getElementById("vDob");
-    if (vCnic) vCnic.value = "";
-    if (vDob)  vDob.value = "";
-    // Scroll back to member portal section
-    const ms = document.getElementById("memberSection");
-    if (ms) ms.scrollIntoView({ behavior: "smooth" });
-    // Show new reg + verify buttons again
-    const btns = document.getElementById("memberPortalBtns");
-    if (btns) btns.style.display = "flex";
-  };
-
-  /* CHARITY HELP DESK */
+  /* TEAM */
   window.showHelpSection = function(which) {
     const btns = document.getElementById("helpdeskBtns");
     const grantFormWrap = document.getElementById("grantFormWrap");
     const grantStatusWrap = document.getElementById("grantStatusWrap");
     if (btns) btns.style.display = "none";
-    if (grantFormWrap) grantFormWrap.style.display = (which === "grantForm" || which === "grant") ? "block" : "none";
-    if (grantStatusWrap) grantStatusWrap.style.display = (which === "grantForm" || which === "grant") ? "none" : "block";
+    if (grantFormWrap) grantFormWrap.style.display = (which === "grant") ? "block" : "none";
+    if (grantStatusWrap) grantStatusWrap.style.display = (which === "status") ? "block" : "none";
     const desk = document.getElementById("charityDesk");
-    if (desk) desk.scrollIntoView({ behavior: "smooth" });
+    if (desk) desk.scrollIntoView({ behavior:"smooth" });
   };
 
   window.hideHelpSection = function() {
-    ['grantForm','grantStatusForm'].forEach(resetForm);
     const btns = document.getElementById("helpdeskBtns");
     const grantFormWrap = document.getElementById("grantFormWrap");
     const grantStatusWrap = document.getElementById("grantStatusWrap");
@@ -716,21 +750,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const grantForm2 = document.getElementById("grantForm");
     if (grantForm2) grantForm2.style.display = "block";
     const grantResult2 = document.getElementById("grantResult");
-    if (grantResult2) grantResult2.hidden = true;
+    if (grantResult2) { grantResult2.style.display="none"; grantResult2.innerHTML=""; }
     const desk = document.getElementById("charityDesk");
-    if (desk) desk.scrollIntoView({ behavior: "smooth" });
+    if (desk) desk.scrollIntoView({ behavior:"smooth" });
   };
 
-  /* GRANT FORM */
+  /* GRANT FORM — Issue 1: Submission message */
   const grantForm = document.getElementById("grantForm");
-  const grantMsg = document.getElementById("grantMsg");
+  const grantMsg  = document.getElementById("grantMsg");
   const grantResult = document.getElementById("grantResult");
   const grantSubmitBtn = document.getElementById("grantSubmitBtn");
 
   if (grantForm) {
     grantForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      if (grantMsg) { grantMsg.textContent = ""; grantMsg.className = "form-msg"; }
+      if (grantMsg) { grantMsg.textContent=""; grantMsg.className="form-msg"; }
       const cnic     = document.getElementById("gCnic")?.value.trim() || "";
       const dob      = document.getElementById("gDob")?.value.trim() || "";
       const name     = document.getElementById("gName")?.value.trim() || "";
@@ -741,120 +775,119 @@ document.addEventListener("DOMContentLoaded", () => {
       const amount   = document.getElementById("gAmount")?.value || "";
       const address  = document.getElementById("gAddress")?.value.trim() || "";
       const email    = document.getElementById("gEmail")?.value.trim() || "";
-      if (!cnic || !dob || !name || !father || !gender || !mobile || !helpType || !amount || !address) {
-        if (grantMsg) { grantMsg.textContent = "Please fill all required fields."; grantMsg.classList.add("error"); }
+      if (!cnic||!dob||!name||!father||!gender||!mobile||!helpType||!amount||!address) {
+        if (grantMsg) { grantMsg.textContent="Please fill all required fields."; grantMsg.classList.add("error"); }
         return;
       }
-      setLoading(grantSubmitBtn, true, 'Submitting...');
+      setLoading(grantSubmitBtn, true, "Submitting...");
       if (!window.RHS) { setLoading(grantSubmitBtn, false); return; }
-      RHS.submitGrant({ cnic, dob, name, fatherName: father, gender, email, mobile, helpType, amountRequired: Number(amount), address })
+      RHS.submitGrant({ cnic, dob, name, fatherName:father, gender, email, mobile, helpType, amountRequired:Number(amount), address })
       .then(res => {
         setLoading(grantSubmitBtn, false);
-        if (res.success || res.code === "DUPLICATE_CASE") {
-          if (grantForm) grantForm.style.display = "none";
-          const grantResultDiv = document.getElementById("grantResult");
-          const txt = document.getElementById("grantResultText");
-          if (grantResultDiv) grantResultDiv.style.display = "block";
-          if (txt) txt.textContent = res.message || "Your request has been submitted. Our team will contact you soon.";
-          // Change icon color for duplicate
-          if (res.code === "DUPLICATE_CASE") {
-            const icon = grantResultDiv?.querySelector("i");
-            if (icon) { icon.className = "fa-solid fa-circle-info"; }
-            const statusDiv = grantResultDiv?.querySelector(".status-msg");
-            if (statusDiv) { statusDiv.className = "status-msg status-yellow"; }
-            const titleDiv = grantResultDiv?.querySelector(".status-title");
-            if (titleDiv) titleDiv.textContent = "Already Submitted";
+        if (res.success) {
+          grantForm.style.display = "none";
+          if (grantResult) {
+            grantResult.style.display = "block";
+            grantResult.innerHTML = makeAlert("green","fa-circle-check","Request Submitted Successfully!",
+              `Dear <strong>${name}</strong>, Your Charity Help Request has been Successfully Received.<br><br>
+               Your <strong>Case Reference Number</strong> is <strong>${res.crn||""}</strong>. Our team will contact you soon.<br><br>
+               📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}`,
+              [{label:"<i class='fa-solid fa-arrow-left'></i> Back", fn:"hideHelpSection()"}]
+            );
+          }
+        } else if (res.code === "DUPLICATE_CASE") {
+          grantForm.style.display = "none";
+          if (grantResult) {
+            grantResult.style.display = "block";
+            grantResult.innerHTML = makeAlert("yellow","fa-circle-info","Case Already Submitted",
+              res.message || `Dear <strong>${name}</strong>, You already have an active case.`,
+              [{label:"<i class='fa-solid fa-arrow-left'></i> Back", fn:"hideHelpSection()"}]
+            );
           }
         } else {
-          if (grantMsg) { grantMsg.textContent = res.message || "Something went wrong."; grantMsg.classList.add("error"); }
+          if (grantMsg) { grantMsg.textContent=res.message||"Something went wrong."; grantMsg.classList.add("error"); }
         }
-      }).catch(() => { setLoading(grantSubmitBtn, false); if (grantMsg) { grantMsg.textContent = "Network error. Please try again."; grantMsg.classList.add("error"); } });
+      }).catch(() => { setLoading(grantSubmitBtn, false); if (grantMsg) { grantMsg.textContent="Network error."; grantMsg.classList.add("error"); } });
     });
   }
 
-  /* GRANT STATUS */
-  const grantStatusForm = document.getElementById("grantStatusForm");
-  const gsMsg = document.getElementById("gsMsg");
+  /* GRANT STATUS — Issue 7: charity approval status, Issue 8: proper status display */
+  const grantStatusForm   = document.getElementById("grantStatusForm");
+  const gsMsg             = document.getElementById("gsMsg");
   const grantStatusResult = document.getElementById("grantStatusResult");
 
   if (grantStatusForm) {
     grantStatusForm.addEventListener("reset", () => {
       setTimeout(() => {
-        if (gsMsg) { gsMsg.textContent = ""; gsMsg.className = "form-msg"; }
-        if (grantStatusResult) grantStatusResult.innerHTML = "";
+        if (gsMsg) { gsMsg.textContent=""; gsMsg.className="form-msg"; }
+        if (grantStatusResult) grantStatusResult.innerHTML="";
       }, 0);
     });
 
     grantStatusForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      if (gsMsg) { gsMsg.textContent = ""; gsMsg.className = "form-msg"; }
-      if (grantStatusResult) grantStatusResult.innerHTML = "";
+      if (gsMsg) { gsMsg.textContent=""; gsMsg.className="form-msg"; }
+      if (grantStatusResult) grantStatusResult.innerHTML="";
       const cnic = document.getElementById("gsCnic")?.value.trim() || "";
       const dob  = document.getElementById("gsDob")?.value.trim() || "";
-      if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic) || !/^\d{2}-\d{2}-\d{4}$/.test(dob)) {
-        if (gsMsg) { gsMsg.textContent = "Please enter valid CNIC and DOB."; gsMsg.classList.add("error"); }
+      if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic)||!/^\d{2}-\d{2}-\d{4}$/.test(dob)) {
+        if (gsMsg) { gsMsg.textContent="Please enter valid CNIC and DOB."; gsMsg.classList.add("error"); }
         return;
       }
       const gsBtn = grantStatusForm.querySelector('[type="submit"]');
-      setLoading(gsBtn, true, 'Checking...');
+      setLoading(gsBtn, true, "Checking...");
       if (!window.RHS) { setLoading(gsBtn, false); return; }
       RHS.getGrantStatus(cnic, dob).then(res => {
         setLoading(gsBtn, false);
-        if (!res.success || !res.grants || !res.grants.length) {
-          if (grantStatusResult) grantStatusResult.innerHTML = `<div class="status-msg status-red"><i class="fa-solid fa-circle-xmark"></i><div class="status-title">No Request Found</div><p>${res.message||"Not found."}</p></div>`;
+        if (!res.success||!res.grants||!res.grants.length) {
+          if (grantStatusResult) grantStatusResult.innerHTML = makeAlert("red","fa-circle-xmark","No Request Found",
+            res.message||"No charity request found with these credentials. Please check your CNIC and Date of Birth.",
+            [{label:"<i class='fa-solid fa-rotate-left'></i> Try Again", fn:"document.getElementById('grantStatusForm').reset()"}]
+          );
           return;
         }
-        const active = res.grants.filter(g => (g.status||"").toLowerCase() !== "closed");
-        const closed = res.grants.filter(g => (g.status||"").toLowerCase() === "closed");
+        const active = res.grants.filter(g=>(g.status||"").toLowerCase()!=="closed");
+        const closed = res.grants.filter(g=>(g.status||"").toLowerCase()==="closed");
         const list = active.length ? active : closed;
         let html = "";
         list.forEach(g => {
-          let msg = "", vibe = "status-yellow", icon = "fa-hourglass-half";
           const s = (g.status||"").toLowerCase();
           const d = (g.decision||"").toLowerCase();
-          if (s==="new") { msg=`Dear <strong>${g.name}</strong>, Your Request <strong>${g.crn}</strong> received. Team will contact you soon. 📞 ${window.NGO.alert} | 📧 ${window.NGO.email}`; vibe="status-yellow"; icon="fa-hourglass-half"; }
-          else if (s==="assigned") { msg=`Dear <strong>${g.name}</strong>, Case <strong>${g.crn}</strong> assigned to <strong>${g.assignedTo||""}</strong>. Please cooperate. 📞 ${window.NGO.alert}`; vibe="status-green"; icon="fa-user-check"; }
-          else if (s==="completed") { msg=`Dear <strong>${g.name}</strong>, Case <strong>${g.crn}</strong> verification completed. Please wait for decision. 📞 ${window.NGO.alert}`; vibe="status-yellow"; icon="fa-clipboard-check"; }
-          else if (d==="approved"&&s!=="closed") { msg=`Dear <strong>${g.name}</strong>, Congratulations! Case <strong>${g.crn}</strong> Approved. Team will contact you. 📞 ${window.NGO.alert}`; vibe="status-green"; icon="fa-circle-check"; }
-          else if (d==="rejected"&&s!=="closed") { msg=`Dear <strong>${g.name}</strong>, Case <strong>${g.crn}</strong> Rejected. Please meet President. 📞 ${window.NGO.alert}`; vibe="status-red"; icon="fa-circle-xmark"; }
-          else if (s==="closed"&&(d==="closed"||d==="approved")) { msg=`Dear <strong>${g.name}</strong>, Case <strong>${g.crn}</strong> Successfully Closed. Jazak Allah Khair! 🤲`; vibe="status-green"; icon="fa-lock"; }
-          else if (s==="closed"&&d==="rejected") { msg=`Dear <strong>${g.name}</strong>, Case <strong>${g.crn}</strong> Closed after Rejection. Meet President. 📞 ${window.NGO.alert}`; vibe="status-red"; icon="fa-lock"; }
-          else { msg=`Dear <strong>${g.name}</strong>, Case <strong>${g.crn}</strong> under process. 📞 ${window.NGO.alert}`; }
-          html += `<div class="status-msg ${vibe}" style="margin-bottom:16px"><i class="fa-solid ${icon}"></i><div class="status-title">${g.crn} — ${g.helpType}</div><p>${msg}</p><p class="status-note">Applied: ${g.timestamp} • Rs. ${Number(g.amount||0).toLocaleString()}</p></div>`;
+          let color, icon, title, msg;
+          if (s==="new") {
+            color="yellow"; icon="fa-hourglass-half"; title=`Case Received — ${g.crn}`;
+            msg=`Dear <strong>${g.name}</strong>, Your Charity Help Request <strong>${g.crn}</strong> has been received. Our team will review and contact you soon.<br><br>📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}`;
+          } else if (s==="assigned") {
+            color="teal"; icon="fa-user-check"; title=`Case Assigned — ${g.crn}`;
+            msg=`Dear <strong>${g.name}</strong>, Your case <strong>${g.crn}</strong> has been assigned to our team member <strong>${g.assignedTo||"our team"}</strong>. They will contact you soon. Please cooperate.<br><br>📞 ${window.NGO.alert}`;
+          } else if (s==="completed") {
+            color="yellow"; icon="fa-clipboard-check"; title=`Verification Completed — ${g.crn}`;
+            msg=`Dear <strong>${g.name}</strong>, The verification for your case <strong>${g.crn}</strong> has been completed. Please wait for the final decision.<br><br>📞 ${window.NGO.alert}`;
+          } else if (d==="approved"&&s!=="closed") {
+            color="green"; icon="fa-circle-check"; title=`Case APPROVED — ${g.crn}`;
+            msg=`Dear <strong>${g.name}</strong>, Congratulations! 🎉 Your Charity Case <strong>${g.crn}</strong> has been <strong>Approved</strong>. Our team will contact you and deliver your help at your doorstep.<br><br>📞 ${window.NGO.alert}`;
+          } else if (d==="rejected"&&s!=="closed") {
+            color="red"; icon="fa-circle-xmark"; title=`Case Rejected — ${g.crn}`;
+            msg=`Dear <strong>${g.name}</strong>, Your case <strong>${g.crn}</strong> has been <strong>Rejected</strong> as it does not match our current criteria. To reopen or appeal, please physically meet our President with your Case No.<br><br>📞 ${window.NGO.alert}`;
+          } else if (s==="closed"&&d!=="rejected") {
+            color="green"; icon="fa-lock"; title=`Case Closed — Successfully Granted`;
+            msg=`Dear <strong>${g.name}</strong>, Your case <strong>${g.crn}</strong> has been <strong>Successfully Closed</strong> after granting. Jazak Allah Khair! 🤲`;
+          } else if (s==="closed"&&d==="rejected") {
+            color="red"; icon="fa-lock"; title=`Case Closed — ${g.crn}`;
+            msg=`Dear <strong>${g.name}</strong>, Your case <strong>${g.crn}</strong> has been Closed after Rejection. To appeal, please meet our President.<br><br>📞 ${window.NGO.alert}`;
+          } else {
+            color="yellow"; icon="fa-hourglass-half"; title=`Case Under Process — ${g.crn}`;
+            msg=`Dear <strong>${g.name}</strong>, Your case <strong>${g.crn}</strong> is under process. Please contact us for more information.<br><br>📞 ${window.NGO.alert}`;
+          }
+          html += `<div style="margin-bottom:16px">${makeAlert(color, icon, title,
+            msg + `<br><br><small style="color:#6B7280">Help Type: ${g.helpType||"—"} &nbsp;|&nbsp; Applied: ${g.timestamp||"—"} &nbsp;|&nbsp; Amount: Rs. ${Number(g.amountRequired||g.amount||0).toLocaleString()}</small>`,
+            []
+          )}</div>`;
         });
         if (grantStatusResult) grantStatusResult.innerHTML = html;
-      }).catch(() => { setLoading(gsBtn, false); if (gsMsg) { gsMsg.textContent = "Network error."; gsMsg.classList.add("error"); } });
+      }).catch(() => { setLoading(gsBtn, false); if (gsMsg) { gsMsg.textContent="Network error."; gsMsg.classList.add("error"); } });
     });
   }
-
-  /* PHOTO PREVIEW */
-  window.previewRegPhoto = function(input) {
-    const file = input.files?.[0];
-    if (!file) return;
-    const preview = document.getElementById("regPhotoPreview");
-    if (!preview) return;
-    const reader = new FileReader();
-    reader.onload = e => { preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`; };
-    reader.readAsDataURL(file);
-  };
-
-  /* REGISTRATION OPEN/CLOSE */
-  const registrationSection = document.getElementById("registration");
-  window.openRegistration = function() {
-    if (registrationSection) { registrationSection.classList.add("show"); registrationSection.scrollIntoView({ behavior: "smooth" }); }
-  };
-  window.closeRegistration = function() {
-    if (registrationSection) registrationSection.classList.remove("show");
-    const homeEl = document.getElementById("home");
-    if (homeEl) homeEl.scrollIntoView({ behavior: "smooth" });
-  };
-  document.querySelectorAll('a[href="#registration"]').forEach(link => {
-    link.addEventListener("click", (e) => { e.preventDefault(); window.openRegistration(); });
-  });
-  const backBtn1 = document.getElementById("backBtn1");
-  const backBtn2 = document.getElementById("backBtn2");
-  if (backBtn1) backBtn1.addEventListener("click", window.closeRegistration);
-  if (backBtn2) backBtn2.addEventListener("click", window.closeRegistration);
 
   /* URDU TOGGLE */
   let isUrdu = false;
