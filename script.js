@@ -420,6 +420,17 @@ document.addEventListener("DOMContentLoaded", () => {
       if (verifyForm) verifyForm.style.display = "block";
     });
   }
+  
+  /* CHARITY DONATION CLEAR BTN */
+  window.closeLedger = function() {
+    if (certResult) { certResult.hidden = true; certResult.innerHTML = ""; }
+    if (verifyForm) verifyForm.style.display = "block";
+    if (verifyMsg) { verifyMsg.textContent = ""; verifyMsg.className = "form-msg"; }
+    const vCnic = document.getElementById("vCnic");
+    const vDob = document.getElementById("vDob");
+    if (vCnic) vCnic.value = "";
+    if (vDob) vDob.value = "";
+  };
 
   /* CHARITY LEDGER */
   const verifyDonationBtn = document.getElementById("verifyDonationBtn");
@@ -447,8 +458,8 @@ document.addEventListener("DOMContentLoaded", () => {
           : donations.map((d,i) => {
               runningTotal += Number(d.amount)||0;
               return `<tr style="background:${i%2?"#F5F9F8":"#fff"}">
-                <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2">${d.date}</td>
-                <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2">${d.paymentMethod||"—"}</td>
+                <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2">${d.date||""}</td>
+                <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2">${d.paymentMethod||d.method||"Cash"}</td>
                 <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2;color:#2E9E5B;font-weight:600">Rs. ${Number(d.amount||0).toLocaleString()}</td>
                 <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2;font-weight:600">Rs. ${runningTotal.toLocaleString()}</td>
               </tr>`;
@@ -546,8 +557,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* MEMBER PORTAL */
   window.showMemberSection = function(which) {
-    const target = document.getElementById(which === "registration" ? "registration" : "verify");
-    if (target) target.scrollIntoView({ behavior: "smooth" });
+    if (which === "registration") {
+      const regSection = document.getElementById("registration");
+      if (regSection) {
+        regSection.classList.add("show");
+        regSection.style.display = "block";
+        regSection.scrollIntoView({ behavior: "smooth" });
+      }
+    } else {
+      const verSection = document.getElementById("verify");
+      if (verSection) verSection.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   /* CHARITY HELP DESK */
@@ -556,8 +576,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const grantFormWrap = document.getElementById("grantFormWrap");
     const grantStatusWrap = document.getElementById("grantStatusWrap");
     if (btns) btns.style.display = "none";
-    if (grantFormWrap) grantFormWrap.style.display = which === "grantForm" ? "block" : "none";
-    if (grantStatusWrap) grantStatusWrap.style.display = which === "grantForm" ? "none" : "block";
+    if (grantFormWrap) grantFormWrap.style.display = (which === "grantForm" || which === "grant") ? "block" : "none";
+    if (grantStatusWrap) grantStatusWrap.style.display = (which === "grantForm" || which === "grant") ? "none" : "block";
     const desk = document.getElementById("charityDesk");
     if (desk) desk.scrollIntoView({ behavior: "smooth" });
   };
@@ -719,7 +739,61 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
+  /* NEWS */
+  function loadNews() {
+    const grid = document.getElementById("newsGrid");
+    if (!grid) return;
+    grid.innerHTML = '<div class="news-loading"><i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem"></i><p>Loading news...</p></div>';
+    if (!window.RHS) { setTimeout(loadNews, 800); return; }
+    RHS.getNews().then(res => {
+      if (!res.news || !res.news.length) {
+        grid.innerHTML = '<div class="news-loading"><i class="fa-solid fa-newspaper" style="font-size:2rem;display:block;margin-bottom:8px"></i>No news yet. Check back soon!</div>';
+        return;
+      }
+      grid.innerHTML = res.news.map(n => `
+        <article class="news-card">
+          ${n.imageURL ? `<img src="${n.imageURL}" alt="${n.title}" class="news-card-img" loading="lazy">` : `<div class="news-card-img" style="background:#EEF8F1;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-newspaper" style="font-size:2rem;color:#8A9A96"></i></div>`}
+          <div class="news-card-body">
+            <span class="news-tag">${n.category||"News"}</span>
+            <div class="news-card-date"><i class="fa-regular fa-calendar"></i> ${n.date||""}</div>
+            <h3 class="news-card-title">${n.title||""}</h3>
+            <p class="news-card-text">${n.body||n.content||""}</p>
+          </div>
+        </article>`).join("");
+    }).catch(() => {
+      grid.innerHTML = '<div class="news-loading">Could not load news.</div>';
+    });
+  }
+
+  /* STORIES */
+  function loadStories() {
+    const grid = document.getElementById("storiesGrid");
+    if (!grid) return;
+    grid.innerHTML = '<div class="news-loading"><i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem"></i><p>Loading stories...</p></div>';
+    if (!window.RHS) { setTimeout(loadStories, 800); return; }
+    RHS.getStories().then(res => {
+      if (!res.stories || !res.stories.length) {
+        grid.innerHTML = '<div class="news-loading"><i class="fa-solid fa-heart" style="font-size:2rem;display:block;margin-bottom:8px;color:var(--coral)"></i>Stories coming soon!</div>';
+        return;
+      }
+      grid.innerHTML = res.stories.map(s => `
+        <article class="story-card">
+          <span class="story-badge">${s.helpType||"Community"}</span>
+          ${s.photoURL ? `<img src="${s.photoURL}" alt="${s.name}" class="story-card-img" loading="lazy">` : `<div class="story-card-img" style="background:#EEF8F1;display:flex;align-items:center;justify-content:center;font-size:2.5rem">🤲</div>`}
+          <div class="story-card-body">
+            <div class="story-card-name">${s.name||""}</div>
+            <div class="story-card-location"><i class="fa-solid fa-location-dot"></i> ${s.location||"Khairpur Tamewali"}</div>
+            <p class="story-card-text">${s.story||""}</p>
+          </div>
+        </article>`).join("");
+    }).catch(() => {
+      grid.innerHTML = '<div class="news-loading">Could not load stories.</div>';
+    });
+  }
+
   /* LOAD ALL */
   loadNGOSettings();
+  loadNews();
+  loadStories();
 
 }); // END DOMContentLoaded

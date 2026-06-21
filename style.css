@@ -505,6 +505,7 @@ img, video { max-width: 100%; display: block; }
 .contact-info i { color: var(--coral); }
 .social-links { display: flex; gap: 14px; margin-top: 24px; }
 .social-links a {
+  color: var(--teal) !important;
   width: 46px; height: 46px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   background: #fff; color: var(--teal);
@@ -647,9 +648,9 @@ img, video { max-width: 100%; display: block; }
 .whatsapp-float:hover .wa-tooltip{opacity:1;}
 
 /* ===== LANGUAGE BUTTON ===== */
-.lang-btn{background:none;border:1.5px solid rgba(255,255,255,.4);color:#fff;padding:6px 12px;border-radius:20px;cursor:pointer;font-size:.82rem;display:flex;align-items:center;gap:6px;transition:.2s;margin-right:12px;font-family:'Inter',sans-serif;}
+.lang-btn{background:var(--teal);border:1.5px solid var(--teal);color:#fff;padding:6px 12px;border-radius:20px;cursor:pointer;font-size:.82rem;display:flex;align-items:center;gap:6px;transition:.2s;margin-right:12px;font-family:'Inter',sans-serif;}
 .lang-btn:hover{background:rgba(255,255,255,.15);}
-.navbar.scrolled .lang-btn{border-color:var(--teal);color:var(--teal);}
+.navbar.scrolled .lang-btn{background:var(--teal);border-color:var(--teal);color:#fff;}
 
 /* ===== ABOUT BADGES ===== */
 .about-badges{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;}

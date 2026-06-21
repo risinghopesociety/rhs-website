@@ -731,3 +731,38 @@ window.RHS = {
 };
 
 console.log("✅ RHS Firebase DB Layer Ready!");
+
+// ============================================================
+// NEWS & STORIES (Firestore se)
+// ============================================================
+async function getNews() {
+  await waitForFB();
+  try {
+    const q = fs().query(fs().collection(db(), "news"), fs().orderBy("date", "desc"));
+    const snaps = await fs().getDocs(q);
+    const news = [];
+    snaps.forEach(d => news.push({ id: d.id, ...d.data() }));
+    return { success: true, news };
+  } catch(e) {
+    return { success: true, news: [] };
+  }
+}
+
+async function getStories() {
+  await waitForFB();
+  try {
+    const q = fs().query(fs().collection(db(), "stories"), fs().orderBy("createdAt", "desc"));
+    const snaps = await fs().getDocs(q);
+    const stories = [];
+    snaps.forEach(d => stories.push({ id: d.id, ...d.data() }));
+    return { success: true, stories };
+  } catch(e) {
+    return { success: true, stories: [] };
+  }
+}
+
+// Add to RHS exports
+window.RHS.getNews = getNews;
+window.RHS.getStories = getStories;
+
+console.log("✅ News & Stories functions ready!");
