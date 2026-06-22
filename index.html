@@ -229,7 +229,7 @@
           <div class="form-grid two-col">
             <div class="field">
               <label for="vCnic">CNIC <span class="req">*</span></label>
-              <input type="text" id="vCnic" placeholder="00000-0000000-0" maxlength="15" inputmode="numeric" required autocomplete="off" autocorrect="off" spellcheck="false">
+              <input type="text" id="vCnic" placeholder="00000-0000000-0" maxlength="15" inputmode="numeric" required autocomplete="off">
             </div>
             <div class="field">
               <label for="vDob">Date of Birth <span class="req">*</span></label>
@@ -330,20 +330,12 @@
             <textarea id="regAddress" rows="2" placeholder="House no, street, area, city…" required autocomplete="off"></textarea>
           </div>
 
-          <!-- PHOTO UPLOAD - NO capture attribute so gallery works on mobile -->
           <div class="field full-col">
-            <label class="field-label">Passport Size Photo <span class="req">*</span></label>
-            <label for="regPhoto" class="photo-upload-label" id="regPhotoLabel">
-              <input type="file" id="regPhoto" name="regPhoto"
-                accept="image/*"
-                style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:10;margin:0;padding:0">
-              <div class="photo-upload-inner" id="regPhotoPreview">
-                <i class="fa-solid fa-image" style="font-size:2.2rem;color:#4CAF8A;display:block;margin-bottom:8px"></i>
-                <span style="font-size:.9rem;color:#14534F;font-weight:600">Tap to select photo from gallery</span>
-                <span style="font-size:.78rem;color:#8A9A96;margin-top:6px;display:block">JPG, JPEG, PNG · Max 3MB · Required</span>
-              </div>
-            </label>
-            <p class="form-msg" id="photoMsg" style="margin-top:6px"></p>
+            <label for="regPhoto">Passport Size Photo <span class="req">*</span></label>
+            <input type="file" id="regPhoto" name="regPhoto" accept="image/*" style="display:block;width:100%;padding:10px;border:2px solid #ccc;border-radius:8px;font-size:1rem;background:#fff;cursor:pointer">
+            <p style="font-size:.8rem;color:#8A9A96;margin:4px 0 0">JPG / JPEG / PNG · Max 3MB · Required</p>
+            <div id="regPhotoPreview" style="margin-top:8px"></div>
+            <p class="form-msg" id="photoMsg"></p>
           </div>
 
         </div>
