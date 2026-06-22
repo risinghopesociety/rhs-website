@@ -76,7 +76,6 @@ window.addEventListener("load", () => {
 /* ===================== INIT AFTER DOM ===================== */
 document.addEventListener("DOMContentLoaded", () => {
 
-  /* AUTOCOMPLETE OFF */
   document.querySelectorAll("input, textarea, select, form").forEach(el => {
     el.setAttribute("autocomplete", "off");
   });
@@ -117,8 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const slides = document.querySelectorAll(".slide");
   const dotsWrap = document.getElementById("sliderDots");
   if (slides.length && dotsWrap) {
-    let currentSlide = 0;
-    let sliderInterval;
+    let currentSlide = 0, sliderInterval;
     slides.forEach((_, i) => {
       const dot = document.createElement("button");
       dot.classList.add("dot");
@@ -181,8 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* STATISTICS */
   function animateCount(el, target) {
     target = Number(target) || 0;
-    const duration = 1400;
-    const startTime = performance.now();
+    const duration = 1400, startTime = performance.now();
     function tick(now) {
       const progress = Math.min((now - startTime) / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
@@ -192,46 +189,39 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     requestAnimationFrame(tick);
   }
-
   function loadStatistics() {
     if (!window.RHS) { setTimeout(loadStatistics, 500); return; }
     RHS.getStatistics().then(res => {
       document.querySelectorAll(".stat-num").forEach(el => {
         const key = el.dataset.key;
-        if (key && res[key] !== undefined) {
-          el.dataset.target = res[key];
-        }
+        if (key && res[key] !== undefined) el.dataset.target = res[key];
       });
     }).catch(() => {});
   }
   loadStatistics();
-
   const statsEl = document.getElementById("stats");
   if (statsEl) {
-    const statsObserver = new IntersectionObserver(entries => {
+    new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          document.querySelectorAll(".stat-num").forEach(el => {
-            animateCount(el, el.dataset.target || 0);
-          });
-          statsObserver.disconnect();
+          document.querySelectorAll(".stat-num").forEach(el => animateCount(el, el.dataset.target || 0));
         }
       });
-    }, { threshold: 0.3 });
-    statsObserver.observe(statsEl);
+    }, { threshold: 0.3 }).observe(statsEl);
   }
 
-  /* YEAR */
   const yearEl = document.getElementById("year");
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-  /* REGISTRATION FORM */
-  const regForm = document.getElementById("regForm");
-  const formMsg = document.getElementById("formMsg");
-  const formResult = document.getElementById("formResult");
+  /* ============================================================
+     REGISTRATION FORM — FIXED IDs + DIRECT CLOUDINARY UPLOAD
+  ============================================================ */
+  const regForm   = document.getElementById("regForm");
+  const formMsg   = document.getElementById("formMsg");
+  const formResult= document.getElementById("formResult");
   const submitBtn = document.getElementById("submitBtn");
 
-  // Photo preview on file select
+  // Photo preview listener
   const regPhotoInput = document.getElementById("regPhoto");
   if (regPhotoInput) {
     regPhotoInput.addEventListener("change", function() {
@@ -240,13 +230,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const pm = document.getElementById("photoMsg");
       const pv = document.getElementById("regPhotoPreview");
       if (file.size > 3 * 1024 * 1024) {
-        if (pm) { pm.textContent = "⚠️ Max 3MB"; pm.className = "form-msg error"; }
+        if (pm) { pm.textContent = "⚠️ Max 3MB. Please choose smaller image."; pm.className = "form-msg error"; }
         this.value = ""; return;
       }
-      if (pm) { pm.textContent = "✅ " + file.name; pm.className = "form-msg success"; }
-      const r = new FileReader();
-      r.onload = e => { if (pv) pv.innerHTML = `<img src="${e.target.result}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:2px solid #14534F">`; };
-      r.readAsDataURL(file);
+      if (pm) { pm.textContent = "✅ " + file.name + " selected"; pm.className = "form-msg success"; }
+      const reader = new FileReader();
+      reader.onload = e => {
+        if (pv) pv.innerHTML = `<img src="${e.target.result}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:2px solid #14534F;display:block;margin-top:4px">`;
+      };
+      reader.readAsDataURL(file);
     });
   }
 
@@ -264,34 +256,36 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!formMsg) return;
       formMsg.textContent = ""; formMsg.className = "form-msg";
 
-      const cnic       = document.getElementById("regCnic")?.value.trim() || "";
-      const dob        = document.getElementById("regDob")?.value.trim() || "";
-      const fullName   = document.getElementById("regName")?.value.trim() || "";
-      const father     = document.getElementById("regFather")?.value.trim() || "";
-      const gender     = document.getElementById("regGender")?.value || "";
-      const prof       = document.getElementById("regProfession")?.value.trim() || "";
-      const mobile     = document.getElementById("regMobile")?.value.trim() || "";
-      const email      = document.getElementById("regEmail")?.value.trim() || "";
-      const province   = document.getElementById("regProvince")?.value || "";
-      const membership = document.getElementById("regMembership")?.value || "";
-      const address    = document.getElementById("regAddress")?.value.trim() || "";
-      const photoFile  = document.getElementById("regPhoto")?.files?.[0] || null;
+      // ✅ CORRECT IDs matching index.html
+      const cnic       = document.getElementById("regCnic")?.value.trim()       || "";
+      const dob        = document.getElementById("regDob")?.value.trim()         || "";
+      const fullName   = document.getElementById("regName")?.value.trim()        || "";
+      const father     = document.getElementById("regFather")?.value.trim()      || "";
+      const gender     = document.getElementById("regGender")?.value             || "";
+      const prof       = document.getElementById("regProfession")?.value.trim()  || "";
+      const mobile     = document.getElementById("regMobile")?.value.trim()      || "";
+      const email      = document.getElementById("regEmail")?.value.trim()       || "";
+      const province   = document.getElementById("regProvince")?.value           || "";
+      const membership = document.getElementById("regMembership")?.value         || "";
+      const address    = document.getElementById("regAddress")?.value.trim()     || "";
+      const photoFile  = document.getElementById("regPhoto")?.files?.[0]         || null;
 
-      if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic))  { formMsg.textContent = "⚠️ Valid CNIC: 00000-0000000-0"; formMsg.classList.add("error"); return; }
-      if (!/^\d{2}-\d{2}-\d{4}$/.test(dob))    { formMsg.textContent = "⚠️ DOB: dd-mm-yyyy";             formMsg.classList.add("error"); return; }
-      if (!fullName)   { formMsg.textContent = "⚠️ Full Name required";           formMsg.classList.add("error"); return; }
-      if (!father)     { formMsg.textContent = "⚠️ Father/Husband Name required"; formMsg.classList.add("error"); return; }
-      if (!gender)     { formMsg.textContent = "⚠️ Please select Gender";         formMsg.classList.add("error"); return; }
-      if (!prof)       { formMsg.textContent = "⚠️ Profession required";          formMsg.classList.add("error"); return; }
-      if (!/^\d{4}-\d{7}$/.test(mobile))       { formMsg.textContent = "⚠️ Mobile: 0300-0000000";        formMsg.classList.add("error"); return; }
-      if (!province)   { formMsg.textContent = "⚠️ Please select Province";       formMsg.classList.add("error"); return; }
-      if (!membership) { formMsg.textContent = "⚠️ Please select Membership Type";formMsg.classList.add("error"); return; }
-      if (!address)    { formMsg.textContent = "⚠️ Address required";             formMsg.classList.add("error"); return; }
-      if (!photoFile)  { formMsg.textContent = "⚠️ Please select your photo";     formMsg.classList.add("error"); return; }
+      if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic))  { formMsg.textContent="⚠️ Valid CNIC: 00000-0000000-0"; formMsg.classList.add("error"); return; }
+      if (!/^\d{2}-\d{2}-\d{4}$/.test(dob))    { formMsg.textContent="⚠️ DOB: dd-mm-yyyy";             formMsg.classList.add("error"); return; }
+      if (!fullName)   { formMsg.textContent="⚠️ Full Name required";            formMsg.classList.add("error"); return; }
+      if (!father)     { formMsg.textContent="⚠️ Father/Husband Name required";  formMsg.classList.add("error"); return; }
+      if (!gender)     { formMsg.textContent="⚠️ Please select Gender";          formMsg.classList.add("error"); return; }
+      if (!prof)       { formMsg.textContent="⚠️ Profession required";           formMsg.classList.add("error"); return; }
+      if (!/^\d{4}-\d{7}$/.test(mobile))       { formMsg.textContent="⚠️ Mobile: 0300-0000000";         formMsg.classList.add("error"); return; }
+      if (!province)   { formMsg.textContent="⚠️ Please select Province";        formMsg.classList.add("error"); return; }
+      if (!membership) { formMsg.textContent="⚠️ Please select Membership Type"; formMsg.classList.add("error"); return; }
+      if (!address)    { formMsg.textContent="⚠️ Address required";              formMsg.classList.add("error"); return; }
+      if (!photoFile)  { formMsg.textContent="⚠️ Please select your photo";      formMsg.classList.add("error"); return; }
 
       setLoading(submitBtn, true, "Uploading photo...");
+      formMsg.textContent = "Uploading photo..."; formMsg.className = "form-msg";
 
-      // Upload directly to Cloudinary
+      // ✅ DIRECT Cloudinary upload — no RHS.uploadImage dependency
       let photoUrl = "";
       try {
         const fd = new FormData();
@@ -300,12 +294,17 @@ document.addEventListener("DOMContentLoaded", () => {
         fd.append("folder", "rhs/members");
         const resp = await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload", { method:"POST", body:fd });
         const data = await resp.json();
-        if (data.secure_url) photoUrl = data.secure_url;
-        else throw new Error(data.error?.message || "Upload failed");
+        if (data.secure_url) {
+          photoUrl = data.secure_url;
+          formMsg.textContent = "✅ Photo uploaded! Saving...";
+        } else {
+          throw new Error(data.error?.message || "Upload failed");
+        }
       } catch(err) {
         setLoading(submitBtn, false);
         formMsg.textContent = "⚠️ Photo upload failed: " + err.message;
-        formMsg.classList.add("error"); return;
+        formMsg.classList.add("error");
+        return;
       }
 
       setLoading(submitBtn, true, "Submitting...");
@@ -314,11 +313,12 @@ document.addEventListener("DOMContentLoaded", () => {
       RHS.registerMember({ cnic, dob, fullName, fatherName:father, gender, profession:prof, email, mobile, province, address, membershipType:membership, photo:photoUrl })
       .then(res => {
         setLoading(submitBtn, false);
+        formMsg.textContent = "";
         if (res.success) {
           regForm.style.display = "none";
           if (formResult) {
             formResult.hidden = false;
-            formResult.innerHTML = `<div class="status-msg status-green"><i class="fa-solid fa-circle-check"></i><div class="status-title">Registration Submitted!</div><p>Dear <strong>${fullName}</strong>, Your registration has been received. Status: <strong>Underprocess</strong>.<br><br>📞 ${window.NGO.alert} | 📧 ${window.NGO.email}</p></div>`;
+            formResult.innerHTML = `<div class="status-msg status-green"><i class="fa-solid fa-circle-check"></i><div class="status-title">Registration Submitted!</div><p>Dear <strong>${fullName}</strong>, your registration has been received.<br>Status: <strong>Underprocess</strong><br><br>📞 ${window.NGO.alert} | 📧 ${window.NGO.email}</p></div>`;
           }
         } else if (res.code === "DUPLICATE") {
           if (formResult) {
@@ -349,10 +349,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function doVerify() {
     if (!verifyMsg || !certResult) return;
-    verifyMsg.textContent = "";
-    verifyMsg.className = "form-msg";
-    certResult.hidden = true;
-    certResult.innerHTML = "";
+    verifyMsg.textContent = ""; verifyMsg.className = "form-msg";
+    certResult.hidden = true; certResult.innerHTML = "";
     const cnic = document.getElementById("vCnic")?.value.trim() || "";
     const dob  = document.getElementById("vDob")?.value.trim() || "";
     if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic) || !/^\d{2}-\d{2}-\d{4}$/.test(dob)) {
@@ -432,11 +430,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (vDob) vDob.value = "";
       if (certResult) { certResult.hidden = true; certResult.innerHTML = ""; }
       if (verifyMsg) { verifyMsg.textContent = ""; verifyMsg.className = "form-msg"; }
-      if (verifyForm) verifyForm.style.display = "block";
     });
   }
-  
-  /* CHARITY DONATION CLEAR BTN */
+
+  /* CHARITY LEDGER */
   window.closeLedger = function() {
     if (certResult) { certResult.hidden = true; certResult.innerHTML = ""; }
     if (verifyForm) verifyForm.style.display = "block";
@@ -447,7 +444,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (vDob) vDob.value = "";
   };
 
-  /* CHARITY LEDGER */
   const verifyDonationBtn = document.getElementById("verifyDonationBtn");
   if (verifyDonationBtn) {
     verifyDonationBtn.addEventListener("click", () => {
@@ -468,7 +464,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const m = res.member;
         const donations = res.donations || [];
         let runningTotal = 0;
-        let rows = donations.length === 0
+        let rows = !donations.length
           ? `<tr><td colspan="4" style="text-align:center;padding:20px;color:#8A9A96">No charity records found.</td></tr>`
           : donations.map((d,i) => {
               runningTotal += Number(d.amount)||0;
@@ -519,12 +515,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  window.closeLedger = function() {
-    if (certResult) { certResult.hidden = true; certResult.innerHTML = ""; }
-    if (verifyForm) verifyForm.style.display = "block";
-    if (verifyMsg) { verifyMsg.textContent = ""; verifyMsg.className = "form-msg"; }
-  };
-
   /* TEAM */
   function loadTeam() {
     if (!window.RHS) { setTimeout(loadTeam, 500); return; }
@@ -553,8 +543,7 @@ document.addEventListener("DOMContentLoaded", () => {
     contactForm.addEventListener("submit", (e) => {
       e.preventDefault();
       if (!contactMsg) return;
-      contactMsg.textContent = "";
-      contactMsg.className = "form-msg";
+      contactMsg.textContent = ""; contactMsg.className = "form-msg";
       const name    = document.getElementById("cName")?.value.trim() || "";
       const email   = document.getElementById("cEmail")?.value.trim() || "";
       const message = document.getElementById("cMsg")?.value.trim() || "";
@@ -591,8 +580,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const grantFormWrap = document.getElementById("grantFormWrap");
     const grantStatusWrap = document.getElementById("grantStatusWrap");
     if (btns) btns.style.display = "none";
-    if (grantFormWrap) grantFormWrap.style.display = (which === "grantForm" || which === "grant") ? "block" : "none";
-    if (grantStatusWrap) grantStatusWrap.style.display = (which === "grantForm" || which === "grant") ? "none" : "block";
+    if (grantFormWrap) grantFormWrap.style.display = (which === "grant") ? "block" : "none";
+    if (grantStatusWrap) grantStatusWrap.style.display = (which === "status") ? "block" : "none";
     const desk = document.getElementById("charityDesk");
     if (desk) desk.scrollIntoView({ behavior: "smooth" });
   };
@@ -711,18 +700,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* PHOTO PREVIEW */
-  window.previewRegPhoto = function(input) {
-    const file = input.files?.[0];
-    if (!file) return;
-    const preview = document.getElementById("regPhotoPreview");
-    if (!preview) return;
-    const reader = new FileReader();
-    reader.onload = e => { preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`; };
-    reader.readAsDataURL(file);
-  };
-
-  /* REGISTRATION OPEN/CLOSE */
+  /* REGISTRATION OPEN/CLOSE legacy */
   const registrationSection = document.getElementById("registration");
   window.openRegistration = function() {
     if (registrationSection) { registrationSection.classList.add("show"); registrationSection.scrollIntoView({ behavior: "smooth" }); }
@@ -762,7 +740,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!window.RHS) { setTimeout(loadNews, 800); return; }
     RHS.getNews().then(res => {
       if (!res.news || !res.news.length) {
-        grid.innerHTML = '<div class="news-loading"><i class="fa-solid fa-newspaper" style="font-size:2rem;display:block;margin-bottom:8px"></i>No news yet. Check back soon!</div>';
+        grid.innerHTML = '<div class="news-loading"><i class="fa-solid fa-newspaper" style="font-size:2rem;display:block;margin-bottom:8px"></i>No news yet.</div>';
         return;
       }
       grid.innerHTML = res.news.map(n => `
@@ -775,9 +753,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <p class="news-card-text">${n.body||n.content||""}</p>
           </div>
         </article>`).join("");
-    }).catch(() => {
-      grid.innerHTML = '<div class="news-loading">Could not load news.</div>';
-    });
+    }).catch(() => { grid.innerHTML = '<div class="news-loading">Could not load news.</div>'; });
   }
 
   /* STORIES */
@@ -788,7 +764,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!window.RHS) { setTimeout(loadStories, 800); return; }
     RHS.getStories().then(res => {
       if (!res.stories || !res.stories.length) {
-        grid.innerHTML = '<div class="news-loading"><i class="fa-solid fa-heart" style="font-size:2rem;display:block;margin-bottom:8px;color:var(--coral)"></i>Stories coming soon!</div>';
+        grid.innerHTML = '<div class="news-loading">Stories coming soon!</div>';
         return;
       }
       grid.innerHTML = res.stories.map(s => `
@@ -801,9 +777,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <p class="story-card-text">${s.story||""}</p>
           </div>
         </article>`).join("");
-    }).catch(() => {
-      grid.innerHTML = '<div class="news-loading">Could not load stories.</div>';
-    });
+    }).catch(() => { grid.innerHTML = '<div class="news-loading">Could not load stories.</div>'; });
   }
 
   /* LOAD ALL */
