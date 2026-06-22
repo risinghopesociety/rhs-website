@@ -202,61 +202,27 @@
   </div>
 </section>
 
-<!-- ===== MEMBER PORTAL ===== -->
+<!-- ===== MEMBER PORTAL (Registration + Verification) ===== -->
 <section class="member-portal" id="memberSection">
   <div class="container">
     <div class="section-head">
       <span class="eyebrow">Member Portal</span>
-      <h2>Membership &amp; Certificate Portal</h2>
-      <p>New registration, verify your digital membership certificate, or check your charity donation history.</p>
+      <h2>Registration & Certificate Verification</h2>
+      <p>Join as a new member or verify your existing membership and donation history.</p>
     </div>
     <div class="helpdesk-btns" id="memberPortalBtns">
       <button class="btn btn-primary" onclick="showMemberSection('registration')">
         <i class="fa-solid fa-user-plus"></i> New Member Registration
       </button>
       <button class="btn btn-ghost" onclick="showMemberSection('verify')">
-        <i class="fa-solid fa-id-card"></i> Certificate &amp; Donation Verify
+        <i class="fa-solid fa-shield-halved"></i> Certificate & Donation Verify
       </button>
-    </div>
-    <div id="verifyPortalWrap" style="display:none;margin-top:32px">
-      <div class="form-card narrow" id="memberLookupCard">
-        <div style="text-align:center;margin-bottom:20px">
-          <span class="eyebrow">Verification Portal</span>
-          <h3 style="font-family:'Fraunces',serif;color:var(--teal);margin:8px 0 4px;font-size:1.2rem">Enter your CNIC &amp; Date of Birth</h3>
-          <p style="color:#8A9A96;font-size:.85rem">Exactly as submitted during registration</p>
-        </div>
-        <form id="verifyForm" novalidate autocomplete="off">
-          <div class="form-grid two-col">
-            <div class="field">
-              <label for="vCnic">CNIC <span class="req">*</span></label>
-              <input type="text" id="vCnic" placeholder="00000-0000000-0" maxlength="15" inputmode="numeric" required autocomplete="off">
-            </div>
-            <div class="field">
-              <label for="vDob">Date of Birth <span class="req">*</span></label>
-              <input type="text" id="vDob" placeholder="dd-mm-yyyy" maxlength="10" inputmode="numeric" required autocomplete="off">
-            </div>
-          </div>
-          <div class="verify-portal-btns">
-            <button type="submit" class="btn btn-primary" id="verifyBtn">
-              <i class="fa-solid fa-id-card"></i> Verify Certificate
-            </button>
-            <button type="button" class="btn btn-teal-outline" id="verifyDonationBtn">
-              <i class="fa-solid fa-hand-holding-dollar"></i> Verify Your Donation
-            </button>
-            <button type="button" class="btn btn-ghost" id="verifyClearBtn">
-              <i class="fa-solid fa-rotate-left"></i> Clear
-            </button>
-          </div>
-          <p class="form-msg" id="verifyMsg"></p>
-        </form>
-      </div>
-      <div id="certResult" style="margin-top:24px"></div>
     </div>
   </div>
 </section>
 
 <!-- ===== REGISTRATION FORM ===== -->
-<section class="registration" id="registration" style="display:none">
+<section class="registration" id="registration">
   <div class="container">
     <div class="section-head">
       <span class="eyebrow">Join Us</span>
@@ -329,28 +295,82 @@
             <label for="regAddress">Full Address <span class="req">*</span></label>
             <textarea id="regAddress" rows="2" placeholder="House no, street, area, city…" required autocomplete="off"></textarea>
           </div>
-
           <div class="field full-col">
             <label for="regPhoto">Passport Size Photo <span class="req">*</span></label>
-            <input type="file" id="regPhoto" name="regPhoto" accept="image/*" style="display:block;width:100%;padding:10px;border:2px solid #ccc;border-radius:8px;font-size:1rem;background:#fff;cursor:pointer">
-            <p style="font-size:.8rem;color:#8A9A96;margin:4px 0 0">JPG / JPEG / PNG · Max 3MB · Required</p>
+            <input type="file" id="regPhoto" accept="image/*" style="width:100%;padding:10px;border:2px dashed #4CAF8A;border-radius:8px;background:#F5F9F8;font-size:1rem;cursor:pointer;box-sizing:border-box">
             <div id="regPhotoPreview" style="margin-top:8px"></div>
             <p class="form-msg" id="photoMsg"></p>
           </div>
-
         </div>
         <div class="form-actions">
           <button type="submit" class="btn btn-primary" id="submitBtn">
-            Submit Registration <i class="fa-solid fa-paper-plane"></i>
+            Submit <i class="fa-solid fa-paper-plane"></i>
           </button>
           <button type="reset" class="btn btn-ghost">Clear Form</button>
-          <button type="button" class="btn btn-ghost" onclick="backToMemberPortalMain()">
-            <i class="fa-solid fa-arrow-left"></i> Back
-          </button>
         </div>
         <p class="form-msg" id="formMsg"></p>
       </form>
-      <div id="formResult" hidden></div>
+      <div id="formResult" hidden class="result-card"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CERTIFICATE VERIFICATION ===== -->
+<section class="verify-section" id="verify">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Verification Portal</span>
+      <h2>Verify your membership certificate</h2>
+      <p>Enter your CNIC and Date of Birth exactly as submitted during registration.</p>
+    </div>
+    <div class="form-card narrow">
+      <form id="verifyForm" novalidate autocomplete="off">
+        <div class="form-grid two-col">
+          <div class="field">
+            <label for="vCnic">CNIC <span class="req">*</span></label>
+            <input type="text" id="vCnic" placeholder="00000-0000000-0" maxlength="15" inputmode="numeric" required autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="vDob">Date of Birth <span class="req">*</span></label>
+            <input type="text" id="vDob" placeholder="dd-mm-yyyy" maxlength="10" inputmode="numeric" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-actions wrap">
+          <button type="submit" class="btn btn-primary" id="verifyBtn">
+            Verify Certificate <i class="fa-solid fa-shield-halved"></i>
+          </button>
+          <button type="button" class="btn btn-ghost" id="verifyClearBtn">Clear</button>
+        </div>
+        <p class="form-msg" id="verifyMsg"></p>
+      </form>
+      <div id="certResult" hidden></div>
+    </div>
+
+    <!-- DONATION VERIFY -->
+    <div class="section-head" style="margin-top:60px">
+      <span class="eyebrow">Donation Ledger</span>
+      <h2>Verify your charity donations</h2>
+      <p>View your complete charity donation history in bank-statement style.</p>
+    </div>
+    <div class="form-card narrow">
+      <div class="form-grid two-col">
+        <div class="field">
+          <label for="vCnicD">CNIC <span class="req">*</span></label>
+          <input type="text" id="vCnicD" placeholder="00000-0000000-0" maxlength="15" inputmode="numeric" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="vDobD">Date of Birth <span class="req">*</span></label>
+          <input type="text" id="vDobD" placeholder="dd-mm-yyyy" maxlength="10" inputmode="numeric" autocomplete="off">
+        </div>
+      </div>
+      <div class="form-actions wrap">
+        <button class="btn btn-primary" id="verifyDonationBtn">
+          Verify Your Donation <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+        <button class="btn btn-ghost" id="verifyDonationClear">Clear</button>
+      </div>
+      <p class="form-msg" id="verifyMsg2"></p>
+      <div id="donationResult" style="margin-top:24px"></div>
     </div>
   </div>
 </section>
