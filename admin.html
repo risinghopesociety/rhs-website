@@ -110,19 +110,15 @@
       <button class="nav-item" onclick="switchTab('reports')" id="nav-reports">
         <i class="fa fa-chart-bar"></i><span>Reports</span>
       </button>
-      <button class="nav-item" onclick="switchTab('messages');loadMessages()" id="nav-messages">
+      <button class="nav-item" onclick="switchTab('messages')" id="nav-messages">
         <i class="fa fa-envelope"></i><span>Messages</span>
-        <span class="badge badge-blue" id="msgBadge" style="background:#3B82F6">0</span>
       </button>
       <div class="nav-divider"></div>
       <button class="nav-item" onclick="switchTab('setup')" id="nav-setup">
         <i class="fa fa-cog"></i><span>Setup</span>
       </button>
-      <div class="nav-divider"></div>
-      <button class="logout-btn" onclick="doLogout()" style="margin:8px 12px;width:calc(100% - 24px)">
-        <i class="fa fa-sign-out-alt"></i> Logout
-      </button>
     </nav>
+    <button class="logout-btn" onclick="doLogout()"><i class="fa fa-sign-out-alt"></i> Logout</button>
   </aside>
 
   <!-- MAIN -->
@@ -605,8 +601,13 @@
             <div class="field"><label>Bio</label><input type="text" id="team-bio" placeholder="Short introduction"></div>
             <div class="field">
               <label>Photo</label>
-              <input type="file" id="team-photo" accept="image/*" onchange="previewTeamPhoto(this)">
-              <div id="team-photo-preview" style="margin-top:8px"></div>
+              <label for="team-photo" style="display:block;border:2px dashed #4CAF8A;border-radius:10px;padding:14px;text-align:center;cursor:pointer;background:#F5F9F8;position:relative">
+                <input type="file" id="team-photo" accept="image/*" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:5" onchange="previewTeamPhoto(this)">
+                <div id="team-photo-preview" style="pointer-events:none">
+                  <i class="fa fa-camera" style="font-size:1.5rem;color:#4CAF8A;display:block;margin-bottom:6px"></i>
+                  <span style="font-size:.85rem;color:#14534F">Tap to select photo</span>
+                </div>
+              </label>
             </div>
           </div>
           <div class="form-actions">

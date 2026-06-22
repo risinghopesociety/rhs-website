@@ -272,7 +272,9 @@ function previewTeamPhoto(input){
   const preview=document.getElementById("team-photo-preview");
   if(!preview) return;
   const reader=new FileReader();
-  reader.onload=e=>{preview.innerHTML=`<img src="${e.target.result}" alt="Preview">`;};
+  reader.onload=e=>{
+    preview.innerHTML=`<img src="${e.target.result}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #14534F;display:block;margin:0 auto 6px"><span style="font-size:.8rem;color:#1a9e5c">✅ Photo selected</span>`;
+  };
   reader.readAsDataURL(file);
 }
 
@@ -288,7 +290,16 @@ async function addTeamMember(){
   let photoUrl="";
   const photoFile=document.getElementById("team-photo")?.files?.[0];
   if(photoFile){
-    try{photoUrl=await RHS.uploadImage(photoFile,"rhs/team");}catch(e){}
+    try{
+      // Direct Cloudinary upload
+      const fd=new FormData();
+      fd.append("file",photoFile);
+      fd.append("upload_preset","rhs-upload");
+      fd.append("folder","rhs/team");
+      const r=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
+      const d=await r.json();
+      if(d.secure_url)photoUrl=d.secure_url;
+    }catch(e){showMsg("teamMsg","⚠️ Photo upload failed, saving without photo.","error");}
   }
   RHS.addTeamMember({name,designation:desig,order,bio,photo:photoUrl}).then(()=>{
     setLoading(btn,false);
@@ -297,7 +308,8 @@ async function addTeamMember(){
     document.getElementById("team-designation").value="";
     document.getElementById("team-bio").value="";
     document.getElementById("team-order").value="";
-    document.getElementById("team-photo-preview").innerHTML="";
+    const pp=document.getElementById("team-photo-preview");if(pp)pp.innerHTML="";
+    const ph=document.getElementById("team-photo");if(ph)ph.value="";
     loadTeamList();
   }).catch(()=>{setLoading(btn,false);showMsg("teamMsg","Failed.","error");});
 }
@@ -309,14 +321,21 @@ function loadTeamList(){
   wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i></div>';
   RHS.getTeam().then(res=>{
     if(!res.team||!res.team.length){wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:20px">No team members yet.</p>';return;}
-    let html='<table class="data-table"><thead><tr><th>Photo</th><th>Name</th><th>Designation</th><th>Order</th><th>Action</th></tr></thead><tbody>';
+    let html='<table class="data-table"><thead><tr><th>Photo</th><th>Name</th><th>Designation</th><th>Order</th><th>Actions</th></tr></thead><tbody>';
     res.team.forEach(m=>{
       html+=`<tr>
         <td>${m.photo?`<img src="${m.photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover">`:"—"}</td>
         <td><strong>${escHtml(m.name)}</strong></td>
         <td>${escHtml(m.designation)}</td>
         <td>${m.order||"—"}</td>
-        <td><button class="btn btn-sm btn-reject" onclick="deleteTeamMember('${m.id}','${escHtml(m.name)}')"><i class="fa fa-trash"></i></button></td>
+        <td style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-sm" style="background:#14534F;color:#fff" onclick="openEditTeam('${m.id}','${escHtml(m.name)}','${escHtml(m.designation)}',${m.order||99},'${escHtml(m.bio||"")}','${m.photo||""}')">
+            <i class="fa fa-edit"></i> Edit
+          </button>
+          <button class="btn btn-sm btn-reject" onclick="deleteTeamMember('${m.id}','${escHtml(m.name)}')">
+            <i class="fa fa-trash"></i>
+          </button>
+        </td>
       </tr>`;
     });
     html+='</tbody></table>';
@@ -332,6 +351,130 @@ function deleteTeamMember(id,name){
   }).catch(()=>showMsg("teamMsg","Failed to delete.","error"));
 }
 
+/* TEAM EDIT — opens edit modal */
+function openEditTeam(id,name,desig,order,bio,photo){
+  // Remove existing modal if any
+  const ex=document.getElementById("teamEditModal");if(ex)ex.remove();
+
+  const overlay=document.createElement("div");
+  overlay.id="teamEditModal";
+  overlay.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;";
+  overlay.innerHTML=`
+    <div style="background:#fff;border-radius:16px;padding:28px;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h3 style="margin:0;font-family:'Fraunces',serif;color:#14534F"><i class="fa fa-edit"></i> Edit Team Member</h3>
+        <button onclick="closeEditTeam()" style="background:none;border:none;font-size:1.4rem;color:#9CA3AF;cursor:pointer">✕</button>
+      </div>
+
+      ${photo?`<div style="text-align:center;margin-bottom:16px"><img src="${photo}" style="width:70px;height:70px;border-radius:50%;object-fit:cover;border:3px solid #14534F"></div>`:""}
+
+      <div class="form-grid" style="gap:12px">
+        <div class="field" style="grid-column:1/-1">
+          <label>Full Name <span class="req">*</span></label>
+          <input type="text" id="etName" value="${name}" placeholder="Full Name">
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Designation <span class="req">*</span></label>
+          <input type="text" id="etDesig" value="${desig}" placeholder="e.g. President">
+        </div>
+        <div class="field">
+          <label>Display Order</label>
+          <input type="number" id="etOrder" value="${order}" min="1" placeholder="1">
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Bio / Description</label>
+          <textarea id="etBio" rows="3" placeholder="Short bio...">${bio}</textarea>
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Update Photo <small>(optional)</small></label>
+          <label for="etPhoto" style="display:block;border:2px dashed #4CAF8A;border-radius:10px;padding:16px;text-align:center;cursor:pointer;background:#F5F9F8;position:relative">
+            <input type="file" id="etPhoto" accept="image/*" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:5">
+            <div id="etPhotoPreview" style="pointer-events:none">
+              <i class="fa fa-camera" style="font-size:1.5rem;color:#4CAF8A;display:block;margin-bottom:6px"></i>
+              <span style="font-size:.85rem;color:#14534F">Tap to change photo</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <p class="form-msg" id="etMsg" style="margin:10px 0"></p>
+
+      <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="closeEditTeam()">Cancel</button>
+        <button class="btn btn-primary" id="etSaveBtn" onclick="saveEditTeam('${id}','${photo}')">
+          <i class="fa fa-save"></i> Save Changes
+        </button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+
+  // Photo preview in edit modal
+  const etPhoto=document.getElementById("etPhoto");
+  if(etPhoto){
+    etPhoto.addEventListener("change",function(){
+      const file=this.files[0];if(!file)return;
+      const rd=new FileReader();
+      rd.onload=e=>{
+        const prev=document.getElementById("etPhotoPreview");
+        if(prev)prev.innerHTML=`<img src="${e.target.result}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #14534F;display:block;margin:0 auto">`;
+      };
+      rd.readAsDataURL(file);
+    });
+  }
+
+  overlay.addEventListener("click",e=>{if(e.target===overlay)closeEditTeam();});
+}
+
+function closeEditTeam(){
+  const m=document.getElementById("teamEditModal");if(m)m.remove();
+}
+
+async function saveEditTeam(id,oldPhoto){
+  const name=document.getElementById("etName")?.value.trim();
+  const desig=document.getElementById("etDesig")?.value.trim();
+  const order=Number(document.getElementById("etOrder")?.value)||99;
+  const bio=document.getElementById("etBio")?.value.trim()||"";
+  const msg=document.getElementById("etMsg");
+  const btn=document.getElementById("etSaveBtn");
+
+  if(!name||!desig){if(msg){msg.textContent="⚠️ Name and Designation required.";msg.className="form-msg error";}return;}
+
+  setLoading(btn,true,"Saving...");
+  if(msg){msg.textContent="";msg.className="form-msg";}
+
+  let photoUrl=oldPhoto||"";
+  const photoFile=document.getElementById("etPhoto")?.files?.[0];
+  if(photoFile){
+    if(msg){msg.textContent="Uploading photo...";msg.className="form-msg";}
+    try{
+      const fd=new FormData();
+      fd.append("file",photoFile);
+      fd.append("upload_preset","rhs-upload");
+      fd.append("folder","rhs/team");
+      const r=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
+      const d=await r.json();
+      if(d.secure_url)photoUrl=d.secure_url;
+      else throw new Error(d.error?.message||"Upload failed");
+    }catch(e){
+      setLoading(btn,false);
+      if(msg){msg.textContent="⚠️ Photo upload failed: "+e.message;msg.className="form-msg error";}
+      return;
+    }
+  }
+
+  if(!window.RHS){setLoading(btn,false);return;}
+  RHS.updateTeamMember(id,{name,designation:desig,order,bio,photo:photoUrl}).then(()=>{
+    setLoading(btn,false);
+    closeEditTeam();
+    loadTeamList();
+    showMsg("teamMsg","✅ Team member updated successfully!","success");
+  }).catch(()=>{
+    setLoading(btn,false);
+    if(msg){msg.textContent="❌ Failed to save. Please try again.";msg.className="form-msg error";}
+  });
+}
+
 // ====== MESSAGES ======
 function loadMessages(){
   if(!window.RHS){setTimeout(loadMessages,500);return;}
@@ -339,27 +482,17 @@ function loadMessages(){
   if(!wrap) return;
   wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
   RHS.getContactMessages().then(res=>{
-    // Update sidebar badge (Issue 11)
-    const msgBadge=document.getElementById("msgBadge");
-    const count=(res.messages||[]).length;
-    if(msgBadge) msgBadge.textContent=count;
-
     if(!res.messages||!res.messages.length){
       wrap.innerHTML='<div class="empty-state"><i class="fa fa-envelope"></i><p>No messages yet.</p></div>';
       return;
     }
     let html='';
     res.messages.forEach(m=>{
-      const date=m.createdAt?.toDate?m.createdAt.toDate().toLocaleDateString("en-PK"):(m.createdAt||"—");
-      html+=`<div class="message-card" id="msgCard_${m.id}">
+      const date=m.createdAt?.toDate?m.createdAt.toDate().toLocaleDateString("en-PK"):"—";
+      html+=`<div class="message-card">
         <div class="msg-header">
           <span class="msg-name"><i class="fa fa-user"></i> ${escHtml(m.name||"")}</span>
-          <div style="display:flex;align-items:center;gap:10px">
-            <span class="msg-date">${date}</span>
-            <button class="btn btn-sm" style="background:#FEF2F2;color:#DC2626;border:1px solid #DC2626;padding:3px 10px;font-size:.75rem;border-radius:6px" onclick="deleteMessage('${m.id}')">
-              <i class="fa fa-trash"></i> Delete
-            </button>
-          </div>
+          <span class="msg-date">${date}</span>
         </div>
         <div class="msg-email"><i class="fa fa-envelope"></i> ${escHtml(m.email||"")}</div>
         <div class="msg-text">${escHtml(m.message||"")}</div>
@@ -367,22 +500,6 @@ function loadMessages(){
     });
     wrap.innerHTML=html;
   }).catch(()=>{wrap.innerHTML='<div class="empty-state">Failed to load messages.</div>';});
-}
-
-function deleteMessage(id){
-  if(!confirm("Delete this message?")) return;
-  if(!window.RHS) return;
-  RHS.deleteContactMessage(id).then(res=>{
-    if(res.success){
-      const card=document.getElementById("msgCard_"+id);
-      if(card) card.remove();
-      // Update badge
-      const msgBadge=document.getElementById("msgBadge");
-      if(msgBadge) msgBadge.textContent=Math.max(0,(parseInt(msgBadge.textContent)||1)-1);
-    } else {
-      alert("Failed to delete message.");
-    }
-  }).catch(()=>alert("Network error."));
 }
 
 function setDefaultDates(){
@@ -928,7 +1045,7 @@ function viewGrant(g){
           <input class="modal-input" id="gAssignContact" value="${escHtml(g.assignedContact||"")}" placeholder="0300-0000000">
         </div>
       </div>
-      <button class="btn btn-assign btn-sm" onclick="doAssignGrant('${g.id}')"><i class="fa fa-user-tag"></i> Assign Case</button>
+      <button class="btn btn-assign btn-sm" onclick="doAssignGrant(${g.row})"><i class="fa fa-user-tag"></i> Assign Case</button>
       `:""}
 
       ${stLower==="assigned"||stLower==="completed"?`
@@ -939,46 +1056,35 @@ function viewGrant(g){
         <textarea id="verifyComment" rows="3" class="modal-input" style="width:100%;resize:vertical;font-family:'Inter',sans-serif;font-size:0.9rem" 
           placeholder="Write your verification notes here... e.g. Physically visited, documents checked, beneficiary confirmed...">${g.decisionNote&&g.decisionNote.startsWith("Verification Notes:")?g.decisionNote.replace("Verification Notes:","").trim():""}</textarea>
       </div>
-      ${stLower==="assigned"?`<button class="btn btn-sm" style="background:#F0EBFF;color:#6D28D9;border:1px solid #C4B5FD;margin-top:10px" onclick="doVerificationComplete('${g.id}')">
+      ${stLower==="assigned"?`<button class="btn btn-sm" style="background:#F0EBFF;color:#6D28D9;border:1px solid #C4B5FD;margin-top:10px" onclick="doVerificationComplete(${g.row})">
         <i class="fa fa-clipboard-check"></i> Mark Verification Complete → Case Completed
       </button>`:""}
       `:""}
 
       ${stLower==="completed"?`
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-        <button class="btn btn-approve btn-sm" onclick="doDecision('${g.id}','Approved','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-check-circle"></i> ✅ Case Approved</button>
-        <button class="btn btn-reject btn-sm" onclick="doDecision('${g.id}','Rejected','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-times-circle"></i> ❌ Case Rejected</button>
+        <button class="btn btn-approve btn-sm" onclick="doDecision(${g.row},'Approved','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-check-circle"></i> ✅ Case Approved</button>
+        <button class="btn btn-reject btn-sm" onclick="doDecision(${g.row},'Rejected','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-times-circle"></i> ❌ Case Rejected</button>
       </div>`:""}
 
       ${g.verificationStatus==="Completed"&&decLower!==""&&decLower!=="approved"&&decLower!=="rejected"?`
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-        <button class="btn btn-approve btn-sm" onclick="doDecision('${g.id}','Approved','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-check-circle"></i> Approve</button>
-        <button class="btn btn-reject btn-sm" onclick="doDecision('${g.id}','Rejected','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-times-circle"></i> Reject</button>
+        <button class="btn btn-approve btn-sm" onclick="doDecision(${g.row},'Approved','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-check-circle"></i> Approve</button>
+        <button class="btn btn-reject btn-sm" onclick="doDecision(${g.row},'Rejected','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-times-circle"></i> Reject</button>
       </div>`:""}
 
       ${decLower==="approved"&&stLower!=="closed"?`
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
-        <button class="btn btn-sm" style="background:#1F2E2B;color:#fff" onclick="doCloseGrant('${g.id}')">
-          <i class="fa fa-lock"></i> Close — Successfully Granted
-        </button>
-        <button class="btn btn-reject btn-sm" onclick="doDecision('${g.id}','Rejected','${escHtml(g.name)}','${escHtml(g.crn)}')">
-          <i class="fa fa-times-circle"></i> Change to Rejected
-        </button>
-        <button class="btn btn-assign btn-sm" onclick="doSendBackToCompleted('${g.id}')">
-          <i class="fa fa-undo"></i> Send Back to Completed
-        </button>
-      </div>`:""}
+      <button class="btn btn-sm" style="background:#1F2E2B;color:#fff;margin-top:10px" onclick="doCloseGrant(${g.row})">
+        <i class="fa fa-lock"></i> Close — Successfully Granted
+      </button>`:""}
     </div>`:""}
 
     ${stLower==="rejected"?`
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
-      <button class="btn btn-sm" style="background:#1F2E2B;color:#fff" onclick="doCloseGrant('${g.id}')">
+      <button class="btn btn-sm" style="background:#1F2E2B;color:#fff" onclick="doCloseGrant(${g.row})">
         <i class="fa fa-lock"></i> Close Case
       </button>
-      <button class="btn btn-approve btn-sm" onclick="doDecision('${g.id}','Approved','${escHtml(g.name)}','${escHtml(g.crn)}')">
-        <i class="fa fa-check-circle"></i> Change to Approved
-      </button>
-      <button class="btn btn-assign btn-sm" onclick="doSendBackToCompleted('${g.id}')">
+      <button class="btn btn-assign btn-sm" onclick="doSendBackToCompleted(${g.row})">
         <i class="fa fa-undo"></i> Send Back to Completed
       </button>
     </div>`:""}
@@ -986,7 +1092,7 @@ function viewGrant(g){
     ${stLower==="closed"?`
     <div style="margin-top:16px">
       ${decLower==="rejected"?`
-      <button class="btn btn-approve btn-sm" onclick="doReopenGrant('${g.id}')">
+      <button class="btn btn-approve btn-sm" onclick="doReopenGrant(${g.row})">
         <i class="fa fa-redo"></i> Reopen → Case Completed
       </button>`:`
       <p style="color:#8A9A96;font-size:0.88rem;font-style:italic">
@@ -1089,32 +1195,26 @@ function doVerificationComplete(row){
 
 function doDecision(row,decision,name,crn){
   showMsg("grantActionMsg","Processing...","");
-  const phone=(window.NGO&&window.NGO.alert)||"";
-  const email=(window.NGO&&window.NGO.email)||"";
-  let note;
-  if(decision==="Approved"){
-    note=`Dear ${name}, Congratulations! 🎉 Your Charity Case ${crn} has been Successfully Approved. Our team will contact you at your doorstep with your required help. Jazak Allah Khair!\n\n📞 ${phone} | 📧 ${email}`;
-  } else {
-    note=`Dear ${name}, Unfortunately your Case ${crn} does not qualify under our current organization policy. Your case has been Rejected.\n\nTo reopen or appeal, please physically meet our President with Case No: ${crn}.\n\n📞 ${phone} | 📧 ${email}`;
-  }
-  // Use RHS.updateGrant with grant id stored in row (now a string id)
-  RHS.updateGrant(row,{decision:decision,decisionNote:note}).then(res=>{
-    if(res.success){showMsg("grantActionMsg","✅ Decision recorded: "+decision,"success");loadGrants(currentGrantFilter);loadAdminStats();}
+  const note=decision==="Approved"
+    ?`Dear ${name}, Congratulations your case no ${crn} Successfully Approved and our team will contact you with your need at your door step.`
+    :`Dear ${name}, Your ${crn} Case doesn't match our organization policy so your case has been closed. To reopen your case please physically meet our President with Case No ${crn} or reopen your case.`;
+  apiPost({action:"updateGrantStatus",row:row,decision:decision,decisionNote:note}).then(res=>{
+    if(res.success){showMsg("grantActionMsg","✅ Decision: "+decision,"success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
   }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
 }
 
 function doCloseGrant(row){
   showMsg("grantActionMsg","Closing case...","");
-  RHS.updateGrant(row,{status:"Closed",decisionNote:"Successfully Granted & Closed"}).then(res=>{
-    if(res.success){showMsg("grantActionMsg","✅ Case closed — Successfully Granted.","success");loadGrants(currentGrantFilter);loadAdminStats();}
+  apiPost({action:"updateGrantStatus",row:row,decision:"Closed",decisionNote:"Successfully Granted"}).then(res=>{
+    if(res.success){showMsg("grantActionMsg","✅ Case closed — Successfully Granted.","success");loadGrants(currentGrantFilter);}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
   }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
 }
 
 function doSendBackToCompleted(row){
   showMsg("grantActionMsg","Sending back...","");
-  RHS.updateGrant(row,{status:"Completed",decision:"",decisionNote:""}).then(res=>{
+  apiPost({action:"updateGrantStatus",row:row,status:"Completed",decision:"",decisionNote:""}).then(res=>{
     if(res.success){showMsg("grantActionMsg","✅ Case sent back to Case Completed tab.","success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
   }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
@@ -1122,7 +1222,7 @@ function doSendBackToCompleted(row){
 
 function doReopenGrant(row){
   showMsg("grantActionMsg","Reopening...","");
-  RHS.updateGrant(row,{status:"Completed",decision:"",decisionNote:""}).then(res=>{
+  apiPost({action:"updateGrantStatus",row:row,status:"Completed",decision:"",decisionNote:""}).then(res=>{
     if(res.success){showMsg("grantActionMsg","✅ Case reopened → moved to Case Completed tab.","success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
   }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
@@ -1167,37 +1267,42 @@ function loadCaseExpenses(crn){
 }
 
 function addCaseExpense(crn,cnic,dob,name,fatherName,gender,email,mobile,address,helpType){
-  const date   = document.getElementById("expDate")?.value;
+  const date = document.getElementById("expDate")?.value;
   const detail = document.getElementById("expDetail")?.value?.trim();
   const amount = document.getElementById("expAmount")?.value;
-  const msg    = document.getElementById("expMsg");
+  const msg = document.getElementById("expMsg");
 
-  if(!date)   { if(msg){msg.textContent="⚠️ Date is required"; msg.className="form-msg error";} return; }
-  if(!detail) { if(msg){msg.textContent="⚠️ Expense detail is required"; msg.className="form-msg error";} return; }
-  if(!amount||Number(amount)<1) { if(msg){msg.textContent="⚠️ Amount is required"; msg.className="form-msg error";} return; }
+  if(!date||!detail||!amount){
+    msg.textContent="⚠️ Please fill date, detail and amount.";
+    msg.className="form-msg error";
+    return;
+  }
 
   const btn = document.querySelector('[onclick^="addCaseExpense"]');
   setLoading(btn, true, "Saving...");
-  if(msg) { msg.textContent=""; msg.className="form-msg"; }
+  msg.textContent="";
 
-  if(!window.RHS){setLoading(btn,false);return;}
-  RHS.addCaseExpense({
-    date: formatDateForServer(date), crn, cnic, dob, name,
-    fatherName, gender, email, mobile, address, helpType,
+  apiPost({
+    action:"addCaseExpense",
+    date: formatDateForServer(date),
+    crn, cnic, dob, name, fatherName, gender, email, mobile, address, helpType,
     detail, amount: Number(amount)
   }).then(res=>{
     setLoading(btn, false);
     if(res.success){
-      if(msg){ msg.textContent="✅ Expense added & debited from Cash Book!"; msg.className="form-msg success"; }
-      if(document.getElementById("expDetail")) document.getElementById("expDetail").value="";
-      if(document.getElementById("expAmount")) document.getElementById("expAmount").value="";
+      msg.textContent="✅ Expense added & debited from Cash Book!";
+      msg.className="form-msg success";
+      document.getElementById("expDetail").value="";
+      document.getElementById("expAmount").value="";
       loadCaseExpenses(crn);
     } else {
-      if(msg){ msg.textContent="❌ "+(res.message||"Failed"); msg.className="form-msg error"; }
+      msg.textContent="❌ "+res.message;
+      msg.className="form-msg error";
     }
-  }).catch(err=>{
+  }).catch(()=>{
     setLoading(btn, false);
-    if(msg){ msg.textContent="❌ Error: "+(err.message||"Network error"); msg.className="form-msg error"; }
+    msg.textContent="Network error.";
+    msg.className="form-msg error";
   });
 }
 
