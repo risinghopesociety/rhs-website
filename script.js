@@ -231,35 +231,30 @@ document.addEventListener("DOMContentLoaded", () => {
   const formResult= document.getElementById("formResult");
   const submitBtn = document.getElementById("submitBtn");
 
-  // ✅ Photo change listener — attached directly, works on all mobile browsers
-  const regPhotoInput = document.getElementById("regPhoto");
-  if (regPhotoInput) {
-    regPhotoInput.addEventListener("change", function() {
-      const file = this.files[0];
-      const pm = document.getElementById("photoMsg");
-      const pv = document.getElementById("regPhotoPreview");
-      if (!file) return;
-      if (file.size > 3 * 1024 * 1024) {
-        if (pm) { pm.textContent = "⚠️ Photo too large (max 3MB)"; pm.className = "form-msg error"; }
-        this.value = ""; return;
-      }
-      if (pm) { pm.textContent = "✅ " + file.name; pm.className = "form-msg success"; }
-      const reader = new FileReader();
-      reader.onload = ev => {
-        if (pv) pv.innerHTML = `<img src="${ev.target.result}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:2px solid #14534F;display:block;margin-top:4px">`;
-      };
-      reader.readAsDataURL(file);
-    });
-  }
+  // Photo preview - attached to document so works regardless of visibility
+  document.getElementById("regPhoto")?.addEventListener("change", function() {
+    const file = this.files[0];
+    const pm = document.getElementById("photoMsg");
+    const pv = document.getElementById("regPhotoPreview");
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) {
+      if (pm) { pm.textContent = "⚠️ Photo too large (max 3MB)"; pm.className = "form-msg error"; }
+      this.value = ""; return;
+    }
+    if (pm) { pm.textContent = "✅ " + file.name; pm.className = "form-msg success"; }
+    const reader = new FileReader();
+    reader.onload = ev => {
+      if (pv) pv.innerHTML = `<img src="${ev.target.result}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:3px solid #14534F;display:block;margin-top:6px">`;
+    };
+    reader.readAsDataURL(file);
+  });
 
   if (regForm) {
     regForm.addEventListener("reset", () => {
       setTimeout(() => {
         if (formMsg) { formMsg.textContent = ""; formMsg.className = "form-msg"; }
-        const pm = document.getElementById("photoMsg");
-        if (pm) { pm.textContent = ""; pm.className = "form-msg"; }
-        const pv = document.getElementById("regPhotoPreview");
-        if (pv) pv.innerHTML = "";
+        const pm = document.getElementById("photoMsg"); if (pm) { pm.textContent = ""; pm.className = "form-msg"; }
+        const pv = document.getElementById("regPhotoPreview"); if (pv) pv.innerHTML = "";
       }, 0);
     });
 
@@ -268,7 +263,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!formMsg) return;
       formMsg.textContent = ""; formMsg.className = "form-msg";
 
-      // ✅ CORRECT IDs — matching index.html exactly
       const cnic       = document.getElementById("regCnic")?.value.trim()       || "";
       const dob        = document.getElementById("regDob")?.value.trim()         || "";
       const fullName   = document.getElementById("regName")?.value.trim()        || "";
@@ -292,12 +286,12 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!province)   { formMsg.textContent="⚠️ Please select Province";        formMsg.classList.add("error"); return; }
       if (!membership) { formMsg.textContent="⚠️ Please select Membership Type"; formMsg.classList.add("error"); return; }
       if (!address)    { formMsg.textContent="⚠️ Address required";              formMsg.classList.add("error"); return; }
-      if (!photoFile)  { formMsg.textContent="⚠️ Please select your photo";      formMsg.classList.add("error"); return; }
+      if (!photoFile)  { formMsg.textContent="⚠️ Photo required — please select photo"; formMsg.classList.add("error"); return; }
 
       setLoading(submitBtn, true, "Uploading photo...");
       formMsg.textContent = "Uploading photo..."; formMsg.className = "form-msg";
 
-      // ✅ DIRECT Cloudinary upload
+      // Direct Cloudinary upload
       let photoUrl = "";
       try {
         const fd = new FormData();
@@ -308,7 +302,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await resp.json();
         if (data.secure_url) {
           photoUrl = data.secure_url;
-          formMsg.textContent = "✅ Photo uploaded! Saving...";
+          formMsg.textContent = "✅ Photo uploaded!";
         } else {
           throw new Error(data.error?.message || "Upload failed");
         }
@@ -346,16 +340,6 @@ document.addEventListener("DOMContentLoaded", () => {
         formMsg.classList.add("error");
       });
     });
-
-    const newRegBtn = document.getElementById("newRegBtn");
-    if (newRegBtn) {
-      newRegBtn.addEventListener("click", () => {
-        regForm.reset();
-        regForm.hidden = false;
-        if (formResult) formResult.hidden = true;
-        if (formMsg) formMsg.textContent = "";
-      });
-    }
   }
 
   /* CERTIFICATE VERIFICATION */

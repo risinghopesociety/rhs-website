@@ -322,8 +322,8 @@ img, video { max-width: 100%; display: block; }
 
 /* ===================== FORMS (Registration / Verification / Contact) ===================== */
 .registration, .verify { padding: 90px 0; }
-.registration { display: none; }
-.registration.show { display: block; }
+.registration { visibility: hidden; height: 0; overflow: hidden; padding: 0; margin: 0; }
+.registration.show { visibility: visible; height: auto; overflow: visible; padding: 90px 0; margin: 0; }
 .verify { background: #F4ECE0; }
 
 .form-card {
@@ -381,8 +381,6 @@ img, video { max-width: 100%; display: block; }
 .form-result h3 { font-size: 1.5rem; color: var(--teal); margin-bottom: 10px; }
 .form-result p { color: #4A5C58; max-width: 480px; margin: 0 auto 24px; }
 .form-result.error .result-icon { color: var(--coral); }
-.registration { display: none; }
-.registration.show { display: block; }
 
 /* ===================== CERTIFICATE RESULT CARD ===================== */
 .cert-result { margin-top: 32px; }
@@ -711,74 +709,3 @@ img, video { max-width: 100%; display: block; }
 .photo-preview:hover { border-color: var(--teal); background: #EEF8F1; }
 .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
 .photo-preview i { font-size: 1.4rem; color: var(--teal-2); }
-
-/* ===== PHOTO FILE INPUT — visible, works mobile+pc ===== */
-input[type="file"]#regPhoto {
-  display: block;
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px dashed #4CAF8A;
-  border-radius: 10px;
-  background: #F5F9F8;
-  color: #14534F;
-  font-size: .95rem;
-  cursor: pointer;
-  box-sizing: border-box;
-  transition: .2s;
-}
-input[type="file"]#regPhoto:hover { border-color: #14534F; background: #EEF8F1; }
-input[type="file"]#regPhoto::-webkit-file-upload-button {
-  background: #14534F;
-  color: white;
-  border: none;
-  padding: 8px 18px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: .88rem;
-  margin-right: 12px;
-}
-input[type="file"]#regPhoto::file-selector-button {
-  background: #14534F;
-  color: white;
-  border: none;
-  padding: 8px 18px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: .88rem;
-  margin-right: 12px;
-}
-
-/* ===== ALERT MODAL ===== */
-#rhsAlertModal { position:fixed!important;top:0!important;left:0!important;width:100%!important;height:100%!important;z-index:99999!important; }
-
-/* ===== VERIFY PORTAL BUTTONS ===== */
-.verify-portal-btns { display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;justify-content:center; }
-.verify-portal-btns .btn { flex:1;min-width:140px;text-align:center; }
-.btn-teal-outline { background:transparent;border:2px solid var(--teal);color:var(--teal);padding:12px 22px;border-radius:10px;font-weight:600;cursor:pointer;font-size:.95rem;transition:.2s;display:inline-flex;align-items:center;justify-content:center;gap:8px; }
-.btn-teal-outline:hover { background:var(--teal);color:#fff; }
-
-/* ===== CERTIFICATE CARD ===== */
-.cert-card { background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 8px 40px rgba(20,83,79,.15);border:1.5px solid rgba(20,83,79,.12);max-width:720px;margin:0 auto; }
-.cert-top-bar { background:var(--teal);color:#fff;padding:16px 24px;display:flex;align-items:center;gap:14px; }
-.cert-logo { width:48px;height:48px;object-fit:contain;border-radius:50%;background:rgba(255,255,255,.15); }
-.cert-org-info { flex:1; }
-.cert-org-name { font-family:'Fraunces',serif;font-size:1.05rem;font-weight:700; }
-.cert-org-addr { font-size:.74rem;opacity:.85;margin-top:2px; }
-.cert-badge-active { background:#1a9e5c;color:#fff;padding:5px 14px;border-radius:20px;font-size:.78rem;font-weight:700;white-space:nowrap; }
-.cert-body { display:flex;gap:20px;padding:24px;align-items:flex-start; }
-.cert-photo { width:100px;height:120px;border-radius:10px;overflow:hidden;border:2px solid #4CAF8A;flex-shrink:0;background:#EEF8F1; }
-.cert-details { flex:1; }
-.cert-member-name { font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;color:var(--teal); }
-.cert-member-type { font-size:.82rem;color:#E8A33D;font-weight:600;margin-bottom:12px; }
-.cert-grid { display:grid;grid-template-columns:1fr 1fr;gap:8px 16px; }
-.cert-item { display:flex;flex-direction:column; }
-.cert-full { grid-column:1/-1; }
-.cert-footer-bar { background:#F5F9F8;border-top:1px solid #E7DFD2;padding:10px 24px;display:flex;gap:16px;flex-wrap:wrap;font-size:.74rem;color:#8A9A96;justify-content:center; }
-.cert-actions { display:flex;gap:12px;justify-content:center;padding:16px 24px;flex-wrap:wrap; }
-.cert-footnote { text-align:center;font-size:.75rem;color:#8A9A96;padding:0 24px 16px;margin:0;font-style:italic; }
-.ledger-wrap { max-width:720px;margin:0 auto;background:#fff;border-radius:16px;padding:24px;box-shadow:0 4px 24px rgba(0,0,0,.08); }
-.ledger-header { display:flex;align-items:center;gap:16px;margin-bottom:16px; }
-.ledger-logo { width:50px;height:50px;object-fit:contain; }
-.ledger-member-info { display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;background:#F5F9F8;border-radius:10px;padding:14px;margin:12px 0; }
-.ledger-info-row { display:flex;flex-direction:column; }
-@media(max-width:600px){.cert-body{flex-direction:column;align-items:center;}.cert-grid{grid-template-columns:1fr;}.cert-full{grid-column:1;}.verify-portal-btns .btn{min-width:100%;}.ledger-member-info{grid-template-columns:1fr;}}
