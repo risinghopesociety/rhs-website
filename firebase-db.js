@@ -357,10 +357,7 @@ async function getCharityLedger(cnic, dob) {
   if (memberSnaps.empty) return { success: false, message: "No member found with these credentials." };
   const member = { id: memberSnaps.docs[0].id, ...memberSnaps.docs[0].data() };
   // No orderBy — avoids composite index error
-  const donQ = fs().query(
-    fs().collection(db(), "charityDonations"),
-    fs().where("cnic", "==", cnicF)
-  );
+  const donQ = fs().query(fs().collection(db(), "charityDonations"), fs().where("cnic", "==", cnicF));
   const donSnaps = await fs().getDocs(donQ);
   const donations = [];
   donSnaps.forEach(d => donations.push({ id: d.id, ...d.data() }));
@@ -536,11 +533,7 @@ async function addCaseExpense(data) {
 
 async function getCaseExpenses(crn) {
   await waitForFB();
-  const q = fs().query(
-    fs().collection(db(), "caseExpenses"),
-    fs().where("crn", "==", crn),
-    fs().orderBy("date", "asc")
-  );
+  const q = fs().query(fs().collection(db(), "caseExpenses"), fs().where("crn", "==", crn));
   const snaps = await fs().getDocs(q);
   const expenses = [];
   let total = 0;
@@ -549,6 +542,9 @@ async function getCaseExpenses(crn) {
     total += Number(dd.amount) || 0;
     expenses.push({ id: d.id, ...dd });
   });
+  // Sort by date in JS
+  const p = s => { if(!s) return 0; const x=s.split("-"); return x.length===3?new Date(+x[2],+x[1]-1,+x[0]).getTime():0; };
+  expenses.sort((a,b) => p(a.date) - p(b.date));
   return { success: true, expenses, total };
 }
 
@@ -732,7 +728,7 @@ window.RHS = {
 console.log("✅ RHS Firebase DB Layer Ready!");
 
 // ============================================================
-// NEWS & STORIES + SLIDES (Firestore)
+// NEWS & STORIES (Firestore se)
 // ============================================================
 async function getNews() {
   await waitForFB();
@@ -742,22 +738,9 @@ async function getNews() {
     const news = [];
     snaps.forEach(d => news.push({ id: d.id, ...d.data() }));
     return { success: true, news };
-  } catch(e) { return { success: true, news: [] }; }
-}
-
-async function addNews(data) {
-  await waitForFB();
-  const ref = await fs().addDoc(fs().collection(db(), "news"), {
-    ...data,
-    createdAt: fs().serverTimestamp()
-  });
-  return { success: true, id: ref.id };
-}
-
-async function deleteNews(id) {
-  await waitForFB();
-  await fs().deleteDoc(fs().doc(db(), "news", id));
-  return { success: true };
+  } catch(e) {
+    return { success: true, news: [] };
+  }
 }
 
 async function getStories() {
@@ -768,18 +751,37 @@ async function getStories() {
     const stories = [];
     snaps.forEach(d => stories.push({ id: d.id, ...d.data() }));
     return { success: true, stories };
-  } catch(e) { return { success: true, stories: [] }; }
+  } catch(e) {
+    return { success: true, stories: [] };
+  }
 }
 
-async function addStory(data) {
+// Add to RHS exports
+window.RHS.getNews = getNews;
+window.RHS.getStories = getStories;
+
+// ============================================================
+// NEW FUNCTIONS — Slides, News CRUD, Stories CRUD, Delete Message
+// ============================================================
+
+// NEWS CRUD
+async function addNews(data) {
   await waitForFB();
-  const ref = await fs().addDoc(fs().collection(db(), "stories"), {
-    ...data,
-    createdAt: fs().serverTimestamp()
-  });
+  const ref = await fs().addDoc(fs().collection(db(), "news"), { ...data, createdAt: fs().serverTimestamp() });
   return { success: true, id: ref.id };
 }
+async function deleteNews(id) {
+  await waitForFB();
+  await fs().deleteDoc(fs().doc(db(), "news", id));
+  return { success: true };
+}
 
+// STORIES CRUD
+async function addStory(data) {
+  await waitForFB();
+  const ref = await fs().addDoc(fs().collection(db(), "stories"), { ...data, createdAt: fs().serverTimestamp() });
+  return { success: true, id: ref.id };
+}
 async function deleteStory(id) {
   await waitForFB();
   await fs().deleteDoc(fs().doc(db(), "stories", id));
@@ -796,25 +798,19 @@ async function getSlides() {
     snaps.forEach(d => slides.push({ id: d.id, ...d.data() }));
     return { success: true, slides };
   } catch(e) {
-    // If no order field, get all without orderBy
     try {
-      const snaps2 = await fs().getDocs(fs().collection(db(), "slides"));
+      const snaps = await fs().getDocs(fs().collection(db(), "slides"));
       const slides = [];
-      snaps2.forEach(d => slides.push({ id: d.id, ...d.data() }));
+      snaps.forEach(d => slides.push({ id: d.id, ...d.data() }));
       return { success: true, slides };
     } catch(e2) { return { success: true, slides: [] }; }
   }
 }
-
 async function addSlide(data) {
   await waitForFB();
-  const ref = await fs().addDoc(fs().collection(db(), "slides"), {
-    ...data,
-    createdAt: fs().serverTimestamp()
-  });
+  const ref = await fs().addDoc(fs().collection(db(), "slides"), { ...data, createdAt: fs().serverTimestamp() });
   return { success: true, id: ref.id };
 }
-
 async function deleteSlide(id) {
   await waitForFB();
   await fs().deleteDoc(fs().doc(db(), "slides", id));
@@ -828,16 +824,14 @@ async function deleteContactMessage(id) {
   return { success: true };
 }
 
-// Add all to RHS exports
-window.RHS.getNews      = getNews;
-window.RHS.addNews      = addNews;
-window.RHS.deleteNews   = deleteNews;
-window.RHS.getStories   = getStories;
-window.RHS.addStory     = addStory;
-window.RHS.deleteStory  = deleteStory;
-window.RHS.getSlides    = getSlides;
-window.RHS.addSlide     = addSlide;
-window.RHS.deleteSlide  = deleteSlide;
-window.RHS.deleteContactMessage = deleteContactMessage;
+// Add all new functions to RHS exports
+window.RHS.addNews               = addNews;
+window.RHS.deleteNews            = deleteNews;
+window.RHS.addStory              = addStory;
+window.RHS.deleteStory           = deleteStory;
+window.RHS.getSlides             = getSlides;
+window.RHS.addSlide              = addSlide;
+window.RHS.deleteSlide           = deleteSlide;
+window.RHS.deleteContactMessage  = deleteContactMessage;
 
-console.log("✅ All functions ready!");
+console.log("✅ All RHS functions ready!");

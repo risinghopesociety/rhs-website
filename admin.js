@@ -4,56 +4,28 @@
 
 // NGO Settings defaults
 window.NGO = {
-  name:      "Rising Hope Society",
-  phone:     "0346-4800064",
-  address:   "Khairpur Tamewali, Bahawalpur, Punjab, Pakistan",
-  email:     "risinghopesociety@gmail.com",
-  bank:      "111111111111111",
-  alert:     "0346-4800064",
-  logoUrl:   "",
-  copyright: "Rising Hope Society — Khairpur Tamewali, Bahawalpur. All rights reserved."
+  name: "Rising Hope Society",
+  phone: "0346-4800064",
+  address: "Khairpur Tamewali, Bahawalpur, Punjab, Pakistan",
+  email: "risinghopesociety@gmail.com",
+  bank: "111111111111111",
+  alert: "0346-4800064"
 };
-
-function applyLogo(url) {
-  if (!url) return;
-  const ids = ["loginLogo","sidebarLogo"];
-  ids.forEach(id => { const el=document.getElementById(id); if(el) el.src=url; });
-  const prev = document.getElementById("currentLogoPreview");
-  if (prev) prev.src = url;
-}
 
 function loadNGOSettings() {
   if (!window.RHS) { setTimeout(loadNGOSettings, 500); return; }
   RHS.getNGOSettings().then(res => {
     if (!res) return;
     window.NGO = {
-      name:      res.ngoName      || window.NGO.name,
-      phone:     res.ngoPhone     || window.NGO.phone,
-      address:   res.ngoAddress   || window.NGO.address,
-      email:     res.ngoEmail     || window.NGO.email,
-      bank:      res.bankAccount  || window.NGO.bank,
-      alert:     res.alertNumber  || res.ngoPhone || window.NGO.alert,
-      logoUrl:   res.logoUrl      || "",
-      copyright: res.copyrightText|| window.NGO.copyright
+      name:    res.ngoName    || window.NGO.name,
+      phone:   res.ngoPhone   || window.NGO.phone,
+      address: res.ngoAddress || window.NGO.address,
+      email:   res.ngoEmail   || window.NGO.email,
+      bank:    res.bankAccount|| window.NGO.bank,
+      alert:   res.alertNumber|| res.ngoPhone || window.NGO.alert
     };
-    // Apply to all dynamic elements
     document.querySelectorAll(".ngo-name").forEach(el => el.textContent = window.NGO.name);
     document.querySelectorAll(".ngo-address").forEach(el => el.textContent = window.NGO.address);
-    const ln = document.getElementById("loginOrgName"); if(ln) ln.innerHTML = window.NGO.name.replace("Society","<em>Society</em>");
-    const la = document.getElementById("loginOrgAddr"); if(la) la.textContent = window.NGO.address;
-    const sn = document.getElementById("sidebarOrgName"); if(sn) sn.textContent = window.NGO.name.split(" ")[0]+" "+window.NGO.name.split(" ")[1];
-    applyLogo(window.NGO.logoUrl);
-    // Populate settings form
-    const setVal = (id,val) => { const el=document.getElementById(id); if(el&&val) el.value=val; };
-    setVal("set-ngoName",    res.ngoName);
-    setVal("set-ngoPhone",   res.ngoPhone);
-    setVal("set-ngoEmail",   res.ngoEmail);
-    setVal("set-alertNumber",res.alertNumber);
-    setVal("set-ngoAddress", res.ngoAddress);
-    setVal("set-bankAccount",res.bankAccount);
-    setVal("set-copyrightText", res.copyrightText);
-    setVal("set-ourTeamTitle",  res.ourTeamTitle);
-    setVal("set-ourTeamMatter", res.ourTeamMatter);
   }).catch(() => {});
 }
 
@@ -199,11 +171,6 @@ function showSetupSection(section, btn){
   const el = document.getElementById("setup-"+section);
   if(el) el.classList.remove("hidden");
   if(btn) btn.classList.add("active");
-  // Load data for section
-  if(section==="team")    loadTeamList();
-  if(section==="slides")  loadSlidesList();
-  if(section==="news")    loadNewsList();
-  if(section==="stories") loadStoriesList();
 }
 
 // ====== LOAD ALL SETUP DATA ======
@@ -244,64 +211,25 @@ function loadSetupData(){
 }
 
 // ====== SAVE ADMIN SETTINGS ======
-async function saveAdminSettings(){
-  if(!window.RHS) return;
-  const btn = document.querySelector('#setup-adminSettings .btn-primary');
-  setLoading(btn, true, "Saving...");
-  showMsg("adminSettingsMsg","","");
-
-  // Logo upload if new file selected
-  let logoUrl = window.NGO.logoUrl || "";
-  const logoFile = document.getElementById("set-logoFile")?.files?.[0];
-  if (logoFile) {
-    showMsg("adminSettingsMsg","Uploading logo...","");
-    try {
-      const fd = new FormData();
-      fd.append("file", logoFile);
-      fd.append("upload_preset", "rhs-upload");
-      fd.append("folder", "rhs/logo");
-      const r = await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload", {method:"POST",body:fd});
-      const d = await r.json();
-      if (d.secure_url) logoUrl = d.secure_url;
-      else throw new Error(d.error?.message || "Upload failed");
-    } catch(err) {
-      setLoading(btn, false);
-      showMsg("adminSettingsMsg","❌ Logo upload failed: "+err.message,"error");
-      return;
-    }
-  }
-
-  const data = {
-    ngoName:       document.getElementById("set-ngoName")?.value       || "",
-    ngoPhone:      document.getElementById("set-ngoPhone")?.value      || "",
-    ngoEmail:      document.getElementById("set-ngoEmail")?.value      || "",
-    alertNumber:   document.getElementById("set-alertNumber")?.value   || "",
-    ngoAddress:    document.getElementById("set-ngoAddress")?.value    || "",
-    bankAccount:   document.getElementById("set-bankAccount")?.value   || "",
-    copyrightText: document.getElementById("set-copyrightText")?.value || "",
-    ourTeamTitle:  document.getElementById("set-ourTeamTitle")?.value  || "",
-    ourTeamMatter: document.getElementById("set-ourTeamMatter")?.value || "",
-    logoUrl:       logoUrl
+function saveAdminSettings(){
+  if(!window.RHS){return;}
+  const data={
+    ngoName:document.getElementById("set-ngoName")?.value||"",
+    ngoPhone:document.getElementById("set-ngoPhone")?.value||"",
+    ngoEmail:document.getElementById("set-ngoEmail")?.value||"",
+    alertNumber:document.getElementById("set-alertNumber")?.value||"",
+    ngoAddress:document.getElementById("set-ngoAddress")?.value||"",
+    bankAccount:document.getElementById("set-bankAccount")?.value||"",
+    ourTeamTitle:document.getElementById("set-ourTeamTitle")?.value||"",
+    ourTeamMatter:document.getElementById("set-ourTeamMatter")?.value||""
   };
-
-  RHS.saveNGOSettings(data).then(() => {
-    setLoading(btn, false);
-    showMsg("adminSettingsMsg","✅ Settings saved successfully!","success");
+  const btn=document.querySelector('#setup-adminSettings .btn-primary');
+  setLoading(btn,true,"Saving...");
+  RHS.saveNGOSettings(data).then(()=>{
+    setLoading(btn,false);
+    showMsg("adminSettingsMsg","✅ Settings saved!","success");
     loadNGOSettings();
-    // Reset logo file input
-    const lf = document.getElementById("set-logoFile"); if(lf) lf.value="";
-  }).catch(() => { setLoading(btn,false); showMsg("adminSettingsMsg","❌ Failed to save.","error"); });
-}
-
-// Logo preview
-function previewLogo(input) {
-  const file = input.files?.[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const prev = document.getElementById("currentLogoPreview");
-    if(prev) prev.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
+  }).catch(()=>{setLoading(btn,false);showMsg("adminSettingsMsg","Failed to save.","error");});
 }
 
 // ====== SAVE STATISTICS ======
@@ -339,39 +267,37 @@ function saveContactSettings(){
 
 // ====== TEAM MANAGEMENT ======
 function previewTeamPhoto(input){
-  const file=input.files?.[0]; if(!file) return;
+  const file=input.files?.[0];
+  if(!file) return;
   const preview=document.getElementById("team-photo-preview");
   if(!preview) return;
   const reader=new FileReader();
-  reader.onload=e=>{preview.innerHTML=`<img src="${e.target.result}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #14534F;display:block;margin:0 auto 4px"><span style="font-size:.75rem;color:#1a9e5c">✅ Photo selected</span>`;};
+  reader.onload=e=>{preview.innerHTML=`<img src="${e.target.result}" alt="Preview">`;};
   reader.readAsDataURL(file);
 }
 
 async function addTeamMember(){
-  if(!window.RHS) return;
-  const name  = document.getElementById("team-name")?.value.trim();
-  const desig = document.getElementById("team-designation")?.value.trim();
-  const order = Number(document.getElementById("team-order")?.value)||99;
-  const bio   = document.getElementById("team-bio")?.value.trim()||"";
+  if(!window.RHS){return;}
+  const name=document.getElementById("team-name")?.value.trim();
+  const desig=document.getElementById("team-designation")?.value.trim();
+  const order=Number(document.getElementById("team-order")?.value)||99;
+  const bio=document.getElementById("team-bio")?.value.trim()||"";
   if(!name||!desig){showMsg("teamMsg","Name and Designation required.","error");return;}
   const btn=document.querySelector('#setup-team .btn-primary');
   setLoading(btn,true,"Adding...");
   let photoUrl="";
   const photoFile=document.getElementById("team-photo")?.files?.[0];
   if(photoFile){
-    try{
-      const fd=new FormData(); fd.append("file",photoFile); fd.append("upload_preset","rhs-upload"); fd.append("folder","rhs/team");
-      const r=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
-      const d=await r.json(); if(d.secure_url) photoUrl=d.secure_url;
-    }catch(e){}
+    try{photoUrl=await RHS.uploadImage(photoFile,"rhs/team");}catch(e){}
   }
   RHS.addTeamMember({name,designation:desig,order,bio,photo:photoUrl}).then(()=>{
     setLoading(btn,false);
     showMsg("teamMsg","✅ Team member added!","success");
-    ["team-name","team-designation","team-bio","team-order"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
-    const prev=document.getElementById("team-photo-preview");
-    if(prev)prev.innerHTML=`<i class="fa fa-camera" style="color:#4CAF8A;font-size:1.5rem;display:block;margin-bottom:6px"></i><span style="color:#14534F;font-size:.88rem">Tap to select photo</span>`;
-    const tf=document.getElementById("team-photo"); if(tf) tf.value="";
+    document.getElementById("team-name").value="";
+    document.getElementById("team-designation").value="";
+    document.getElementById("team-bio").value="";
+    document.getElementById("team-order").value="";
+    document.getElementById("team-photo-preview").innerHTML="";
     loadTeamList();
   }).catch(()=>{setLoading(btn,false);showMsg("teamMsg","Failed.","error");});
 }
@@ -383,106 +309,30 @@ function loadTeamList(){
   wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i></div>';
   RHS.getTeam().then(res=>{
     if(!res.team||!res.team.length){wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:20px">No team members yet.</p>';return;}
-    // Mobile-friendly card layout
-    let html='<div class="team-admin-list">';
+    let html='<table class="data-table"><thead><tr><th>Photo</th><th>Name</th><th>Designation</th><th>Order</th><th>Action</th></tr></thead><tbody>';
     res.team.forEach(m=>{
-      const photo = m.photo ? `<img src="${m.photo}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid #4CAF8A;flex-shrink:0">` : `<div style="width:48px;height:48px;border-radius:50%;background:#EEF8F1;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa fa-user" style="color:#8A9A96"></i></div>`;
-      html+=`<div class="team-admin-card">
-        <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
-          ${photo}
-          <div style="min-width:0">
-            <div style="font-weight:600;color:#14534F;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(m.name)}</div>
-            <div style="font-size:.82rem;color:#8A9A96">${escHtml(m.designation)} · Order: ${m.order||"—"}</div>
-          </div>
-        </div>
-        <div style="display:flex;gap:6px;flex-shrink:0">
-          <button class="btn btn-sm" style="background:#14534F;color:#fff;padding:6px 10px" onclick="openEditTeam('${m.id}','${escHtml(m.name)}','${escHtml(m.designation)}',${m.order||99},'${escHtml(m.bio||"")}','${m.photo||""}')">
-            <i class="fa fa-edit"></i> Edit
-          </button>
-          <button class="btn btn-sm btn-reject" style="padding:6px 10px" onclick="deleteTeamMember('${m.id}','${escHtml(m.name)}')">
-            <i class="fa fa-trash"></i>
-          </button>
-        </div>
-      </div>`;
+      html+=`<tr>
+        <td>${m.photo?`<img src="${m.photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover">`:"—"}</td>
+        <td><strong>${escHtml(m.name)}</strong></td>
+        <td>${escHtml(m.designation)}</td>
+        <td>${m.order||"—"}</td>
+        <td><button class="btn btn-sm btn-reject" onclick="deleteTeamMember('${m.id}','${escHtml(m.name)}')"><i class="fa fa-trash"></i></button></td>
+      </tr>`;
     });
-    html+='</div>';
+    html+='</tbody></table>';
     wrap.innerHTML=html;
   }).catch(()=>{wrap.innerHTML='<p style="color:#D9483A">Failed to load team.</p>';});
 }
 
 function deleteTeamMember(id,name){
   if(!confirm(`Delete "${name}" from team?`)) return;
-  if(!window.RHS) return;
-  RHS.deleteTeamMember(id).then(()=>{loadTeamList();showMsg("teamMsg","✅ Member deleted.","success");})
-  .catch(()=>showMsg("teamMsg","Failed to delete.","error"));
-}
-
-function openEditTeam(id,name,desig,order,bio,photo){
-  const ex=document.getElementById("teamEditModal"); if(ex) ex.remove();
-  const ov=document.createElement("div");
-  ov.id="teamEditModal";
-  ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;overflow-y:auto";
-  ov.innerHTML=`<div style="background:#fff;border-radius:16px;padding:24px;max-width:460px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
-      <h3 style="margin:0;font-family:'Fraunces',serif;color:#14534F"><i class="fa fa-edit"></i> Edit Team Member</h3>
-      <button onclick="document.getElementById('teamEditModal').remove()" style="background:none;border:none;font-size:1.4rem;color:#9CA3AF;cursor:pointer">✕</button>
-    </div>
-    ${photo?`<div style="text-align:center;margin-bottom:14px"><img src="${photo}" style="width:70px;height:70px;border-radius:50%;object-fit:cover;border:3px solid #14534F"></div>`:""}
-    <div class="field" style="margin-bottom:12px"><label>Full Name *</label><input type="text" id="etName" value="${escHtml(name)}" style="width:100%;padding:10px;border:1.5px solid #D1D5DB;border-radius:8px;box-sizing:border-box"></div>
-    <div class="field" style="margin-bottom:12px"><label>Designation *</label><input type="text" id="etDesig" value="${escHtml(desig)}" style="width:100%;padding:10px;border:1.5px solid #D1D5DB;border-radius:8px;box-sizing:border-box"></div>
-    <div class="field" style="margin-bottom:12px"><label>Order</label><input type="number" id="etOrder" value="${order}" style="width:100%;padding:10px;border:1.5px solid #D1D5DB;border-radius:8px;box-sizing:border-box"></div>
-    <div class="field" style="margin-bottom:12px"><label>Bio</label><textarea id="etBio" rows="3" style="width:100%;padding:10px;border:1.5px solid #D1D5DB;border-radius:8px;box-sizing:border-box;resize:vertical">${escHtml(bio)}</textarea></div>
-    <div class="field" style="margin-bottom:16px">
-      <label>Update Photo <small>(optional)</small></label>
-      <label for="etPhoto" style="display:block;padding:12px;background:#F5F9F8;border:2px dashed #4CAF8A;border-radius:8px;cursor:pointer;text-align:center;position:relative;margin-top:6px">
-        <input type="file" id="etPhoto" accept="image/*" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer">
-        <div id="etPhotoPreview"><i class="fa fa-camera" style="color:#4CAF8A"></i> Tap to change photo</div>
-      </label>
-    </div>
-    <p class="form-msg" id="etMsg"></p>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-      <button class="btn btn-ghost" onclick="document.getElementById('teamEditModal').remove()">Cancel</button>
-      <button class="btn btn-primary" id="etSaveBtn" onclick="saveEditTeam('${id}','${photo}')"><i class="fa fa-save"></i> Save</button>
-    </div>
-  </div>`;
-  document.body.appendChild(ov);
-  document.getElementById("etPhoto")?.addEventListener("change",function(){
-    const f=this.files[0]; if(!f) return;
-    const r=new FileReader(); r.onload=e=>{document.getElementById("etPhotoPreview").innerHTML=`<img src="${e.target.result}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;border:2px solid #14534F;display:block;margin:0 auto">`;};
-    r.readAsDataURL(f);
-  });
-  ov.addEventListener("click",e=>{if(e.target===ov)ov.remove();});
-}
-
-async function saveEditTeam(id,oldPhoto){
-  const name  = document.getElementById("etName")?.value.trim();
-  const desig = document.getElementById("etDesig")?.value.trim();
-  const order = Number(document.getElementById("etOrder")?.value)||99;
-  const bio   = document.getElementById("etBio")?.value.trim()||"";
-  const msg   = document.getElementById("etMsg");
-  const btn   = document.getElementById("etSaveBtn");
-  if(!name||!desig){if(msg){msg.textContent="⚠️ Name and Designation required.";msg.className="form-msg error";}return;}
-  setLoading(btn,true,"Saving...");
-  let photoUrl=oldPhoto||"";
-  const photoFile=document.getElementById("etPhoto")?.files?.[0];
-  if(photoFile){
-    if(msg){msg.textContent="Uploading photo...";msg.className="form-msg";}
-    try{
-      const fd=new FormData(); fd.append("file",photoFile); fd.append("upload_preset","rhs-upload"); fd.append("folder","rhs/team");
-      const r=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
-      const d=await r.json(); if(d.secure_url) photoUrl=d.secure_url; else throw new Error(d.error?.message||"Failed");
-    }catch(e){setLoading(btn,false);if(msg){msg.textContent="❌ Photo upload failed: "+e.message;msg.className="form-msg error";}return;}
-  }
-  if(!window.RHS){setLoading(btn,false);return;}
-  RHS.updateTeamMember(id,{name,designation:desig,order,bio,photo:photoUrl}).then(()=>{
-    setLoading(btn,false);
-    document.getElementById("teamEditModal")?.remove();
+  RHS.deleteTeamMember(id).then(()=>{
     loadTeamList();
-    showMsg("teamMsg","✅ Team member updated!","success");
-  }).catch(()=>{setLoading(btn,false);if(msg){msg.textContent="❌ Failed to save.";msg.className="form-msg error";}});
+    showMsg("teamMsg","✅ Member deleted.","success");
+  }).catch(()=>showMsg("teamMsg","Failed to delete.","error"));
 }
 
-// ====== MESSAGES — with delete button ======
+// ====== MESSAGES ======
 function loadMessages(){
   if(!window.RHS){setTimeout(loadMessages,500);return;}
   const wrap=document.getElementById("messagesWrap");
@@ -495,16 +345,11 @@ function loadMessages(){
     }
     let html='';
     res.messages.forEach(m=>{
-      const date=m.createdAt?.toDate?m.createdAt.toDate().toLocaleDateString("en-PK"):(m.createdAt||"—");
-      html+=`<div class="message-card" id="msgCard_${m.id}">
+      const date=m.createdAt?.toDate?m.createdAt.toDate().toLocaleDateString("en-PK"):"—";
+      html+=`<div class="message-card">
         <div class="msg-header">
           <span class="msg-name"><i class="fa fa-user"></i> ${escHtml(m.name||"")}</span>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span class="msg-date">${date}</span>
-            <button onclick="deleteMessage('${m.id}')" style="background:#FEF2F2;color:#DC2626;border:1px solid #DC2626;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:.78rem">
-              <i class="fa fa-trash"></i> Delete
-            </button>
-          </div>
+          <span class="msg-date">${date}</span>
         </div>
         <div class="msg-email"><i class="fa fa-envelope"></i> ${escHtml(m.email||"")}</div>
         <div class="msg-text">${escHtml(m.message||"")}</div>
@@ -512,197 +357,6 @@ function loadMessages(){
     });
     wrap.innerHTML=html;
   }).catch(()=>{wrap.innerHTML='<div class="empty-state">Failed to load messages.</div>';});
-}
-
-function deleteMessage(id){
-  if(!confirm("Delete this message?")) return;
-  if(!window.RHS) return;
-  RHS.deleteContactMessage(id).then(res=>{
-    if(res.success){
-      const card=document.getElementById("msgCard_"+id); if(card) card.remove();
-      const wrap=document.getElementById("messagesWrap");
-      if(wrap&&!wrap.querySelector(".message-card")) wrap.innerHTML='<div class="empty-state"><i class="fa fa-envelope"></i><p>No messages yet.</p></div>';
-    }
-  }).catch(()=>alert("Failed to delete."));
-}
-
-// ====== SLIDES ======
-function previewSlideImage(input){
-  const file=input.files?.[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const prev=document.getElementById("slideImagePreview");
-    if(prev) prev.innerHTML=`<img src="${e.target.result}" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;display:block">`;
-  };
-  reader.readAsDataURL(file);
-}
-
-async function addSlide(){
-  if(!window.RHS) return;
-  const title = document.getElementById("slide-title")?.value.trim()||"";
-  const order = Number(document.getElementById("slide-order")?.value)||1;
-  const imgFile = document.getElementById("slide-image")?.files?.[0];
-  if(!imgFile){showMsg("slideMsg","⚠️ Please select a slide image","error");return;}
-  const btn=document.querySelector('#setup-slides .btn-primary');
-  setLoading(btn,true,"Uploading...");
-  try{
-    const fd=new FormData(); fd.append("file",imgFile); fd.append("upload_preset","rhs-upload"); fd.append("folder","rhs/slides");
-    const r=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
-    const d=await r.json();
-    if(!d.secure_url) throw new Error(d.error?.message||"Upload failed");
-    await RHS.addSlide({title,order,imageUrl:d.secure_url});
-    setLoading(btn,false);
-    showMsg("slideMsg","✅ Slide added!","success");
-    document.getElementById("slide-title").value="";
-    document.getElementById("slide-order").value="1";
-    const si=document.getElementById("slide-image"); if(si) si.value="";
-    const prev=document.getElementById("slideImagePreview");
-    if(prev) prev.innerHTML=`<i class="fa fa-image" style="font-size:2rem;color:#4CAF8A;display:block;margin-bottom:8px"></i><span style="color:#14534F;font-size:.9rem">Tap to select slide image</span>`;
-    loadSlidesList();
-  }catch(err){setLoading(btn,false);showMsg("slideMsg","❌ "+err.message,"error");}
-}
-
-function loadSlidesList(){
-  if(!window.RHS){setTimeout(loadSlidesList,500);return;}
-  const wrap=document.getElementById("slidesListWrap"); if(!wrap) return;
-  wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i></div>';
-  RHS.getSlides().then(res=>{
-    if(!res.slides||!res.slides.length){wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:16px">No slides yet. Add your first slide above.</p>';return;}
-    let html='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:8px">';
-    res.slides.forEach(s=>{
-      html+=`<div style="background:#F5F9F8;border-radius:10px;overflow:hidden;border:1px solid #E7DFD2">
-        <img src="${s.imageUrl}" style="width:100%;height:120px;object-fit:cover" loading="lazy">
-        <div style="padding:10px">
-          <div style="font-size:.85rem;font-weight:600;color:#14534F">${escHtml(s.title||"Slide")}</div>
-          <div style="font-size:.75rem;color:#8A9A96;margin-bottom:8px">Order: ${s.order||"—"}</div>
-          <button onclick="deleteSlideItem('${s.id}')" class="btn btn-sm btn-reject" style="width:100%"><i class="fa fa-trash"></i> Delete</button>
-        </div>
-      </div>`;
-    });
-    html+='</div>';
-    wrap.innerHTML=html;
-  }).catch(()=>{wrap.innerHTML='<p style="color:#D9483A">Failed to load slides.</p>';});
-}
-
-function deleteSlideItem(id){
-  if(!confirm("Delete this slide?")) return;
-  if(!window.RHS) return;
-  RHS.deleteSlide(id).then(()=>loadSlidesList()).catch(()=>alert("Failed."));
-}
-
-// ====== NEWS FEED ======
-async function addNewsItem(){
-  if(!window.RHS) return;
-  const title    = document.getElementById("news-title")?.value.trim();
-  const category = document.getElementById("news-category")?.value.trim()||"News";
-  const date     = document.getElementById("news-date")?.value.trim()||"";
-  const body     = document.getElementById("news-body")?.value.trim();
-  let imageURL   = document.getElementById("news-imageURL")?.value.trim()||"";
-  if(!title||!body){showMsg("newsMsg","⚠️ Title and Content required","error");return;}
-  const btn=document.querySelector('#setup-news .btn-primary');
-  setLoading(btn,true,"Saving...");
-  // Upload image if file selected
-  const imgFile=document.getElementById("news-imageFile")?.files?.[0];
-  if(imgFile){
-    try{
-      const fd=new FormData(); fd.append("file",imgFile); fd.append("upload_preset","rhs-upload"); fd.append("folder","rhs/news");
-      const r=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
-      const d=await r.json(); if(d.secure_url) imageURL=d.secure_url;
-    }catch(e){}
-  }
-  RHS.addNews({title,category,date,body,imageURL}).then(()=>{
-    setLoading(btn,false);
-    showMsg("newsMsg","✅ News added!","success");
-    ["news-title","news-category","news-date","news-body","news-imageURL"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
-    const nf=document.getElementById("news-imageFile"); if(nf) nf.value="";
-    document.getElementById("newsImagePreview").innerHTML="";
-    loadNewsList();
-  }).catch(()=>{setLoading(btn,false);showMsg("newsMsg","❌ Failed","error");});
-}
-
-function loadNewsList(){
-  if(!window.RHS){setTimeout(loadNewsList,500);return;}
-  const wrap=document.getElementById("newsListWrap"); if(!wrap) return;
-  wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i></div>';
-  RHS.getNews().then(res=>{
-    if(!res.news||!res.news.length){wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:16px">No news yet.</p>';return;}
-    let html='';
-    res.news.forEach(n=>{
-      html+=`<div style="background:#F5F9F8;border-radius:10px;padding:14px;margin-bottom:10px;border:1px solid #E7DFD2;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
-        ${n.imageURL?`<img src="${n.imageURL}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;flex-shrink:0" loading="lazy">`:""}
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:600;color:#14534F">${escHtml(n.title||"")}</div>
-          <div style="font-size:.78rem;color:#8A9A96">${escHtml(n.category||"")} · ${n.date||""}</div>
-          <div style="font-size:.85rem;color:#4A5C58;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(n.body||"")}</div>
-        </div>
-        <button onclick="deleteNewsItem('${n.id}')" class="btn btn-sm btn-reject" style="flex-shrink:0"><i class="fa fa-trash"></i></button>
-      </div>`;
-    });
-    wrap.innerHTML=html;
-  }).catch(()=>{wrap.innerHTML='<p style="color:#D9483A">Failed to load news.</p>';});
-}
-
-function deleteNewsItem(id){
-  if(!confirm("Delete this news?")) return;
-  if(!window.RHS) return;
-  RHS.deleteNews(id).then(()=>loadNewsList()).catch(()=>alert("Failed."));
-}
-
-// ====== IMPACT STORIES ======
-async function addStoryItem(){
-  if(!window.RHS) return;
-  const name     = document.getElementById("story-name")?.value.trim();
-  const category = document.getElementById("story-category")?.value.trim()||"Story";
-  const location = document.getElementById("story-location")?.value.trim()||"Khairpur Tamewali";
-  const story    = document.getElementById("story-text")?.value.trim();
-  if(!name||!story){showMsg("storyMsg","⚠️ Name and Story required","error");return;}
-  const btn=document.querySelector('#setup-stories .btn-primary');
-  setLoading(btn,true,"Saving...");
-  let photoUrl="";
-  const imgFile=document.getElementById("story-imageFile")?.files?.[0];
-  if(imgFile){
-    try{
-      const fd=new FormData(); fd.append("file",imgFile); fd.append("upload_preset","rhs-upload"); fd.append("folder","rhs/stories");
-      const r=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
-      const d=await r.json(); if(d.secure_url) photoUrl=d.secure_url;
-    }catch(e){}
-  }
-  RHS.addStory({name,category,location,story,photoURL:photoUrl}).then(()=>{
-    setLoading(btn,false);
-    showMsg("storyMsg","✅ Story added!","success");
-    ["story-name","story-category","story-location","story-text"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
-    const sf=document.getElementById("story-imageFile"); if(sf) sf.value="";
-    document.getElementById("storyImagePreview").innerHTML=`<i class="fa fa-image" style="font-size:1.5rem;color:#4CAF8A;display:block;margin-bottom:6px"></i><span style="color:#14534F;font-size:.88rem">Tap to upload photo</span>`;
-    loadStoriesList();
-  }).catch(()=>{setLoading(btn,false);showMsg("storyMsg","❌ Failed","error");});
-}
-
-function loadStoriesList(){
-  if(!window.RHS){setTimeout(loadStoriesList,500);return;}
-  const wrap=document.getElementById("storiesListWrap"); if(!wrap) return;
-  wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i></div>';
-  RHS.getStories().then(res=>{
-    if(!res.stories||!res.stories.length){wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:16px">No stories yet.</p>';return;}
-    let html='';
-    res.stories.forEach(s=>{
-      html+=`<div style="background:#F5F9F8;border-radius:10px;padding:14px;margin-bottom:10px;border:1px solid #E7DFD2;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
-        ${s.photoURL?`<img src="${s.photoURL}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;flex-shrink:0" loading="lazy">`:""}
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:600;color:#14534F">${escHtml(s.name||"")}</div>
-          <div style="font-size:.78rem;color:#8A9A96">${escHtml(s.category||"")} · ${escHtml(s.location||"")}</div>
-          <div style="font-size:.85rem;color:#4A5C58;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(s.story||"")}</div>
-        </div>
-        <button onclick="deleteStoryItem('${s.id}')" class="btn btn-sm btn-reject" style="flex-shrink:0"><i class="fa fa-trash"></i></button>
-      </div>`;
-    });
-    wrap.innerHTML=html;
-  }).catch(()=>{wrap.innerHTML='<p style="color:#D9483A">Failed to load stories.</p>';});
-}
-
-function deleteStoryItem(id){
-  if(!confirm("Delete this story?")) return;
-  if(!window.RHS) return;
-  RHS.deleteStory(id).then(()=>loadStoriesList()).catch(()=>alert("Failed."));
 }
 
 function setDefaultDates(){
@@ -775,13 +429,10 @@ function loadMembers(filter,btn){
 // Quick status change from table row buttons
 function quickStatus(row, status, name){
   if(!confirm(`Change ${name} status to "${status}"?`)) return;
-  apiPost({action:"updateMemberStatus",row:row,status:status}).then(res=>{
-    if(res.success){
-      loadMembers(currentMemberFilter);
-      loadAdminStats();
-    } else {
-      alert(res.message||"Failed to update status.");
-    }
+  if(!window.RHS) return;
+  RHS.updateMemberStatus(row, status).then(res=>{
+    if(res.success){ loadMembers(currentMemberFilter); loadAdminStats(); }
+    else alert(res.message||"Failed to update status.");
   }).catch(()=>alert("Network error."));
 }
 
@@ -862,11 +513,9 @@ function viewMember(m){
 }
 
 function changeMemberStatus(row,status){
-  const memType=document.getElementById("mMemType")?.value||"";
-  const desig=document.getElementById("mDesig")?.value||"";
-  const comment=document.getElementById("mComment")?.value||"";
   showMsg("memberActionMsg","Updating...","");
-  apiPost({action:"updateMemberStatus",row:row,status:status,membershipType:memType,designation:desig,adminComments:comment}).then(res=>{
+  if(!window.RHS){showMsg("memberActionMsg","System loading...","error");return;}
+  RHS.updateMemberStatus(row, status).then(res=>{
     if(res.success){
       showMsg("memberActionMsg","✅ Status updated to: "+status,"success");
       loadMembers(currentMemberFilter);
@@ -1033,7 +682,8 @@ function liveSearchMember(q){
   searchTimer=setTimeout(()=>{
     res.innerHTML='<div style="padding:12px;color:#8A9A96;text-align:center"><i class="fa fa-spinner fa-spin"></i> Searching...</div>';
     res.classList.remove("hidden");
-    apiGet({action:"getMemberSearch",q:q}).then(data=>{
+    if(!window.RHS){res.innerHTML='<div style="padding:12px;color:#8A9A96;text-align:center">Loading...</div>';return;}
+    RHS.searchMembers(q).then(data=>{
       if(!data.members||!data.members.length){res.innerHTML='<div style="padding:12px;color:#8A9A96;text-align:center">No members found.</div>';return;}
       res.innerHTML=data.members.map(m=>`
         <div class="live-result-item" onclick='selectCharityMember(${JSON.stringify(m).replace(/'/g,"&#39;")})'>
@@ -1077,37 +727,33 @@ function submitCharity(){
   const sendWA=document.getElementById("sendWhatsApp").checked;
   const charityBtn = document.querySelector('#tab-charity .btn-primary');
   setLoading(charityBtn, true, 'Saving...');
-  const payload={
-    action:"addCharityEntry",
-    cnic:selectedMember.cnic, name:selectedMember.fullName,
-    mobile:selectedMember.mobile, email:selectedMember.email||"",
-    address:selectedMember.address||"",
-    paymentMethod:method, amount:Number(amount),
-    date:formatDateForServer(date),
-    slipRef:document.getElementById("charitySlip").value,
-    note:document.getElementById("charityNote").value,
-    sendEmail:sendEmail
-  };
-  apiPost(payload).then(res=>{
+  if(!window.RHS){setLoading(charityBtn,false);showMsg("charityMsg","System loading...","error");return;}
+  const dateFormatted = formatDateForServer(date);
+  RHS.addCharityEntry({
+    memberId: selectedMember.id,
+    cnic: selectedMember.cnic,
+    memberName: selectedMember.fullName,
+    name: selectedMember.fullName,
+    mobile: selectedMember.mobile,
+    email: selectedMember.email||"",
+    address: selectedMember.address||"",
+    paymentMethod: method,
+    amount: Number(amount),
+    date: dateFormatted,
+    slipRef: document.getElementById("charitySlip").value||"",
+    note: document.getElementById("charityNote").value||""
+  }).then(res=>{
     setLoading(charityBtn, false);
     if(res.success){
-      let msg="✅ Charity entry saved! Valid Upto: "+res.validUpto;
-      if(sendEmail&&res.emailSent) msg+=" | 📧 Email sent!";
-      if(sendEmail&&!res.emailSent&&res.memberEmail) msg+=" | ⚠️ Email failed";
-      if(sendEmail&&!res.memberEmail) msg+=" | ⚠️ No email on file";
+      let msg="✅ Charity entry saved! Valid Upto: "+(res.validUpto||"—");
       showMsg("charityMsg",msg,"success");
-
-      // WhatsApp
       if(sendWA&&selectedMember.mobile){
         const mob=selectedMember.mobile.replace(/\D/g,"");
         const waNum="92"+mob.slice(1);
-        const waMsg=encodeURIComponent(
-          `Assalam-u-Alaikum Dear ${selectedMember.fullName},\n\nYour charity of Rs. ${Number(amount).toLocaleString()} has been received by ${window.NGO.name}.\n\nPayment: ${method}\nDate: ${formatDateForServer(date)}\nValid Upto: ${res.validUpto}\n\nJazak Allah Khair! 🤲\n\n${window.NGO.name}\n${window.NGO.address}\n${window.NGO.phone}`
-        );
+        const waMsg=encodeURIComponent(`Assalam-u-Alaikum Dear ${selectedMember.fullName},\n\nYour charity of Rs. ${Number(amount).toLocaleString()} has been received by ${window.NGO.name}.\n\nPayment: ${method}\nDate: ${dateFormatted}\nValid Upto: ${res.validUpto||"—"}\n\nJazak Allah Khair! 🤲\n\n${window.NGO.name}\n${window.NGO.phone}`);
         window.open(`https://wa.me/${waNum}?text=${waMsg}`,"_blank");
       }
-
-      if(sendEmail) openThankYouLetter(selectedMember,payload,res.validUpto);
+      if(sendEmail) openThankYouLetter(selectedMember,{paymentMethod:method,amount:Number(amount),date:dateFormatted},res.validUpto||"—");
       clearCharityForm();
       loadCharityList();
       loadAdminStats();
@@ -1360,11 +1006,12 @@ function viewGrant(g){
 }
 
 function doAssignGrant(row){
-  const name=document.getElementById("gAssignName")?.value||"";
-  const contact=document.getElementById("gAssignContact")?.value||"";
+  const name=document.getElementById("gAssignName")?.value.trim()||"";
+  const contact=document.getElementById("gAssignContact")?.value.trim()||"";
   if(!name||!contact){showMsg("grantActionMsg","Please enter name and contact.","error");return;}
   showMsg("grantActionMsg","Assigning...","");
-  apiPost({action:"assignGrant",row:row,assignedTo:name,assignedContact:contact}).then(res=>{
+  if(!window.RHS){showMsg("grantActionMsg","System loading...","error");return;}
+  RHS.updateGrant(row,{status:"Assigned",assignedTo:name,assignedContact:contact}).then(res=>{
     if(res.success){showMsg("grantActionMsg","✅ Case assigned to "+name,"success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
   }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
@@ -1375,9 +1022,8 @@ function doVerificationComplete(row){
   const btn = document.querySelector(`button[onclick="doVerificationComplete(${row})"]`);
   setLoading(btn, true, "Saving...");
   showMsg("grantActionMsg","Updating...","");
-  apiPost({
-    action:"updateGrantStatus",
-    row:row,
+  if(!window.RHS){setLoading(btn,false);showMsg("grantActionMsg","System loading...","error");return;}
+  RHS.updateGrant(row,{
     verificationStatus:"Completed",
     status:"Completed",
     decisionNote: comment ? "Verification Notes: "+comment : ""
@@ -1385,39 +1031,38 @@ function doVerificationComplete(row){
     setLoading(btn, false);
     if(res.success){
       showMsg("grantActionMsg","✅ Case moved to Case Completed tab"+(comment?" with notes.":"."), "success");
-      loadGrants(currentGrantFilter);
-      loadAdminStats();
-    } else {
-      showMsg("grantActionMsg",res.message||"Failed.","error");
-    }
-  }).catch(()=>{
-    setLoading(btn, false);
-    showMsg("grantActionMsg","Network error.","error");
-  });
+      loadGrants(currentGrantFilter); loadAdminStats();
+    } else showMsg("grantActionMsg",res.message||"Failed.","error");
+  }).catch(()=>{setLoading(btn, false);showMsg("grantActionMsg","Network error.","error");});
 }
 
 function doDecision(row,decision,name,crn){
   showMsg("grantActionMsg","Processing...","");
+  if(!window.RHS){showMsg("grantActionMsg","System loading...","error");return;}
+  const ph=window.NGO.alert||window.NGO.phone;
+  const em=window.NGO.email;
   const note=decision==="Approved"
-    ?`Dear ${name}, Congratulations your case no ${crn} Successfully Approved and our team will contact you with your need at your door step.`
-    :`Dear ${name}, Your ${crn} Case doesn't match our organization policy so your case has been closed. To reopen your case please physically meet our President with Case No ${crn} or reopen your case.`;
-  apiPost({action:"updateGrantStatus",row:row,decision:decision,decisionNote:note}).then(res=>{
-    if(res.success){showMsg("grantActionMsg","✅ Decision: "+decision,"success");loadGrants(currentGrantFilter);loadAdminStats();}
+    ?`Dear ${name}, Congratulations! 🎉 Your Charity Case ${crn} has been Successfully Approved. Our team will contact you at your doorstep. Jazak Allah Khair!\n\n📞 ${ph} | 📧 ${em}`
+    :`Dear ${name}, Unfortunately your Case ${crn} does not qualify under our current criteria. Your case has been Rejected.\n\nTo appeal, please physically meet our President with Case No: ${crn}.\n\n📞 ${ph} | 📧 ${em}`;
+  RHS.updateGrant(row,{decision:decision,decisionNote:note}).then(res=>{
+    if(res.success){showMsg("grantActionMsg","✅ Decision recorded: "+decision,"success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
   }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
 }
 
 function doCloseGrant(row){
   showMsg("grantActionMsg","Closing case...","");
-  apiPost({action:"updateGrantStatus",row:row,decision:"Closed",decisionNote:"Successfully Granted"}).then(res=>{
-    if(res.success){showMsg("grantActionMsg","✅ Case closed — Successfully Granted.","success");loadGrants(currentGrantFilter);}
+  if(!window.RHS){showMsg("grantActionMsg","System loading...","error");return;}
+  RHS.updateGrant(row,{status:"Closed",decisionNote:"Successfully Granted & Closed"}).then(res=>{
+    if(res.success){showMsg("grantActionMsg","✅ Case closed — Successfully Granted.","success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
   }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
 }
 
 function doSendBackToCompleted(row){
   showMsg("grantActionMsg","Sending back...","");
-  apiPost({action:"updateGrantStatus",row:row,status:"Completed",decision:"",decisionNote:""}).then(res=>{
+  if(!window.RHS){showMsg("grantActionMsg","System loading...","error");return;}
+  RHS.updateGrant(row,{status:"Completed",decision:"",decisionNote:""}).then(res=>{
     if(res.success){showMsg("grantActionMsg","✅ Case sent back to Case Completed tab.","success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
   }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
@@ -1425,8 +1070,9 @@ function doSendBackToCompleted(row){
 
 function doReopenGrant(row){
   showMsg("grantActionMsg","Reopening...","");
-  apiPost({action:"updateGrantStatus",row:row,status:"Completed",decision:"",decisionNote:""}).then(res=>{
-    if(res.success){showMsg("grantActionMsg","✅ Case reopened → moved to Case Completed tab.","success");loadGrants(currentGrantFilter);loadAdminStats();}
+  if(!window.RHS){showMsg("grantActionMsg","System loading...","error");return;}
+  RHS.updateGrant(row,{status:"Completed",decision:"",decisionNote:""}).then(res=>{
+    if(res.success){showMsg("grantActionMsg","✅ Case reopened → Case Completed tab.","success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
   }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
 }
@@ -1474,38 +1120,31 @@ function addCaseExpense(crn,cnic,dob,name,fatherName,gender,email,mobile,address
   const detail = document.getElementById("expDetail")?.value?.trim();
   const amount = document.getElementById("expAmount")?.value;
   const msg = document.getElementById("expMsg");
-
   if(!date||!detail||!amount){
-    msg.textContent="⚠️ Please fill date, detail and amount.";
-    msg.className="form-msg error";
+    if(msg){msg.textContent="⚠️ Please fill date, detail and amount.";msg.className="form-msg error";}
     return;
   }
-
   const btn = document.querySelector('[onclick^="addCaseExpense"]');
   setLoading(btn, true, "Saving...");
-  msg.textContent="";
-
-  apiPost({
-    action:"addCaseExpense",
+  if(msg) msg.textContent="";
+  if(!window.RHS){setLoading(btn,false);return;}
+  RHS.addCaseExpense({
     date: formatDateForServer(date),
     crn, cnic, dob, name, fatherName, gender, email, mobile, address, helpType,
     detail, amount: Number(amount)
   }).then(res=>{
     setLoading(btn, false);
     if(res.success){
-      msg.textContent="✅ Expense added & debited from Cash Book!";
-      msg.className="form-msg success";
+      if(msg){msg.textContent="✅ Expense added & debited from Cash Book!";msg.className="form-msg success";}
       document.getElementById("expDetail").value="";
       document.getElementById("expAmount").value="";
       loadCaseExpenses(crn);
     } else {
-      msg.textContent="❌ "+res.message;
-      msg.className="form-msg error";
+      if(msg){msg.textContent="❌ "+(res.message||"Failed");msg.className="form-msg error";}
     }
-  }).catch(()=>{
+  }).catch(err=>{
     setLoading(btn, false);
-    msg.textContent="Network error.";
-    msg.className="form-msg error";
+    if(msg){msg.textContent="❌ Network error.";msg.className="form-msg error";}
   });
 }
 
@@ -1513,12 +1152,17 @@ function addCaseExpense(crn,cnic,dob,name,fatherName,gender,email,mobile,address
 function downloadCaseReport(crn){
   const btn = event?.target;
   if(btn) setLoading(btn, true, "Generating...");
-  apiGet({action:"getCaseFullReport", crn:crn}).then(res=>{
+  if(!window.RHS){if(btn)setLoading(btn,false);alert("System loading...");return;}
+  // Get grant data + expenses from RHS
+  Promise.all([
+    RHS.getGrants("all"),
+    RHS.getCaseExpenses(crn)
+  ]).then(([grantsRes, expRes])=>{
     if(btn) setLoading(btn, false);
-    if(!res.success){alert("Failed to load case data.");return;}
-    const g=res.grant;
-    const expenses=res.expenses||[];
-    const totalExp=res.totalExpenses||0;
+    const g = grantsRes.grants?.find(x=>x.crn===crn);
+    if(!g){alert("Case not found.");return;}
+    const expenses = expRes.expenses||[];
+    const totalExp = expRes.total||0;
     let running=0;
     let expRows="";
     if(expenses.length){
@@ -1535,41 +1179,29 @@ function downloadCaseReport(crn){
     } else {
       expRows=`<tr><td colspan="5" style="padding:14px;text-align:center;color:#8A9A96;font-style:italic">No expenses recorded.</td></tr>`;
     }
-
     const html=`
-    <style>
-      @page{margin:12mm;size:A4;}
-      body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-    </style>
+    <style>@page{margin:12mm;size:A4;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}</style>
     <div style="font-family:Georgia,serif;max-width:720px;margin:0 auto">
-      <!-- Header -->
       <div style="text-align:center;border-bottom:3px double #14534F;padding-bottom:14px;margin-bottom:18px">
         <h2 style="color:#14534F;margin-bottom:4px;font-size:1.4rem">${window.NGO.name}</h2>
         <p style="color:#E8A33D;letter-spacing:.1em;font-size:.8rem;margin:0">CASE REPORT — ${g.crn}</p>
         <p style="color:#8A9A96;font-size:.72rem;margin:4px 0">${window.NGO.address} | ${window.NGO.phone}</p>
       </div>
-
-      <!-- Case Detail -->
       <h3 style="color:#14534F;font-size:1rem;margin-bottom:10px;border-left:4px solid #E8A33D;padding-left:10px">Case Information</h3>
       <table style="width:100%;border-collapse:collapse;font-size:.88rem;margin-bottom:20px">
         <tr><td style="padding:6px 10px;background:#F5F9F8;font-weight:700;width:30%">CRN</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.crn}</td><td style="padding:6px 10px;background:#F5F9F8;font-weight:700;width:30%">Status</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.status}</td></tr>
-        <tr><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Name</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.name}</td><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Father/Husband</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.fatherName}</td></tr>
+        <tr><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Name</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.name}</td><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Father/Husband</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.fatherName||"—"}</td></tr>
         <tr><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">CNIC</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.cnic}</td><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Mobile</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.mobile}</td></tr>
-        <tr><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Help Type</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.helpType}</td><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Amount Requested</td><td style="padding:6px 10px;border-bottom:1px solid #eee">Rs. ${Number(g.amount||0).toLocaleString()}</td></tr>
+        <tr><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Help Type</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.helpType}</td><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Amount Requested</td><td style="padding:6px 10px;border-bottom:1px solid #eee">Rs. ${Number(g.amountRequired||g.amount||0).toLocaleString()}</td></tr>
         <tr><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Address</td><td colspan="3" style="padding:6px 10px;border-bottom:1px solid #eee">${g.address}</td></tr>
         <tr><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Assigned To</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.assignedTo||"—"} ${g.assignedContact||""}</td><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Decision</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.decision||"—"}</td></tr>
-        <tr><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Applied</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.timestamp}</td><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Last Updated</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.lastUpdated}</td></tr>
       </table>
-
-      <!-- Expenses Ledger -->
       <h3 style="color:#14534F;font-size:1rem;margin-bottom:10px;border-left:4px solid #D9483A;padding-left:10px">Cost / Expense Ledger</h3>
       <table style="width:100%;border-collapse:collapse;font-size:.88rem;margin-bottom:20px">
         <thead><tr style="background:#14534F;color:#fff">
-          <th style="padding:8px 10px;text-align:left">#</th>
-          <th style="padding:8px 10px;text-align:left">Date</th>
-          <th style="padding:8px 10px;text-align:left">Detail / Description</th>
-          <th style="padding:8px 10px;text-align:right">Amount</th>
-          <th style="padding:8px 10px;text-align:right">Cumulative Total</th>
+          <th style="padding:8px 10px;text-align:left">#</th><th style="padding:8px 10px;text-align:left">Date</th>
+          <th style="padding:8px 10px;text-align:left">Detail</th><th style="padding:8px 10px;text-align:right">Amount</th>
+          <th style="padding:8px 10px;text-align:right">Cumulative</th>
         </tr></thead>
         <tbody>${expRows}</tbody>
         <tfoot><tr style="background:#FCEFEC">
@@ -1577,17 +1209,12 @@ function downloadCaseReport(crn){
           <td colspan="2" style="padding:10px;text-align:right;font-weight:700;color:#C5432B;font-size:1rem">Rs. ${totalExp.toLocaleString()}</td>
         </tr></tfoot>
       </table>
-
-      <!-- Footer -->
       <div style="text-align:center;border-top:1px solid #E7DFD2;padding-top:12px;margin-top:8px">
-        <p style="color:#8A9A96;font-size:.72rem;font-style:italic">⚠️ This is a computer-generated case report for audit purposes. | ${window.NGO.name} | Generated: ${new Date().toLocaleDateString("en-PK")}</p>
+        <p style="color:#8A9A96;font-size:.72rem;font-style:italic">⚠️ Computer-generated case report | ${window.NGO.name} | ${new Date().toLocaleDateString("en-PK")}</p>
       </div>
     </div>`;
-
-    document.getElementById("printArea").innerHTML=html;
-    window.print();
-    setTimeout(()=>{document.getElementById("printArea").innerHTML="";},3000);
-  }).catch(()=>{if(btn)setLoading(btn,false);alert("Network error.");});
+    doPrint(html);
+  }).catch(()=>{if(btn)setLoading(btn,false);alert("Failed to generate report.");});
 }
 
 // ====== ADMIN EXPENSES ======
@@ -1626,12 +1253,12 @@ function submitAdminExpense(){
   const date=document.getElementById("aeDate")?.value;
   const detail=document.getElementById("aeDetail")?.value?.trim();
   const amount=document.getElementById("aeAmount")?.value;
-  const payto=document.getElementById("aePayto")?.value?.trim();
-  const msg=document.getElementById("aeMsg");
+  const payto=document.getElementById("aePayto")?.value?.trim()||"";
   if(!date||!detail||!amount){showMsg("aeMsg","⚠️ Date, Detail and Amount required.","error");return;}
   const btn=document.querySelector('#tab-adminexp .btn-primary');
   setLoading(btn,true,"Saving...");
-  apiPost({action:"addAdminExpense",date:formatDateForServer(date),detail,amount:Number(amount),payto:payto||""}).then(res=>{
+  if(!window.RHS){setLoading(btn,false);showMsg("aeMsg","System loading...","error");return;}
+  RHS.addAdminExpense({date:formatDateForServer(date),detail,amount:Number(amount),payto}).then(res=>{
     setLoading(btn,false);
     if(res.success){
       showMsg("aeMsg","✅ Expense added & debited from Cash Book!","success");
@@ -1639,6 +1266,7 @@ function submitAdminExpense(){
       document.getElementById("aeAmount").value="";
       document.getElementById("aePayto").value="";
       loadAdminExpenses();
+      loadAdminStats();
     } else {
       showMsg("aeMsg",res.message||"Failed.","error");
     }
@@ -1705,12 +1333,14 @@ function printAdminExpReport(){
 function submitCashEntry(){
   const type=document.getElementById("cbType").value;
   const date=formatDateForServer(document.getElementById("cbDate").value);
-  const source=document.getElementById("cbSource").value;
+  const source=document.getElementById("cbSource").value.trim();
   const amount=document.getElementById("cbAmount").value;
   if(!date||!source||!amount){showMsg("cashMsg","Please fill all required fields.","error");return;}
   const cashBtn = document.querySelector('#tab-cashbook .btn-primary:not([onclick*="print"])');
   setLoading(cashBtn, true, 'Saving...');
-  apiPost({action:"addCashEntry",type:type,date:date,source:source,amount:Number(amount),note:document.getElementById("cbNote").value}).then(res=>{
+  if(!window.RHS){setLoading(cashBtn,false);showMsg("cashMsg","System loading...","error");return;}
+  RHS.addCashEntry({type,date,source,amount:Number(amount),note:document.getElementById("cbNote").value||""}).then(res=>{
+    setLoading(cashBtn, false);
     if(res.success){showMsg("cashMsg","✅ Entry added.","success");clearCashForm();loadCashBook();}
     else showMsg("cashMsg",res.message||"Failed.","error");
   }).catch(()=>{setLoading(cashBtn, false);showMsg("cashMsg","Network error.","error");});
