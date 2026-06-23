@@ -15,9 +15,9 @@
 <div id="loginScreen" class="login-screen">
   <div class="login-box">
     <div class="login-logo">
-      <img src="images/logo.png" alt="RHS Logo">
-      <h1>Rising Hope <em>Society</em></h1>
-      <small>Khairpur Tamewali · Bahawalpur</small>
+      <img id="loginLogo" src="images/logo.png" alt="RHS Logo">
+      <h1 id="loginOrgName">Rising Hope <em>Society</em></h1>
+      <small id="loginOrgAddr">Khairpur Tamewali · Bahawalpur</small>
     </div>
     <h2>Admin Login</h2>
     <div class="field">
@@ -80,9 +80,9 @@
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-      <img src="images/logo.png" alt="RHS">
+      <img id="sidebarLogo" src="images/logo.png" alt="RHS">
       <div>
-        <span>Rising Hope</span>
+        <span id="sidebarOrgName">Rising Hope</span>
         <small>Society</small>
       </div>
     </div>
@@ -524,9 +524,7 @@
         <h3 style="font-family:'Fraunces',serif;color:var(--teal);margin:0"><i class="fa fa-envelope"></i> Contact Messages</h3>
         <button class="btn btn-sm btn-ghost" onclick="loadMessages()"><i class="fa fa-refresh"></i> Refresh</button>
       </div>
-      <div id="messagesWrap" class="table-wrap">
-        <div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading messages...</div>
-      </div>
+      <div id="messagesWrap" class="table-wrap"></div>
     </div>
 
     <!-- ===== TAB: SETUP ===== -->
@@ -539,6 +537,15 @@
         </button>
         <button class="filter-btn" onclick="showSetupSection('content', this)">
           <i class="fa fa-edit"></i> Content
+        </button>
+        <button class="filter-btn" onclick="showSetupSection('slides', this)">
+          <i class="fa fa-images"></i> Slides
+        </button>
+        <button class="filter-btn" onclick="showSetupSection('news', this)">
+          <i class="fa fa-newspaper"></i> News Feed
+        </button>
+        <button class="filter-btn" onclick="showSetupSection('stories', this)">
+          <i class="fa fa-heart"></i> Impact Stories
         </button>
         <button class="filter-btn" onclick="showSetupSection('team', this)">
           <i class="fa fa-users"></i> Team
@@ -562,6 +569,20 @@
             <div class="field"><label>Alert Number</label><input type="text" id="set-alertNumber" placeholder="0346-4800064"></div>
             <div class="field" style="grid-column:1/-1"><label>Address</label><input type="text" id="set-ngoAddress" placeholder="Full Address"></div>
             <div class="field"><label>Bank Account</label><input type="text" id="set-bankAccount" placeholder="Bank Account No"></div>
+            <div class="field" style="grid-column:1/-1"><label>Copyright Text</label><input type="text" id="set-copyrightText" placeholder="Rising Hope Society — Khairpur Tamewali. All rights reserved."></div>
+            <div class="field" style="grid-column:1/-1">
+              <label>NGO Logo</label>
+              <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:6px">
+                <img id="currentLogoPreview" src="images/logo.png" style="width:70px;height:70px;object-fit:contain;border-radius:50%;border:2px solid #4CAF8A;background:#F5F9F8">
+                <div style="flex:1">
+                  <label for="set-logoFile" style="display:block;padding:10px 16px;background:#F5F9F8;border:2px dashed #4CAF8A;border-radius:8px;cursor:pointer;text-align:center;font-size:.9rem;color:#14534F">
+                    <i class="fa fa-upload"></i> Click to select new logo
+                    <input type="file" id="set-logoFile" accept="image/*" style="display:none" onchange="previewLogo(this)">
+                  </label>
+                  <p style="font-size:.78rem;color:#8A9A96;margin-top:4px">Recommended: Square image, PNG/JPG, max 2MB</p>
+                </div>
+              </div>
+            </div>
             <div class="field"><label>Team Section Title</label><input type="text" id="set-ourTeamTitle" placeholder="Our Team"></div>
             <div class="field" style="grid-column:1/-1"><label>Team Section Text</label><textarea id="set-ourTeamMatter" rows="2" placeholder="Description..."></textarea></div>
           </div>
@@ -590,6 +611,83 @@
         </div>
       </div>
 
+      <!-- SLIDES -->
+      <div class="setup-section hidden" id="setup-slides">
+        <div class="card" style="margin-top:16px">
+          <h3 class="card-title"><i class="fa fa-images"></i> Home Page Slides</h3>
+          <p style="color:#8A9A96;font-size:.88rem;margin-bottom:16px">Add unlimited slides — these will show on the home page hero section.</p>
+          <div class="charity-form-grid">
+            <div class="field"><label>Slide Title <small>(optional)</small></label><input type="text" id="slide-title" placeholder="e.g. Welcome to RHS"></div>
+            <div class="field"><label>Order No</label><input type="number" id="slide-order" placeholder="1" min="1" value="1"></div>
+            <div class="field" style="grid-column:1/-1">
+              <label>Slide Image <span style="color:#D9483A">*</span></label>
+              <label for="slide-image" style="display:block;padding:16px;background:#F5F9F8;border:2px dashed #4CAF8A;border-radius:8px;cursor:pointer;text-align:center;position:relative">
+                <input type="file" id="slide-image" accept="image/*" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer" onchange="previewSlideImage(this)">
+                <div id="slideImagePreview"><i class="fa fa-image" style="font-size:2rem;color:#4CAF8A;display:block;margin-bottom:8px"></i><span style="color:#14534F;font-size:.9rem">Tap to select slide image</span></div>
+              </label>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="addSlide()"><i class="fa fa-plus"></i> Add Slide</button>
+          </div>
+          <p class="form-msg" id="slideMsg"></p>
+          <div id="slidesListWrap" style="margin-top:20px"></div>
+        </div>
+      </div>
+
+      <!-- NEWS FEED -->
+      <div class="setup-section hidden" id="setup-news">
+        <div class="card" style="margin-top:16px">
+          <h3 class="card-title"><i class="fa fa-newspaper"></i> News Feed</h3>
+          <div class="charity-form-grid">
+            <div class="field"><label>Title <span style="color:#D9483A">*</span></label><input type="text" id="news-title" placeholder="News title"></div>
+            <div class="field"><label>Category</label><input type="text" id="news-category" placeholder="e.g. Announcement"></div>
+            <div class="field"><label>Date</label><input type="text" id="news-date" placeholder="dd-mm-yyyy"></div>
+            <div class="field" style="grid-column:1/-1"><label>Content <span style="color:#D9483A">*</span></label><textarea id="news-body" rows="4" placeholder="News content..."></textarea></div>
+            <div class="field" style="grid-column:1/-1">
+              <label>Image / Video URL <small>(optional)</small></label>
+              <input type="url" id="news-imageURL" placeholder="https://... (Cloudinary or YouTube URL)">
+              <p style="font-size:.78rem;color:#8A9A96;margin-top:4px">Or upload image:</p>
+              <label for="news-imageFile" style="display:block;padding:10px;background:#F5F9F8;border:2px dashed #4CAF8A;border-radius:8px;cursor:pointer;text-align:center;position:relative;margin-top:4px">
+                <input type="file" id="news-imageFile" accept="image/*,video/*" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer">
+                <i class="fa fa-upload" style="color:#4CAF8A"></i> <span style="color:#14534F;font-size:.88rem">Tap to upload image</span>
+              </label>
+              <div id="newsImagePreview" style="margin-top:8px"></div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="addNewsItem()"><i class="fa fa-plus"></i> Add News</button>
+          </div>
+          <p class="form-msg" id="newsMsg"></p>
+          <div id="newsListWrap" style="margin-top:20px"></div>
+        </div>
+      </div>
+
+      <!-- IMPACT STORIES -->
+      <div class="setup-section hidden" id="setup-stories">
+        <div class="card" style="margin-top:16px">
+          <h3 class="card-title"><i class="fa fa-heart"></i> Impact Stories</h3>
+          <div class="charity-form-grid">
+            <div class="field"><label>Person Name <span style="color:#D9483A">*</span></label><input type="text" id="story-name" placeholder="e.g. Ahmed Khan"></div>
+            <div class="field"><label>Category</label><input type="text" id="story-category" placeholder="e.g. Medical Help"></div>
+            <div class="field"><label>Location</label><input type="text" id="story-location" placeholder="e.g. Khairpur Tamewali"></div>
+            <div class="field" style="grid-column:1/-1"><label>Story <span style="color:#D9483A">*</span></label><textarea id="story-text" rows="4" placeholder="Tell their story..."></textarea></div>
+            <div class="field" style="grid-column:1/-1">
+              <label>Image / Video <small>(optional)</small></label>
+              <label for="story-imageFile" style="display:block;padding:14px;background:#F5F9F8;border:2px dashed #4CAF8A;border-radius:8px;cursor:pointer;text-align:center;position:relative">
+                <input type="file" id="story-imageFile" accept="image/*,video/*" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer">
+                <div id="storyImagePreview"><i class="fa fa-image" style="font-size:1.5rem;color:#4CAF8A;display:block;margin-bottom:6px"></i><span style="color:#14534F;font-size:.88rem">Tap to upload photo</span></div>
+              </label>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="addStoryItem()"><i class="fa fa-plus"></i> Add Story</button>
+          </div>
+          <p class="form-msg" id="storyMsg"></p>
+          <div id="storiesListWrap" style="margin-top:20px"></div>
+        </div>
+      </div>
+
       <!-- TEAM -->
       <div class="setup-section hidden" id="setup-team">
         <div class="card" style="margin-top:16px">
@@ -599,14 +697,11 @@
             <div class="field"><label>Designation *</label><input type="text" id="team-designation" placeholder="e.g. President"></div>
             <div class="field"><label>Order (1,2,3...)</label><input type="number" id="team-order" placeholder="1" min="1"></div>
             <div class="field"><label>Bio</label><input type="text" id="team-bio" placeholder="Short introduction"></div>
-            <div class="field">
+            <div class="field" style="grid-column:1/-1">
               <label>Photo</label>
-              <label for="team-photo" style="display:block;border:2px dashed #4CAF8A;border-radius:10px;padding:14px;text-align:center;cursor:pointer;background:#F5F9F8;position:relative">
-                <input type="file" id="team-photo" accept="image/*" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:5" onchange="previewTeamPhoto(this)">
-                <div id="team-photo-preview" style="pointer-events:none">
-                  <i class="fa fa-camera" style="font-size:1.5rem;color:#4CAF8A;display:block;margin-bottom:6px"></i>
-                  <span style="font-size:.85rem;color:#14534F">Tap to select photo</span>
-                </div>
+              <label for="team-photo" style="display:block;padding:12px;background:#F5F9F8;border:2px dashed #4CAF8A;border-radius:8px;cursor:pointer;text-align:center;position:relative">
+                <input type="file" id="team-photo" accept="image/*" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer" onchange="previewTeamPhoto(this)">
+                <div id="team-photo-preview"><i class="fa fa-camera" style="color:#4CAF8A;font-size:1.5rem;display:block;margin-bottom:6px"></i><span style="color:#14534F;font-size:.88rem">Tap to select photo</span></div>
               </label>
             </div>
           </div>

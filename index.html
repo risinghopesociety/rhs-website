@@ -68,9 +68,9 @@
 <!-- ===== PAGE LOADER ===== -->
 <div id="pageLoader">
   <div class="loader-inner">
-    <img src="images/logo.png" alt="Rising Hope Society" style="width:70px;height:70px;object-fit:contain;border-radius:50%">
+    <img id="loaderLogo" src="images/logo.png" alt="Rising Hope Society" style="width:70px;height:70px;object-fit:contain;border-radius:50%">
     <div class="loader-bar"><div class="loader-fill"></div></div>
-    <p>Rising Hope Society</p>
+    <p id="loaderOrgName">Rising Hope Society</p>
   </div>
 </div>
 
@@ -85,7 +85,7 @@
 <header class="navbar" id="navbar">
   <div class="nav-inner">
     <a href="#home" class="brand">
-      <img src="images/logo.png" alt="Rising Hope Society Logo" class="brand-mark">
+      <img src="images/logo.png" alt="Rising Hope Society Logo" class="brand-mark" id="navLogo">
       <span class="brand-text">
         <span class="brand-name" id="siteOrgName">Rising Hope <em>Society</em></span>
         <small id="siteOrgTagline">Khairpur Tamewali · Bahawalpur</small>
@@ -116,10 +116,11 @@
 <!-- ===== HERO ===== -->
 <section class="hero" id="home">
   <div class="slider" id="heroSlider">
-    <div class="slide active" style="background-image:url('images/slide1.jpg')"></div>
-    <div class="slide" style="background-image:url('images/slide2.jpg')"></div>
-    <div class="slide" style="background-image:url('images/slide3.jpg')"></div>
-    <div class="slide" style="background-image:url('images/slide4.jpg')"></div>
+    <!-- Slides loaded dynamically from Firestore — fallback to static if none -->
+    <div class="slide active" id="slide-fallback-1" style="background-image:url('images/slide1.jpg')"></div>
+    <div class="slide" id="slide-fallback-2" style="background-image:url('images/slide2.jpg')"></div>
+    <div class="slide" id="slide-fallback-3" style="background-image:url('images/slide3.jpg')"></div>
+    <div class="slide" id="slide-fallback-4" style="background-image:url('images/slide4.jpg')"></div>
     <div class="slider-overlay"></div>
     <button class="slider-arrow prev" id="prevSlide" aria-label="Previous slide"><i class="fa-solid fa-chevron-left"></i></button>
     <button class="slider-arrow next" id="nextSlide" aria-label="Next slide"><i class="fa-solid fa-chevron-right"></i></button>
@@ -295,16 +296,10 @@
             <label for="regAddress">Full Address <span class="req">*</span></label>
             <textarea id="regAddress" rows="2" placeholder="House no, street, area, city…" required autocomplete="off"></textarea>
           </div>
-          <div class="field full-col">
-            <label for="regPhoto">Passport Size Photo <span class="req">*</span></label>
-            <input type="file" id="regPhoto" accept="image/*" style="width:100%;padding:12px;border:2px dashed #4CAF8A;border-radius:8px;background:#F5F9F8;font-size:1rem;cursor:pointer;box-sizing:border-box;margin-top:4px">
-            <div id="regPhotoPreview" style="margin-top:8px"></div>
-            <p class="form-msg" id="photoMsg"></p>
-          </div>
         </div>
         <div class="form-actions">
           <button type="submit" class="btn btn-primary" id="submitBtn">
-            Submit Registration <i class="fa-solid fa-paper-plane"></i>
+            Submit <i class="fa-solid fa-paper-plane"></i>
           </button>
           <button type="reset" class="btn btn-ghost">Clear Form</button>
         </div>
@@ -589,13 +584,6 @@
 <!-- ===== FOOTER ===== -->
 <footer class="footer">
   <div class="container footer-inner">
-    <div class="brand footer-brand">
-      <img src="images/logo.png" alt="Rising Hope Society" class="brand-mark">
-      <span class="brand-text">
-        <span class="brand-name">Rising Hope <em>Society</em></span>
-        <small>Khairpur Tamewali · Bahawalpur</small>
-      </span>
-    </div>
     <nav class="footer-links">
       <a href="#home">Home</a>
       <a href="#memberSection">Members</a>
@@ -604,12 +592,7 @@
       <a href="#team">Our Team</a>
       <a href="#contact">Contact</a>
     </nav>
-    <div class="footer-social">
-      <a href="https://wa.me/923464800064" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i></a>
-      <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-      <a href="#"><i class="fa-brands fa-instagram"></i></a>
-    </div>
-    <p class="copyright">© <span id="year"></span> Rising Hope Society — Khairpur Tamewali, Bahawalpur. All rights reserved.</p>
+    <p class="copyright" id="copyrightLine">© <span id="year"></span> Rising Hope Society — Khairpur Tamewali, Bahawalpur. All rights reserved.</p>
   </div>
 </footer>
 

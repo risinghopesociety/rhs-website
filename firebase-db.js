@@ -54,6 +54,8 @@ async function getNGOSettings() {
     ngoEmail: "risinghopesociety@gmail.com",
     bankAccount: "111111111111111",
     alertNumber: "0346-4800064",
+    logoUrl: "",
+    copyrightText: "Rising Hope Society — Khairpur Tamewali, Bahawalpur. All rights reserved.",
     ourTeamTitle: "Our Team",
     ourTeamMatter: "The volunteers and coordinators who keep Rising Hope Society moving forward."
   };
@@ -131,12 +133,6 @@ async function submitContactMessage(data) {
     read: false
   });
   return { success: true, message: "Message sent successfully!" };
-}
-
-async function deleteContactMessage(id) {
-  await waitForFB();
-  await fs().deleteDoc(fs().doc(db(), "contactMessages", id));
-  return { success: true };
 }
 
 async function getContactMessages() {
@@ -360,14 +356,17 @@ async function getCharityLedger(cnic, dob) {
   const memberSnaps = await fs().getDocs(memberQ);
   if (memberSnaps.empty) return { success: false, message: "No member found with these credentials." };
   const member = { id: memberSnaps.docs[0].id, ...memberSnaps.docs[0].data() };
-  // Only filter by cnic — no orderBy (avoids composite index requirement)
-  const donQ = fs().query(fs().collection(db(), "charityDonations"), fs().where("cnic", "==", cnicF));
+  // No orderBy — avoids composite index error
+  const donQ = fs().query(
+    fs().collection(db(), "charityDonations"),
+    fs().where("cnic", "==", cnicF)
+  );
   const donSnaps = await fs().getDocs(donQ);
   const donations = [];
   donSnaps.forEach(d => donations.push({ id: d.id, ...d.data() }));
   // Sort by date in JS (dd-mm-yyyy)
-  const p = s => { if(!s) return 0; const x=s.split("-"); return x.length===3?new Date(+x[2],+x[1]-1,+x[0]).getTime():0; };
-  donations.sort((a,b) => p(a.date) - p(b.date));
+  const parseDate = s => { if(!s) return 0; const p=s.split("-"); return p.length===3 ? new Date(+p[2],+p[1]-1,+p[0]).getTime() : 0; };
+  donations.sort((a,b) => parseDate(a.date) - parseDate(b.date));
   let total = 0;
   const donationsWithTotal = donations.map(d => { total += Number(d.amount)||0; return { ...d, runningTotal: total }; });
   return { success: true, member, donations: donationsWithTotal, total };
@@ -539,7 +538,8 @@ async function getCaseExpenses(crn) {
   await waitForFB();
   const q = fs().query(
     fs().collection(db(), "caseExpenses"),
-    fs().where("crn", "==", crn)
+    fs().where("crn", "==", crn),
+    fs().orderBy("date", "asc")
   );
   const snaps = await fs().getDocs(q);
   const expenses = [];
@@ -548,11 +548,6 @@ async function getCaseExpenses(crn) {
     const dd = d.data();
     total += Number(dd.amount) || 0;
     expenses.push({ id: d.id, ...dd });
-  });
-  // Sort by date in JS
-  expenses.sort((a,b) => {
-    const p = s => { if(!s) return 0; const x=s.split("-"); return x.length===3?new Date(+x[2],+x[1]-1,+x[0]).getTime():0; };
-    return p(a.date) - p(b.date);
   });
   return { success: true, expenses, total };
 }
@@ -727,7 +722,7 @@ window.RHS = {
   // Stats
   getAdminStats,
   // Messages
-  submitContactMessage, getContactMessages, deleteContactMessage,
+  submitContactMessage, getContactMessages,
   // Image
   uploadImage, imgUrl,
   // Utils
@@ -737,7 +732,7 @@ window.RHS = {
 console.log("✅ RHS Firebase DB Layer Ready!");
 
 // ============================================================
-// NEWS & STORIES (Firestore se)
+// NEWS & STORIES + SLIDES (Firestore)
 // ============================================================
 async function getNews() {
   await waitForFB();
@@ -747,9 +742,22 @@ async function getNews() {
     const news = [];
     snaps.forEach(d => news.push({ id: d.id, ...d.data() }));
     return { success: true, news };
-  } catch(e) {
-    return { success: true, news: [] };
-  }
+  } catch(e) { return { success: true, news: [] }; }
+}
+
+async function addNews(data) {
+  await waitForFB();
+  const ref = await fs().addDoc(fs().collection(db(), "news"), {
+    ...data,
+    createdAt: fs().serverTimestamp()
+  });
+  return { success: true, id: ref.id };
+}
+
+async function deleteNews(id) {
+  await waitForFB();
+  await fs().deleteDoc(fs().doc(db(), "news", id));
+  return { success: true };
 }
 
 async function getStories() {
@@ -760,13 +768,76 @@ async function getStories() {
     const stories = [];
     snaps.forEach(d => stories.push({ id: d.id, ...d.data() }));
     return { success: true, stories };
+  } catch(e) { return { success: true, stories: [] }; }
+}
+
+async function addStory(data) {
+  await waitForFB();
+  const ref = await fs().addDoc(fs().collection(db(), "stories"), {
+    ...data,
+    createdAt: fs().serverTimestamp()
+  });
+  return { success: true, id: ref.id };
+}
+
+async function deleteStory(id) {
+  await waitForFB();
+  await fs().deleteDoc(fs().doc(db(), "stories", id));
+  return { success: true };
+}
+
+// SLIDES
+async function getSlides() {
+  await waitForFB();
+  try {
+    const q = fs().query(fs().collection(db(), "slides"), fs().orderBy("order", "asc"));
+    const snaps = await fs().getDocs(q);
+    const slides = [];
+    snaps.forEach(d => slides.push({ id: d.id, ...d.data() }));
+    return { success: true, slides };
   } catch(e) {
-    return { success: true, stories: [] };
+    // If no order field, get all without orderBy
+    try {
+      const snaps2 = await fs().getDocs(fs().collection(db(), "slides"));
+      const slides = [];
+      snaps2.forEach(d => slides.push({ id: d.id, ...d.data() }));
+      return { success: true, slides };
+    } catch(e2) { return { success: true, slides: [] }; }
   }
 }
 
-// Add to RHS exports
-window.RHS.getNews = getNews;
-window.RHS.getStories = getStories;
+async function addSlide(data) {
+  await waitForFB();
+  const ref = await fs().addDoc(fs().collection(db(), "slides"), {
+    ...data,
+    createdAt: fs().serverTimestamp()
+  });
+  return { success: true, id: ref.id };
+}
 
-console.log("✅ News & Stories functions ready!");
+async function deleteSlide(id) {
+  await waitForFB();
+  await fs().deleteDoc(fs().doc(db(), "slides", id));
+  return { success: true };
+}
+
+// DELETE CONTACT MESSAGE
+async function deleteContactMessage(id) {
+  await waitForFB();
+  await fs().deleteDoc(fs().doc(db(), "contactMessages", id));
+  return { success: true };
+}
+
+// Add all to RHS exports
+window.RHS.getNews      = getNews;
+window.RHS.addNews      = addNews;
+window.RHS.deleteNews   = deleteNews;
+window.RHS.getStories   = getStories;
+window.RHS.addStory     = addStory;
+window.RHS.deleteStory  = deleteStory;
+window.RHS.getSlides    = getSlides;
+window.RHS.addSlide     = addSlide;
+window.RHS.deleteSlide  = deleteSlide;
+window.RHS.deleteContactMessage = deleteContactMessage;
+
+console.log("✅ All functions ready!");

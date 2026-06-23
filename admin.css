@@ -272,3 +272,20 @@ body{font-family:'Inter',sans-serif;background:#F0F4F3;color:var(--ink);margin:0
 
 /* ===== TEAM PHOTO PREVIEW ===== */
 #team-photo-preview img{width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--teal);}
+
+/* ===== TEAM ADMIN LIST — Mobile Friendly ===== */
+.team-admin-list { display: flex; flex-direction: column; gap: 10px; }
+.team-admin-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #F5F9F8;
+  border: 1px solid #E7DFD2;
+  border-radius: 12px;
+  padding: 12px 14px;
+  flex-wrap: nowrap;
+}
+@media (max-width: 480px) {
+  .team-admin-card { flex-wrap: wrap; }
+  .team-admin-card > div:last-child { width: 100%; justify-content: flex-end; }
+}

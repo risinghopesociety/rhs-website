@@ -4,28 +4,56 @@
 
 // NGO Settings defaults
 window.NGO = {
-  name: "Rising Hope Society",
-  phone: "0346-4800064",
-  address: "Khairpur Tamewali, Bahawalpur, Punjab, Pakistan",
-  email: "risinghopesociety@gmail.com",
-  bank: "111111111111111",
-  alert: "0346-4800064"
+  name:      "Rising Hope Society",
+  phone:     "0346-4800064",
+  address:   "Khairpur Tamewali, Bahawalpur, Punjab, Pakistan",
+  email:     "risinghopesociety@gmail.com",
+  bank:      "111111111111111",
+  alert:     "0346-4800064",
+  logoUrl:   "",
+  copyright: "Rising Hope Society — Khairpur Tamewali, Bahawalpur. All rights reserved."
 };
+
+function applyLogo(url) {
+  if (!url) return;
+  const ids = ["loginLogo","sidebarLogo"];
+  ids.forEach(id => { const el=document.getElementById(id); if(el) el.src=url; });
+  const prev = document.getElementById("currentLogoPreview");
+  if (prev) prev.src = url;
+}
 
 function loadNGOSettings() {
   if (!window.RHS) { setTimeout(loadNGOSettings, 500); return; }
   RHS.getNGOSettings().then(res => {
     if (!res) return;
     window.NGO = {
-      name:    res.ngoName    || window.NGO.name,
-      phone:   res.ngoPhone   || window.NGO.phone,
-      address: res.ngoAddress || window.NGO.address,
-      email:   res.ngoEmail   || window.NGO.email,
-      bank:    res.bankAccount|| window.NGO.bank,
-      alert:   res.alertNumber|| res.ngoPhone || window.NGO.alert
+      name:      res.ngoName      || window.NGO.name,
+      phone:     res.ngoPhone     || window.NGO.phone,
+      address:   res.ngoAddress   || window.NGO.address,
+      email:     res.ngoEmail     || window.NGO.email,
+      bank:      res.bankAccount  || window.NGO.bank,
+      alert:     res.alertNumber  || res.ngoPhone || window.NGO.alert,
+      logoUrl:   res.logoUrl      || "",
+      copyright: res.copyrightText|| window.NGO.copyright
     };
+    // Apply to all dynamic elements
     document.querySelectorAll(".ngo-name").forEach(el => el.textContent = window.NGO.name);
     document.querySelectorAll(".ngo-address").forEach(el => el.textContent = window.NGO.address);
+    const ln = document.getElementById("loginOrgName"); if(ln) ln.innerHTML = window.NGO.name.replace("Society","<em>Society</em>");
+    const la = document.getElementById("loginOrgAddr"); if(la) la.textContent = window.NGO.address;
+    const sn = document.getElementById("sidebarOrgName"); if(sn) sn.textContent = window.NGO.name.split(" ")[0]+" "+window.NGO.name.split(" ")[1];
+    applyLogo(window.NGO.logoUrl);
+    // Populate settings form
+    const setVal = (id,val) => { const el=document.getElementById(id); if(el&&val) el.value=val; };
+    setVal("set-ngoName",    res.ngoName);
+    setVal("set-ngoPhone",   res.ngoPhone);
+    setVal("set-ngoEmail",   res.ngoEmail);
+    setVal("set-alertNumber",res.alertNumber);
+    setVal("set-ngoAddress", res.ngoAddress);
+    setVal("set-bankAccount",res.bankAccount);
+    setVal("set-copyrightText", res.copyrightText);
+    setVal("set-ourTeamTitle",  res.ourTeamTitle);
+    setVal("set-ourTeamMatter", res.ourTeamMatter);
   }).catch(() => {});
 }
 
@@ -171,6 +199,11 @@ function showSetupSection(section, btn){
   const el = document.getElementById("setup-"+section);
   if(el) el.classList.remove("hidden");
   if(btn) btn.classList.add("active");
+  // Load data for section
+  if(section==="team")    loadTeamList();
+  if(section==="slides")  loadSlidesList();
+  if(section==="news")    loadNewsList();
+  if(section==="stories") loadStoriesList();
 }
 
 // ====== LOAD ALL SETUP DATA ======
@@ -211,25 +244,64 @@ function loadSetupData(){
 }
 
 // ====== SAVE ADMIN SETTINGS ======
-function saveAdminSettings(){
-  if(!window.RHS){return;}
-  const data={
-    ngoName:document.getElementById("set-ngoName")?.value||"",
-    ngoPhone:document.getElementById("set-ngoPhone")?.value||"",
-    ngoEmail:document.getElementById("set-ngoEmail")?.value||"",
-    alertNumber:document.getElementById("set-alertNumber")?.value||"",
-    ngoAddress:document.getElementById("set-ngoAddress")?.value||"",
-    bankAccount:document.getElementById("set-bankAccount")?.value||"",
-    ourTeamTitle:document.getElementById("set-ourTeamTitle")?.value||"",
-    ourTeamMatter:document.getElementById("set-ourTeamMatter")?.value||""
+async function saveAdminSettings(){
+  if(!window.RHS) return;
+  const btn = document.querySelector('#setup-adminSettings .btn-primary');
+  setLoading(btn, true, "Saving...");
+  showMsg("adminSettingsMsg","","");
+
+  // Logo upload if new file selected
+  let logoUrl = window.NGO.logoUrl || "";
+  const logoFile = document.getElementById("set-logoFile")?.files?.[0];
+  if (logoFile) {
+    showMsg("adminSettingsMsg","Uploading logo...","");
+    try {
+      const fd = new FormData();
+      fd.append("file", logoFile);
+      fd.append("upload_preset", "rhs-upload");
+      fd.append("folder", "rhs/logo");
+      const r = await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload", {method:"POST",body:fd});
+      const d = await r.json();
+      if (d.secure_url) logoUrl = d.secure_url;
+      else throw new Error(d.error?.message || "Upload failed");
+    } catch(err) {
+      setLoading(btn, false);
+      showMsg("adminSettingsMsg","❌ Logo upload failed: "+err.message,"error");
+      return;
+    }
+  }
+
+  const data = {
+    ngoName:       document.getElementById("set-ngoName")?.value       || "",
+    ngoPhone:      document.getElementById("set-ngoPhone")?.value      || "",
+    ngoEmail:      document.getElementById("set-ngoEmail")?.value      || "",
+    alertNumber:   document.getElementById("set-alertNumber")?.value   || "",
+    ngoAddress:    document.getElementById("set-ngoAddress")?.value    || "",
+    bankAccount:   document.getElementById("set-bankAccount")?.value   || "",
+    copyrightText: document.getElementById("set-copyrightText")?.value || "",
+    ourTeamTitle:  document.getElementById("set-ourTeamTitle")?.value  || "",
+    ourTeamMatter: document.getElementById("set-ourTeamMatter")?.value || "",
+    logoUrl:       logoUrl
   };
-  const btn=document.querySelector('#setup-adminSettings .btn-primary');
-  setLoading(btn,true,"Saving...");
-  RHS.saveNGOSettings(data).then(()=>{
-    setLoading(btn,false);
-    showMsg("adminSettingsMsg","✅ Settings saved!","success");
+
+  RHS.saveNGOSettings(data).then(() => {
+    setLoading(btn, false);
+    showMsg("adminSettingsMsg","✅ Settings saved successfully!","success");
     loadNGOSettings();
-  }).catch(()=>{setLoading(btn,false);showMsg("adminSettingsMsg","Failed to save.","error");});
+    // Reset logo file input
+    const lf = document.getElementById("set-logoFile"); if(lf) lf.value="";
+  }).catch(() => { setLoading(btn,false); showMsg("adminSettingsMsg","❌ Failed to save.","error"); });
+}
+
+// Logo preview
+function previewLogo(input) {
+  const file = input.files?.[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const prev = document.getElementById("currentLogoPreview");
+    if(prev) prev.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 // ====== SAVE STATISTICS ======
@@ -267,23 +339,20 @@ function saveContactSettings(){
 
 // ====== TEAM MANAGEMENT ======
 function previewTeamPhoto(input){
-  const file=input.files?.[0];
-  if(!file) return;
+  const file=input.files?.[0]; if(!file) return;
   const preview=document.getElementById("team-photo-preview");
   if(!preview) return;
   const reader=new FileReader();
-  reader.onload=e=>{
-    preview.innerHTML=`<img src="${e.target.result}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #14534F;display:block;margin:0 auto 6px"><span style="font-size:.8rem;color:#1a9e5c">✅ Photo selected</span>`;
-  };
+  reader.onload=e=>{preview.innerHTML=`<img src="${e.target.result}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #14534F;display:block;margin:0 auto 4px"><span style="font-size:.75rem;color:#1a9e5c">✅ Photo selected</span>`;};
   reader.readAsDataURL(file);
 }
 
 async function addTeamMember(){
-  if(!window.RHS){return;}
-  const name=document.getElementById("team-name")?.value.trim();
-  const desig=document.getElementById("team-designation")?.value.trim();
-  const order=Number(document.getElementById("team-order")?.value)||99;
-  const bio=document.getElementById("team-bio")?.value.trim()||"";
+  if(!window.RHS) return;
+  const name  = document.getElementById("team-name")?.value.trim();
+  const desig = document.getElementById("team-designation")?.value.trim();
+  const order = Number(document.getElementById("team-order")?.value)||99;
+  const bio   = document.getElementById("team-bio")?.value.trim()||"";
   if(!name||!desig){showMsg("teamMsg","Name and Designation required.","error");return;}
   const btn=document.querySelector('#setup-team .btn-primary');
   setLoading(btn,true,"Adding...");
@@ -291,25 +360,18 @@ async function addTeamMember(){
   const photoFile=document.getElementById("team-photo")?.files?.[0];
   if(photoFile){
     try{
-      // Direct Cloudinary upload
-      const fd=new FormData();
-      fd.append("file",photoFile);
-      fd.append("upload_preset","rhs-upload");
-      fd.append("folder","rhs/team");
+      const fd=new FormData(); fd.append("file",photoFile); fd.append("upload_preset","rhs-upload"); fd.append("folder","rhs/team");
       const r=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
-      const d=await r.json();
-      if(d.secure_url)photoUrl=d.secure_url;
-    }catch(e){showMsg("teamMsg","⚠️ Photo upload failed, saving without photo.","error");}
+      const d=await r.json(); if(d.secure_url) photoUrl=d.secure_url;
+    }catch(e){}
   }
   RHS.addTeamMember({name,designation:desig,order,bio,photo:photoUrl}).then(()=>{
     setLoading(btn,false);
     showMsg("teamMsg","✅ Team member added!","success");
-    document.getElementById("team-name").value="";
-    document.getElementById("team-designation").value="";
-    document.getElementById("team-bio").value="";
-    document.getElementById("team-order").value="";
-    const pp=document.getElementById("team-photo-preview");if(pp)pp.innerHTML="";
-    const ph=document.getElementById("team-photo");if(ph)ph.value="";
+    ["team-name","team-designation","team-bio","team-order"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+    const prev=document.getElementById("team-photo-preview");
+    if(prev)prev.innerHTML=`<i class="fa fa-camera" style="color:#4CAF8A;font-size:1.5rem;display:block;margin-bottom:6px"></i><span style="color:#14534F;font-size:.88rem">Tap to select photo</span>`;
+    const tf=document.getElementById("team-photo"); if(tf) tf.value="";
     loadTeamList();
   }).catch(()=>{setLoading(btn,false);showMsg("teamMsg","Failed.","error");});
 }
@@ -321,161 +383,106 @@ function loadTeamList(){
   wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i></div>';
   RHS.getTeam().then(res=>{
     if(!res.team||!res.team.length){wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:20px">No team members yet.</p>';return;}
-    let html='<table class="data-table"><thead><tr><th>Photo</th><th>Name</th><th>Designation</th><th>Order</th><th>Actions</th></tr></thead><tbody>';
+    // Mobile-friendly card layout
+    let html='<div class="team-admin-list">';
     res.team.forEach(m=>{
-      html+=`<tr>
-        <td>${m.photo?`<img src="${m.photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover">`:"—"}</td>
-        <td><strong>${escHtml(m.name)}</strong></td>
-        <td>${escHtml(m.designation)}</td>
-        <td>${m.order||"—"}</td>
-        <td style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn btn-sm" style="background:#14534F;color:#fff" onclick="openEditTeam('${m.id}','${escHtml(m.name)}','${escHtml(m.designation)}',${m.order||99},'${escHtml(m.bio||"")}','${m.photo||""}')">
+      const photo = m.photo ? `<img src="${m.photo}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid #4CAF8A;flex-shrink:0">` : `<div style="width:48px;height:48px;border-radius:50%;background:#EEF8F1;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa fa-user" style="color:#8A9A96"></i></div>`;
+      html+=`<div class="team-admin-card">
+        <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
+          ${photo}
+          <div style="min-width:0">
+            <div style="font-weight:600;color:#14534F;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(m.name)}</div>
+            <div style="font-size:.82rem;color:#8A9A96">${escHtml(m.designation)} · Order: ${m.order||"—"}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button class="btn btn-sm" style="background:#14534F;color:#fff;padding:6px 10px" onclick="openEditTeam('${m.id}','${escHtml(m.name)}','${escHtml(m.designation)}',${m.order||99},'${escHtml(m.bio||"")}','${m.photo||""}')">
             <i class="fa fa-edit"></i> Edit
           </button>
-          <button class="btn btn-sm btn-reject" onclick="deleteTeamMember('${m.id}','${escHtml(m.name)}')">
+          <button class="btn btn-sm btn-reject" style="padding:6px 10px" onclick="deleteTeamMember('${m.id}','${escHtml(m.name)}')">
             <i class="fa fa-trash"></i>
           </button>
-        </td>
-      </tr>`;
+        </div>
+      </div>`;
     });
-    html+='</tbody></table>';
+    html+='</div>';
     wrap.innerHTML=html;
   }).catch(()=>{wrap.innerHTML='<p style="color:#D9483A">Failed to load team.</p>';});
 }
 
 function deleteTeamMember(id,name){
   if(!confirm(`Delete "${name}" from team?`)) return;
-  RHS.deleteTeamMember(id).then(()=>{
-    loadTeamList();
-    showMsg("teamMsg","✅ Member deleted.","success");
-  }).catch(()=>showMsg("teamMsg","Failed to delete.","error"));
+  if(!window.RHS) return;
+  RHS.deleteTeamMember(id).then(()=>{loadTeamList();showMsg("teamMsg","✅ Member deleted.","success");})
+  .catch(()=>showMsg("teamMsg","Failed to delete.","error"));
 }
 
-/* TEAM EDIT — opens edit modal */
 function openEditTeam(id,name,desig,order,bio,photo){
-  // Remove existing modal if any
-  const ex=document.getElementById("teamEditModal");if(ex)ex.remove();
-
-  const overlay=document.createElement("div");
-  overlay.id="teamEditModal";
-  overlay.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;";
-  overlay.innerHTML=`
-    <div style="background:#fff;border-radius:16px;padding:28px;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-        <h3 style="margin:0;font-family:'Fraunces',serif;color:#14534F"><i class="fa fa-edit"></i> Edit Team Member</h3>
-        <button onclick="closeEditTeam()" style="background:none;border:none;font-size:1.4rem;color:#9CA3AF;cursor:pointer">✕</button>
-      </div>
-
-      ${photo?`<div style="text-align:center;margin-bottom:16px"><img src="${photo}" style="width:70px;height:70px;border-radius:50%;object-fit:cover;border:3px solid #14534F"></div>`:""}
-
-      <div class="form-grid" style="gap:12px">
-        <div class="field" style="grid-column:1/-1">
-          <label>Full Name <span class="req">*</span></label>
-          <input type="text" id="etName" value="${name}" placeholder="Full Name">
-        </div>
-        <div class="field" style="grid-column:1/-1">
-          <label>Designation <span class="req">*</span></label>
-          <input type="text" id="etDesig" value="${desig}" placeholder="e.g. President">
-        </div>
-        <div class="field">
-          <label>Display Order</label>
-          <input type="number" id="etOrder" value="${order}" min="1" placeholder="1">
-        </div>
-        <div class="field" style="grid-column:1/-1">
-          <label>Bio / Description</label>
-          <textarea id="etBio" rows="3" placeholder="Short bio...">${bio}</textarea>
-        </div>
-        <div class="field" style="grid-column:1/-1">
-          <label>Update Photo <small>(optional)</small></label>
-          <label for="etPhoto" style="display:block;border:2px dashed #4CAF8A;border-radius:10px;padding:16px;text-align:center;cursor:pointer;background:#F5F9F8;position:relative">
-            <input type="file" id="etPhoto" accept="image/*" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:5">
-            <div id="etPhotoPreview" style="pointer-events:none">
-              <i class="fa fa-camera" style="font-size:1.5rem;color:#4CAF8A;display:block;margin-bottom:6px"></i>
-              <span style="font-size:.85rem;color:#14534F">Tap to change photo</span>
-            </div>
-          </label>
-        </div>
-      </div>
-
-      <p class="form-msg" id="etMsg" style="margin:10px 0"></p>
-
-      <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end">
-        <button class="btn btn-ghost" onclick="closeEditTeam()">Cancel</button>
-        <button class="btn btn-primary" id="etSaveBtn" onclick="saveEditTeam('${id}','${photo}')">
-          <i class="fa fa-save"></i> Save Changes
-        </button>
-      </div>
-    </div>`;
-
-  document.body.appendChild(overlay);
-
-  // Photo preview in edit modal
-  const etPhoto=document.getElementById("etPhoto");
-  if(etPhoto){
-    etPhoto.addEventListener("change",function(){
-      const file=this.files[0];if(!file)return;
-      const rd=new FileReader();
-      rd.onload=e=>{
-        const prev=document.getElementById("etPhotoPreview");
-        if(prev)prev.innerHTML=`<img src="${e.target.result}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #14534F;display:block;margin:0 auto">`;
-      };
-      rd.readAsDataURL(file);
-    });
-  }
-
-  overlay.addEventListener("click",e=>{if(e.target===overlay)closeEditTeam();});
-}
-
-function closeEditTeam(){
-  const m=document.getElementById("teamEditModal");if(m)m.remove();
+  const ex=document.getElementById("teamEditModal"); if(ex) ex.remove();
+  const ov=document.createElement("div");
+  ov.id="teamEditModal";
+  ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;overflow-y:auto";
+  ov.innerHTML=`<div style="background:#fff;border-radius:16px;padding:24px;max-width:460px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <h3 style="margin:0;font-family:'Fraunces',serif;color:#14534F"><i class="fa fa-edit"></i> Edit Team Member</h3>
+      <button onclick="document.getElementById('teamEditModal').remove()" style="background:none;border:none;font-size:1.4rem;color:#9CA3AF;cursor:pointer">✕</button>
+    </div>
+    ${photo?`<div style="text-align:center;margin-bottom:14px"><img src="${photo}" style="width:70px;height:70px;border-radius:50%;object-fit:cover;border:3px solid #14534F"></div>`:""}
+    <div class="field" style="margin-bottom:12px"><label>Full Name *</label><input type="text" id="etName" value="${escHtml(name)}" style="width:100%;padding:10px;border:1.5px solid #D1D5DB;border-radius:8px;box-sizing:border-box"></div>
+    <div class="field" style="margin-bottom:12px"><label>Designation *</label><input type="text" id="etDesig" value="${escHtml(desig)}" style="width:100%;padding:10px;border:1.5px solid #D1D5DB;border-radius:8px;box-sizing:border-box"></div>
+    <div class="field" style="margin-bottom:12px"><label>Order</label><input type="number" id="etOrder" value="${order}" style="width:100%;padding:10px;border:1.5px solid #D1D5DB;border-radius:8px;box-sizing:border-box"></div>
+    <div class="field" style="margin-bottom:12px"><label>Bio</label><textarea id="etBio" rows="3" style="width:100%;padding:10px;border:1.5px solid #D1D5DB;border-radius:8px;box-sizing:border-box;resize:vertical">${escHtml(bio)}</textarea></div>
+    <div class="field" style="margin-bottom:16px">
+      <label>Update Photo <small>(optional)</small></label>
+      <label for="etPhoto" style="display:block;padding:12px;background:#F5F9F8;border:2px dashed #4CAF8A;border-radius:8px;cursor:pointer;text-align:center;position:relative;margin-top:6px">
+        <input type="file" id="etPhoto" accept="image/*" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer">
+        <div id="etPhotoPreview"><i class="fa fa-camera" style="color:#4CAF8A"></i> Tap to change photo</div>
+      </label>
+    </div>
+    <p class="form-msg" id="etMsg"></p>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-ghost" onclick="document.getElementById('teamEditModal').remove()">Cancel</button>
+      <button class="btn btn-primary" id="etSaveBtn" onclick="saveEditTeam('${id}','${photo}')"><i class="fa fa-save"></i> Save</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  document.getElementById("etPhoto")?.addEventListener("change",function(){
+    const f=this.files[0]; if(!f) return;
+    const r=new FileReader(); r.onload=e=>{document.getElementById("etPhotoPreview").innerHTML=`<img src="${e.target.result}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;border:2px solid #14534F;display:block;margin:0 auto">`;};
+    r.readAsDataURL(f);
+  });
+  ov.addEventListener("click",e=>{if(e.target===ov)ov.remove();});
 }
 
 async function saveEditTeam(id,oldPhoto){
-  const name=document.getElementById("etName")?.value.trim();
-  const desig=document.getElementById("etDesig")?.value.trim();
-  const order=Number(document.getElementById("etOrder")?.value)||99;
-  const bio=document.getElementById("etBio")?.value.trim()||"";
-  const msg=document.getElementById("etMsg");
-  const btn=document.getElementById("etSaveBtn");
-
+  const name  = document.getElementById("etName")?.value.trim();
+  const desig = document.getElementById("etDesig")?.value.trim();
+  const order = Number(document.getElementById("etOrder")?.value)||99;
+  const bio   = document.getElementById("etBio")?.value.trim()||"";
+  const msg   = document.getElementById("etMsg");
+  const btn   = document.getElementById("etSaveBtn");
   if(!name||!desig){if(msg){msg.textContent="⚠️ Name and Designation required.";msg.className="form-msg error";}return;}
-
   setLoading(btn,true,"Saving...");
-  if(msg){msg.textContent="";msg.className="form-msg";}
-
   let photoUrl=oldPhoto||"";
   const photoFile=document.getElementById("etPhoto")?.files?.[0];
   if(photoFile){
     if(msg){msg.textContent="Uploading photo...";msg.className="form-msg";}
     try{
-      const fd=new FormData();
-      fd.append("file",photoFile);
-      fd.append("upload_preset","rhs-upload");
-      fd.append("folder","rhs/team");
+      const fd=new FormData(); fd.append("file",photoFile); fd.append("upload_preset","rhs-upload"); fd.append("folder","rhs/team");
       const r=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
-      const d=await r.json();
-      if(d.secure_url)photoUrl=d.secure_url;
-      else throw new Error(d.error?.message||"Upload failed");
-    }catch(e){
-      setLoading(btn,false);
-      if(msg){msg.textContent="⚠️ Photo upload failed: "+e.message;msg.className="form-msg error";}
-      return;
-    }
+      const d=await r.json(); if(d.secure_url) photoUrl=d.secure_url; else throw new Error(d.error?.message||"Failed");
+    }catch(e){setLoading(btn,false);if(msg){msg.textContent="❌ Photo upload failed: "+e.message;msg.className="form-msg error";}return;}
   }
-
   if(!window.RHS){setLoading(btn,false);return;}
   RHS.updateTeamMember(id,{name,designation:desig,order,bio,photo:photoUrl}).then(()=>{
     setLoading(btn,false);
-    closeEditTeam();
+    document.getElementById("teamEditModal")?.remove();
     loadTeamList();
-    showMsg("teamMsg","✅ Team member updated successfully!","success");
-  }).catch(()=>{
-    setLoading(btn,false);
-    if(msg){msg.textContent="❌ Failed to save. Please try again.";msg.className="form-msg error";}
-  });
+    showMsg("teamMsg","✅ Team member updated!","success");
+  }).catch(()=>{setLoading(btn,false);if(msg){msg.textContent="❌ Failed to save.";msg.className="form-msg error";}});
 }
 
-// ====== MESSAGES ======
+// ====== MESSAGES — with delete button ======
 function loadMessages(){
   if(!window.RHS){setTimeout(loadMessages,500);return;}
   const wrap=document.getElementById("messagesWrap");
@@ -488,11 +495,16 @@ function loadMessages(){
     }
     let html='';
     res.messages.forEach(m=>{
-      const date=m.createdAt?.toDate?m.createdAt.toDate().toLocaleDateString("en-PK"):"—";
-      html+=`<div class="message-card">
+      const date=m.createdAt?.toDate?m.createdAt.toDate().toLocaleDateString("en-PK"):(m.createdAt||"—");
+      html+=`<div class="message-card" id="msgCard_${m.id}">
         <div class="msg-header">
           <span class="msg-name"><i class="fa fa-user"></i> ${escHtml(m.name||"")}</span>
-          <span class="msg-date">${date}</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="msg-date">${date}</span>
+            <button onclick="deleteMessage('${m.id}')" style="background:#FEF2F2;color:#DC2626;border:1px solid #DC2626;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:.78rem">
+              <i class="fa fa-trash"></i> Delete
+            </button>
+          </div>
         </div>
         <div class="msg-email"><i class="fa fa-envelope"></i> ${escHtml(m.email||"")}</div>
         <div class="msg-text">${escHtml(m.message||"")}</div>
@@ -500,6 +512,197 @@ function loadMessages(){
     });
     wrap.innerHTML=html;
   }).catch(()=>{wrap.innerHTML='<div class="empty-state">Failed to load messages.</div>';});
+}
+
+function deleteMessage(id){
+  if(!confirm("Delete this message?")) return;
+  if(!window.RHS) return;
+  RHS.deleteContactMessage(id).then(res=>{
+    if(res.success){
+      const card=document.getElementById("msgCard_"+id); if(card) card.remove();
+      const wrap=document.getElementById("messagesWrap");
+      if(wrap&&!wrap.querySelector(".message-card")) wrap.innerHTML='<div class="empty-state"><i class="fa fa-envelope"></i><p>No messages yet.</p></div>';
+    }
+  }).catch(()=>alert("Failed to delete."));
+}
+
+// ====== SLIDES ======
+function previewSlideImage(input){
+  const file=input.files?.[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const prev=document.getElementById("slideImagePreview");
+    if(prev) prev.innerHTML=`<img src="${e.target.result}" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;display:block">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function addSlide(){
+  if(!window.RHS) return;
+  const title = document.getElementById("slide-title")?.value.trim()||"";
+  const order = Number(document.getElementById("slide-order")?.value)||1;
+  const imgFile = document.getElementById("slide-image")?.files?.[0];
+  if(!imgFile){showMsg("slideMsg","⚠️ Please select a slide image","error");return;}
+  const btn=document.querySelector('#setup-slides .btn-primary');
+  setLoading(btn,true,"Uploading...");
+  try{
+    const fd=new FormData(); fd.append("file",imgFile); fd.append("upload_preset","rhs-upload"); fd.append("folder","rhs/slides");
+    const r=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
+    const d=await r.json();
+    if(!d.secure_url) throw new Error(d.error?.message||"Upload failed");
+    await RHS.addSlide({title,order,imageUrl:d.secure_url});
+    setLoading(btn,false);
+    showMsg("slideMsg","✅ Slide added!","success");
+    document.getElementById("slide-title").value="";
+    document.getElementById("slide-order").value="1";
+    const si=document.getElementById("slide-image"); if(si) si.value="";
+    const prev=document.getElementById("slideImagePreview");
+    if(prev) prev.innerHTML=`<i class="fa fa-image" style="font-size:2rem;color:#4CAF8A;display:block;margin-bottom:8px"></i><span style="color:#14534F;font-size:.9rem">Tap to select slide image</span>`;
+    loadSlidesList();
+  }catch(err){setLoading(btn,false);showMsg("slideMsg","❌ "+err.message,"error");}
+}
+
+function loadSlidesList(){
+  if(!window.RHS){setTimeout(loadSlidesList,500);return;}
+  const wrap=document.getElementById("slidesListWrap"); if(!wrap) return;
+  wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i></div>';
+  RHS.getSlides().then(res=>{
+    if(!res.slides||!res.slides.length){wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:16px">No slides yet. Add your first slide above.</p>';return;}
+    let html='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:8px">';
+    res.slides.forEach(s=>{
+      html+=`<div style="background:#F5F9F8;border-radius:10px;overflow:hidden;border:1px solid #E7DFD2">
+        <img src="${s.imageUrl}" style="width:100%;height:120px;object-fit:cover" loading="lazy">
+        <div style="padding:10px">
+          <div style="font-size:.85rem;font-weight:600;color:#14534F">${escHtml(s.title||"Slide")}</div>
+          <div style="font-size:.75rem;color:#8A9A96;margin-bottom:8px">Order: ${s.order||"—"}</div>
+          <button onclick="deleteSlideItem('${s.id}')" class="btn btn-sm btn-reject" style="width:100%"><i class="fa fa-trash"></i> Delete</button>
+        </div>
+      </div>`;
+    });
+    html+='</div>';
+    wrap.innerHTML=html;
+  }).catch(()=>{wrap.innerHTML='<p style="color:#D9483A">Failed to load slides.</p>';});
+}
+
+function deleteSlideItem(id){
+  if(!confirm("Delete this slide?")) return;
+  if(!window.RHS) return;
+  RHS.deleteSlide(id).then(()=>loadSlidesList()).catch(()=>alert("Failed."));
+}
+
+// ====== NEWS FEED ======
+async function addNewsItem(){
+  if(!window.RHS) return;
+  const title    = document.getElementById("news-title")?.value.trim();
+  const category = document.getElementById("news-category")?.value.trim()||"News";
+  const date     = document.getElementById("news-date")?.value.trim()||"";
+  const body     = document.getElementById("news-body")?.value.trim();
+  let imageURL   = document.getElementById("news-imageURL")?.value.trim()||"";
+  if(!title||!body){showMsg("newsMsg","⚠️ Title and Content required","error");return;}
+  const btn=document.querySelector('#setup-news .btn-primary');
+  setLoading(btn,true,"Saving...");
+  // Upload image if file selected
+  const imgFile=document.getElementById("news-imageFile")?.files?.[0];
+  if(imgFile){
+    try{
+      const fd=new FormData(); fd.append("file",imgFile); fd.append("upload_preset","rhs-upload"); fd.append("folder","rhs/news");
+      const r=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
+      const d=await r.json(); if(d.secure_url) imageURL=d.secure_url;
+    }catch(e){}
+  }
+  RHS.addNews({title,category,date,body,imageURL}).then(()=>{
+    setLoading(btn,false);
+    showMsg("newsMsg","✅ News added!","success");
+    ["news-title","news-category","news-date","news-body","news-imageURL"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+    const nf=document.getElementById("news-imageFile"); if(nf) nf.value="";
+    document.getElementById("newsImagePreview").innerHTML="";
+    loadNewsList();
+  }).catch(()=>{setLoading(btn,false);showMsg("newsMsg","❌ Failed","error");});
+}
+
+function loadNewsList(){
+  if(!window.RHS){setTimeout(loadNewsList,500);return;}
+  const wrap=document.getElementById("newsListWrap"); if(!wrap) return;
+  wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i></div>';
+  RHS.getNews().then(res=>{
+    if(!res.news||!res.news.length){wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:16px">No news yet.</p>';return;}
+    let html='';
+    res.news.forEach(n=>{
+      html+=`<div style="background:#F5F9F8;border-radius:10px;padding:14px;margin-bottom:10px;border:1px solid #E7DFD2;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
+        ${n.imageURL?`<img src="${n.imageURL}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;flex-shrink:0" loading="lazy">`:""}
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;color:#14534F">${escHtml(n.title||"")}</div>
+          <div style="font-size:.78rem;color:#8A9A96">${escHtml(n.category||"")} · ${n.date||""}</div>
+          <div style="font-size:.85rem;color:#4A5C58;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(n.body||"")}</div>
+        </div>
+        <button onclick="deleteNewsItem('${n.id}')" class="btn btn-sm btn-reject" style="flex-shrink:0"><i class="fa fa-trash"></i></button>
+      </div>`;
+    });
+    wrap.innerHTML=html;
+  }).catch(()=>{wrap.innerHTML='<p style="color:#D9483A">Failed to load news.</p>';});
+}
+
+function deleteNewsItem(id){
+  if(!confirm("Delete this news?")) return;
+  if(!window.RHS) return;
+  RHS.deleteNews(id).then(()=>loadNewsList()).catch(()=>alert("Failed."));
+}
+
+// ====== IMPACT STORIES ======
+async function addStoryItem(){
+  if(!window.RHS) return;
+  const name     = document.getElementById("story-name")?.value.trim();
+  const category = document.getElementById("story-category")?.value.trim()||"Story";
+  const location = document.getElementById("story-location")?.value.trim()||"Khairpur Tamewali";
+  const story    = document.getElementById("story-text")?.value.trim();
+  if(!name||!story){showMsg("storyMsg","⚠️ Name and Story required","error");return;}
+  const btn=document.querySelector('#setup-stories .btn-primary');
+  setLoading(btn,true,"Saving...");
+  let photoUrl="";
+  const imgFile=document.getElementById("story-imageFile")?.files?.[0];
+  if(imgFile){
+    try{
+      const fd=new FormData(); fd.append("file",imgFile); fd.append("upload_preset","rhs-upload"); fd.append("folder","rhs/stories");
+      const r=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
+      const d=await r.json(); if(d.secure_url) photoUrl=d.secure_url;
+    }catch(e){}
+  }
+  RHS.addStory({name,category,location,story,photoURL:photoUrl}).then(()=>{
+    setLoading(btn,false);
+    showMsg("storyMsg","✅ Story added!","success");
+    ["story-name","story-category","story-location","story-text"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+    const sf=document.getElementById("story-imageFile"); if(sf) sf.value="";
+    document.getElementById("storyImagePreview").innerHTML=`<i class="fa fa-image" style="font-size:1.5rem;color:#4CAF8A;display:block;margin-bottom:6px"></i><span style="color:#14534F;font-size:.88rem">Tap to upload photo</span>`;
+    loadStoriesList();
+  }).catch(()=>{setLoading(btn,false);showMsg("storyMsg","❌ Failed","error");});
+}
+
+function loadStoriesList(){
+  if(!window.RHS){setTimeout(loadStoriesList,500);return;}
+  const wrap=document.getElementById("storiesListWrap"); if(!wrap) return;
+  wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i></div>';
+  RHS.getStories().then(res=>{
+    if(!res.stories||!res.stories.length){wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:16px">No stories yet.</p>';return;}
+    let html='';
+    res.stories.forEach(s=>{
+      html+=`<div style="background:#F5F9F8;border-radius:10px;padding:14px;margin-bottom:10px;border:1px solid #E7DFD2;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
+        ${s.photoURL?`<img src="${s.photoURL}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;flex-shrink:0" loading="lazy">`:""}
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;color:#14534F">${escHtml(s.name||"")}</div>
+          <div style="font-size:.78rem;color:#8A9A96">${escHtml(s.category||"")} · ${escHtml(s.location||"")}</div>
+          <div style="font-size:.85rem;color:#4A5C58;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(s.story||"")}</div>
+        </div>
+        <button onclick="deleteStoryItem('${s.id}')" class="btn btn-sm btn-reject" style="flex-shrink:0"><i class="fa fa-trash"></i></button>
+      </div>`;
+    });
+    wrap.innerHTML=html;
+  }).catch(()=>{wrap.innerHTML='<p style="color:#D9483A">Failed to load stories.</p>';});
+}
+
+function deleteStoryItem(id){
+  if(!confirm("Delete this story?")) return;
+  if(!window.RHS) return;
+  RHS.deleteStory(id).then(()=>loadStoriesList()).catch(()=>alert("Failed."));
 }
 
 function setDefaultDates(){
