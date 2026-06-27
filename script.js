@@ -1170,9 +1170,82 @@ document.addEventListener("DOMContentLoaded", () => {
               vibe = "status-yellow"; icon = "fa-clipboard-check";
 
             } else if (d === "approved" && s !== "closed") {
-              msg = `Dear <strong>${g.name}</strong>, Congratulations! Case <strong>${g.crn}</strong> has been Approved. Our team will contact you shortly.<br>
-                     📞 <a href="tel:+92${window.NGO.alert.replace(/\D/g,'').slice(-10)}" style="color:inherit;font-weight:600">${window.NGO.alert}</a>`;
-              vibe = "status-green"; icon = "fa-circle-check";
+              // ---- SPECIAL APPROVED CARD (rendered inline, skips default card) ----
+              html += `
+                <div style="
+                  background: linear-gradient(135deg, #e8f8f0 0%, #d0f0e0 50%, #e8f8f0 100%);
+                  border: 2px solid #2E9E5B;
+                  border-radius: 18px;
+                  padding: 32px 28px 24px;
+                  text-align: center;
+                  margin-bottom: 16px;
+                  box-shadow: 0 4px 24px rgba(46,158,91,0.13);
+                  position: relative;
+                  overflow: hidden;
+                ">
+                  <!-- confetti dots decoration -->
+                  <div style="position:absolute;top:12px;left:18px;font-size:1.3rem;opacity:.5">🎉</div>
+                  <div style="position:absolute;top:12px;right:18px;font-size:1.3rem;opacity:.5">🎊</div>
+                  <div style="position:absolute;bottom:14px;left:24px;font-size:1rem;opacity:.35">✨</div>
+                  <div style="position:absolute;bottom:14px;right:24px;font-size:1rem;opacity:.35">✨</div>
+
+                  <!-- Big check icon -->
+                  <div style="
+                    width: 72px; height: 72px; border-radius: 50%;
+                    background: linear-gradient(135deg,#2E9E5B,#4CAF8A);
+                    display: flex; align-items: center; justify-content: center;
+                    margin: 0 auto 16px; box-shadow: 0 4px 16px rgba(46,158,91,0.35);
+                  ">
+                    <i class="fa-solid fa-circle-check" style="font-size:2rem;color:#fff"></i>
+                  </div>
+
+                  <!-- Congratulations heading -->
+                  <div style="font-size:1.05rem;font-weight:700;letter-spacing:.08em;color:#2E9E5B;text-transform:uppercase;margin-bottom:6px">
+                    🎉 Congratulations! 🎉
+                  </div>
+                  <div style="font-size:1.5rem;font-weight:800;color:#14534F;margin-bottom:4px;font-family:'Fraunces',Georgia,serif">
+                    Case Approved
+                  </div>
+
+                  <!-- Divider -->
+                  <div style="width:60px;height:3px;background:linear-gradient(90deg,#2E9E5B,#4CAF8A);border-radius:2px;margin:12px auto 18px"></div>
+
+                  <!-- CRN badge -->
+                  <div style="
+                    display:inline-block;background:#fff;border:1.5px solid #2E9E5B55;
+                    border-radius:20px;padding:5px 18px;font-size:.85rem;
+                    color:#2E9E5B;font-weight:700;letter-spacing:.04em;margin-bottom:18px;
+                  ">
+                    <i class="fa-solid fa-hashtag" style="font-size:.75rem"></i> ${g.crn} &nbsp;·&nbsp; ${g.helpType || "Grant"}
+                  </div>
+
+                  <!-- Main message -->
+                  <p style="font-size:1rem;color:#1a4a38;line-height:1.8;margin:0 0 10px">
+                    Dear <strong style="color:#14534F">${g.name}</strong>,<br>
+                    We are pleased to inform you that your grant request has been
+                    <strong style="color:#2E9E5B">officially approved</strong>.
+                    Please wait for the grant disbursement — our team will contact you
+                    very soon to complete the process. 🤝
+                  </p>
+
+                  <!-- Applied / Amount note -->
+                  <p style="font-size:.84rem;color:#4a7a62;margin:10px 0 18px;background:#fff8;border-radius:8px;padding:7px 14px;display:inline-block">
+                    📅 Applied: <strong>${g.timestamp}</strong> &nbsp;•&nbsp; 💰 Rs. <strong>${amt}</strong>
+                  </p>
+
+                  <!-- Contact line -->
+                  <div style="font-size:.9rem;color:#2d6e50;margin-bottom:6px">
+                    For any query, feel free to contact us:
+                  </div>
+                  <div style="font-size:.92rem;font-weight:600;color:#14534F">
+                    📞 <a href="tel:+92${window.NGO.alert.replace(/\D/g,'').slice(-10)}" style="color:#14534F;text-decoration:none">${window.NGO.alert}</a>
+                    &nbsp;|&nbsp;
+                    📧 <a href="mailto:${window.NGO.email}" style="color:#14534F;text-decoration:none">${window.NGO.email}</a>
+                  </div>
+                </div>`;
+              // skip default card rendering for this grant
+              return;
+              // ---- END SPECIAL APPROVED CARD ----
 
             } else if (d === "rejected" && s !== "closed") {
               msg = `Dear <strong>${g.name}</strong>, Case <strong>${g.crn}</strong> has been Rejected. Please visit our office or meet the President.<br>
