@@ -427,13 +427,13 @@ function loadMembers(filter,btn){
 }
 
 // Quick status change from table row buttons
-function quickStatus(row, status, name){
+function quickStatus(id, status, name){
   if(!confirm(`Change ${name} status to "${status}"?`)) return;
   if(!window.RHS) return;
-  RHS.updateMemberStatus(row, status).then(res=>{
+  RHS.updateMemberStatus(id, status).then(res=>{
     if(res.success){ loadMembers(currentMemberFilter); loadAdminStats(); }
     else alert(res.message||"Failed to update status.");
-  }).catch(()=>alert("Network error."));
+  }).catch(()=>alert("Network error. Please check your connection."));
 }
 
 function statusBadge(status){
@@ -490,20 +490,21 @@ function viewMember(m){
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
       ${(()=>{
         const s=(m.status||"").toLowerCase();
+        const docId = m.id || m.row;
         let btns="";
-        if(s==="underprocess"||s==="under process"){
-          btns+=`<button class="btn btn-approve btn-sm" onclick="changeMemberStatus(${m.row},'Active')"><i class="fa fa-check"></i> Approve → Active</button>`;
-          btns+=`<button class="btn btn-ban btn-sm" onclick="changeMemberStatus(${m.row},'Expired')"><i class="fa fa-clock"></i> Mark Expired</button>`;
-          btns+=`<button class="btn btn-reject btn-sm" onclick="changeMemberStatus(${m.row},'Banned')"><i class="fa fa-ban"></i> Ban</button>`;
+        if(s==="underprocess"||s==="under process"||s==="pending"){
+          btns+=`<button class="btn btn-approve btn-sm" onclick="changeMemberStatus('${docId}','Active')"><i class="fa fa-check"></i> Approve → Active</button>`;
+          btns+=`<button class="btn btn-ban btn-sm" onclick="changeMemberStatus('${docId}','Expired')"><i class="fa fa-clock"></i> Mark Expired</button>`;
+          btns+=`<button class="btn btn-reject btn-sm" onclick="changeMemberStatus('${docId}','Banned')"><i class="fa fa-ban"></i> Ban</button>`;
         } else if(s==="active"){
-          btns+=`<button class="btn btn-ban btn-sm" onclick="changeMemberStatus(${m.row},'Expired')"><i class="fa fa-clock"></i> Mark Expired</button>`;
-          btns+=`<button class="btn btn-reject btn-sm" onclick="changeMemberStatus(${m.row},'Banned')"><i class="fa fa-ban"></i> Ban</button>`;
+          btns+=`<button class="btn btn-ban btn-sm" onclick="changeMemberStatus('${docId}','Expired')"><i class="fa fa-clock"></i> Mark Expired</button>`;
+          btns+=`<button class="btn btn-reject btn-sm" onclick="changeMemberStatus('${docId}','Banned')"><i class="fa fa-ban"></i> Ban</button>`;
         } else if(s==="expired"){
-          btns+=`<button class="btn btn-approve btn-sm" onclick="changeMemberStatus(${m.row},'Active')"><i class="fa fa-check"></i> Activate</button>`;
-          btns+=`<button class="btn btn-reject btn-sm" onclick="changeMemberStatus(${m.row},'Banned')"><i class="fa fa-ban"></i> Ban</button>`;
+          btns+=`<button class="btn btn-approve btn-sm" onclick="changeMemberStatus('${docId}','Active')"><i class="fa fa-check"></i> Activate</button>`;
+          btns+=`<button class="btn btn-reject btn-sm" onclick="changeMemberStatus('${docId}','Banned')"><i class="fa fa-ban"></i> Ban</button>`;
         } else if(s==="banned"){
-          btns+=`<button class="btn btn-approve btn-sm" onclick="changeMemberStatus(${m.row},'Active')"><i class="fa fa-check"></i> Activate</button>`;
-          btns+=`<button class="btn btn-ban btn-sm" onclick="changeMemberStatus(${m.row},'Expired')"><i class="fa fa-clock"></i> Mark Expired</button>`;
+          btns+=`<button class="btn btn-approve btn-sm" onclick="changeMemberStatus('${docId}','Active')"><i class="fa fa-check"></i> Activate</button>`;
+          btns+=`<button class="btn btn-ban btn-sm" onclick="changeMemberStatus('${docId}','Expired')"><i class="fa fa-clock"></i> Mark Expired</button>`;
         }
         return btns;
       })()}
@@ -512,10 +513,10 @@ function viewMember(m){
   document.getElementById("memberModal").classList.remove("hidden");
 }
 
-function changeMemberStatus(row,status){
+function changeMemberStatus(id, status){
   showMsg("memberActionMsg","Updating...","");
   if(!window.RHS){showMsg("memberActionMsg","System loading...","error");return;}
-  RHS.updateMemberStatus(row, status).then(res=>{
+  RHS.updateMemberStatus(id, status).then(res=>{
     if(res.success){
       showMsg("memberActionMsg","✅ Status updated to: "+status,"success");
       loadMembers(currentMemberFilter);
@@ -523,7 +524,7 @@ function changeMemberStatus(row,status){
     } else {
       showMsg("memberActionMsg",res.message||"Failed.","error");
     }
-  }).catch(()=>showMsg("memberActionMsg","Network error.","error"));
+  }).catch(()=>showMsg("memberActionMsg","Network error. Please check connection.","error"));
 }
 
 // ====== TABLE SEARCH — MEMBERS ======
@@ -576,24 +577,25 @@ function renderMembersTable(members, q = "") {
   members.forEach((m, i) => {
     const sb = statusBadge(m.status);
     const s = (m.status || "").toLowerCase();
+    const docId = m.id || m.row;
     let actionBtns = "";
-    if (s === "underprocess" || s === "under process") {
+    if (s === "underprocess" || s === "under process" || s === "pending") {
       actionBtns = `
-        <button class="btn btn-sm btn-approve" onclick='quickStatus(${m.row},"Active","${escHtml(m.fullName)}")' title="Approve"><i class="fa fa-check"></i></button>
-        <button class="btn btn-sm btn-ban" onclick='quickStatus(${m.row},"Expired","${escHtml(m.fullName)}")' title="Expired"><i class="fa fa-clock"></i></button>
-        <button class="btn btn-sm btn-reject" onclick='quickStatus(${m.row},"Banned","${escHtml(m.fullName)}")' title="Ban"><i class="fa fa-ban"></i></button>`;
+        <button class="btn btn-sm btn-approve" onclick='quickStatus("${docId}","Active","${escHtml(m.fullName)}")' title="Approve"><i class="fa fa-check"></i></button>
+        <button class="btn btn-sm btn-ban" onclick='quickStatus("${docId}","Expired","${escHtml(m.fullName)}")' title="Expired"><i class="fa fa-clock"></i></button>
+        <button class="btn btn-sm btn-reject" onclick='quickStatus("${docId}","Banned","${escHtml(m.fullName)}")' title="Ban"><i class="fa fa-ban"></i></button>`;
     } else if (s === "active") {
       actionBtns = `
-        <button class="btn btn-sm btn-ban" onclick='quickStatus(${m.row},"Expired","${escHtml(m.fullName)}")' title="Mark Expired"><i class="fa fa-clock"></i></button>
-        <button class="btn btn-sm btn-reject" onclick='quickStatus(${m.row},"Banned","${escHtml(m.fullName)}")' title="Ban"><i class="fa fa-ban"></i></button>`;
+        <button class="btn btn-sm btn-ban" onclick='quickStatus("${docId}","Expired","${escHtml(m.fullName)}")' title="Mark Expired"><i class="fa fa-clock"></i></button>
+        <button class="btn btn-sm btn-reject" onclick='quickStatus("${docId}","Banned","${escHtml(m.fullName)}")' title="Ban"><i class="fa fa-ban"></i></button>`;
     } else if (s === "expired") {
       actionBtns = `
-        <button class="btn btn-sm btn-approve" onclick='quickStatus(${m.row},"Active","${escHtml(m.fullName)}")' title="Activate"><i class="fa fa-check"></i></button>
-        <button class="btn btn-sm btn-reject" onclick='quickStatus(${m.row},"Banned","${escHtml(m.fullName)}")' title="Ban"><i class="fa fa-ban"></i></button>`;
+        <button class="btn btn-sm btn-approve" onclick='quickStatus("${docId}","Active","${escHtml(m.fullName)}")' title="Activate"><i class="fa fa-check"></i></button>
+        <button class="btn btn-sm btn-reject" onclick='quickStatus("${docId}","Banned","${escHtml(m.fullName)}")' title="Ban"><i class="fa fa-ban"></i></button>`;
     } else if (s === "banned") {
       actionBtns = `
-        <button class="btn btn-sm btn-approve" onclick='quickStatus(${m.row},"Active","${escHtml(m.fullName)}")' title="Activate"><i class="fa fa-check"></i></button>
-        <button class="btn btn-sm btn-ban" onclick='quickStatus(${m.row},"Expired","${escHtml(m.fullName)}")' title="Mark Expired"><i class="fa fa-clock"></i></button>`;
+        <button class="btn btn-sm btn-approve" onclick='quickStatus("${docId}","Active","${escHtml(m.fullName)}")' title="Activate"><i class="fa fa-check"></i></button>
+        <button class="btn btn-sm btn-ban" onclick='quickStatus("${docId}","Expired","${escHtml(m.fullName)}")' title="Mark Expired"><i class="fa fa-clock"></i></button>`;
     }
     html += `<tr>
       <td>${i + 1}</td>

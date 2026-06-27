@@ -442,9 +442,12 @@ document.addEventListener("DOMContentLoaded", () => {
     RHS.getMemberByCredentials(cnic, dob)
       .then(res => {
         setLoading(verifyBtn, false);
-        if (res.success && res.found && res.active) {
-          renderCertificate(res.member);
-        } else if (res.success && res.found) {
+        if (res.success && res.found) {
+          const stLow = (res.member.status || "").toLowerCase();
+          // Show certificate for active/expired/banned; professional alert for underprocess/others
+          if (stLow === "active" || stLow === "expired" || stLow === "banned") {
+            renderCertificate(res.member);
+          } else {
           const m = res.member;
           const st = (m.status || "Underprocess");
           const isRejected = st.toLowerCase() === "rejected" || st.toLowerCase() === "banned";
@@ -475,6 +478,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 </button>
               </div>
             </div>`;
+          }
         } else {
           verifyMsg.textContent = res.message || "Record not found.";
           verifyMsg.classList.add("error");
@@ -489,15 +493,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderCertificate(member) {
     if (!certResult) return;
+    const st = (member.status || "Active");
+    const stLow = st.toLowerCase();
+    const isActive  = stLow === "active";
+    const isBanned  = stLow === "banned";
+    const isExpired = stLow === "expired";
+    // Badge color: Active=green, Banned=red, Expired=orange, else yellow
+    const badgeColor = isActive ? "#2E9E5B" : isBanned ? "#D9483A" : isExpired ? "#E07B2A" : "#E8A33D";
+    const badgeBg    = isActive ? "#EEF8F1"  : isBanned ? "#FEF2F2" : isExpired ? "#FEF3EA" : "#FEF9EC";
+    const badgeTxt   = isActive ? "✅ Active"  : isBanned ? "🚫 Banned" : isExpired ? "🕐 Expired" : st;
+    const borderCol  = isActive ? "#14534F"   : isBanned ? "#D9483A" : isExpired ? "#E07B2A" : "#E8A33D";
+
     const photoHtml = member.photo
-      ? `<img src="${member.photo}" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid #14534F;display:block;margin:0 auto 12px">`
-      : `<div style="width:90px;height:90px;border-radius:50%;background:#EEF8F1;border:3px solid #14534F;display:flex;align-items:center;justify-content:center;margin:0 auto 12px"><i class="fa-solid fa-user" style="font-size:2rem;color:#8A9A96"></i></div>`;
+      ? `<img src="${member.photo}" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid ${borderCol};display:block;margin:0 auto 12px">`
+      : `<div style="width:90px;height:90px;border-radius:50%;background:#EEF8F1;border:3px solid ${borderCol};display:flex;align-items:center;justify-content:center;margin:0 auto 12px"><i class="fa-solid fa-user" style="font-size:2rem;color:#8A9A96"></i></div>`;
     certResult.hidden = false;
     certResult.innerHTML = `
       <div class="cert-card">
         <div class="cert-header">
           <h3><i class="fa-solid fa-certificate"></i> Digital Membership Certificate</h3>
-          <span class="cert-badge">Active</span>
+          <span class="cert-badge" style="background:${badgeBg};color:${badgeColor};border:1.5px solid ${badgeColor}55">${badgeTxt}</span>
         </div>
         ${photoHtml}
         <div class="cert-grid">
