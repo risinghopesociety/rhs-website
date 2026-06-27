@@ -231,7 +231,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const formResult= document.getElementById("formResult");
   const submitBtn = document.getElementById("submitBtn");
 
-  // Photo change listener — attached to document (works on mobile Chrome even in hidden sections)
+  // Photo preview — document level listener (works on mobile Chrome)
   document.addEventListener("change", function(e) {
     if (e.target && e.target.id === "regPhoto") {
       const file = e.target.files[0];
@@ -265,6 +265,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!formMsg) return;
       formMsg.textContent = ""; formMsg.className = "form-msg";
 
+      // ✅ Correct IDs matching index.html
       const cnic       = document.getElementById("regCnic")?.value.trim()       || "";
       const dob        = document.getElementById("regDob")?.value.trim()         || "";
       const fullName   = document.getElementById("regName")?.value.trim()        || "";
@@ -278,6 +279,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const address    = document.getElementById("regAddress")?.value.trim()     || "";
       const photoFile  = document.getElementById("regPhoto")?.files?.[0]         || null;
 
+      // Validations
       if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic)) { formMsg.textContent="⚠️ Valid CNIC: 00000-0000000-0"; formMsg.classList.add("error"); return; }
       if (!/^\d{2}-\d{2}-\d{4}$/.test(dob))   { formMsg.textContent="⚠️ DOB: dd-mm-yyyy";             formMsg.classList.add("error"); return; }
       if (!fullName)   { formMsg.textContent="⚠️ Full Name required";            formMsg.classList.add("error"); return; }
@@ -289,7 +291,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!membership) { formMsg.textContent="⚠️ Please select Membership Type"; formMsg.classList.add("error"); return; }
       if (!address)    { formMsg.textContent="⚠️ Address required";              formMsg.classList.add("error"); return; }
       if (!photoFile)  {
-        formMsg.textContent="⚠️ Photo required — please select your passport size photo";
+        formMsg.textContent="⚠️ Photo required — please select passport size photo";
         formMsg.classList.add("error");
         document.getElementById("regPhoto")?.scrollIntoView({behavior:"smooth",block:"center"});
         return;
@@ -298,7 +300,7 @@ document.addEventListener("DOMContentLoaded", () => {
       setLoading(submitBtn, true, "Uploading photo...");
       formMsg.textContent = "Uploading photo..."; formMsg.className = "form-msg";
 
-      // Direct Cloudinary upload
+      // ✅ Direct Cloudinary upload
       let photoUrl = "";
       try {
         const fd = new FormData();
@@ -307,10 +309,8 @@ document.addEventListener("DOMContentLoaded", () => {
         fd.append("folder", "rhs/members");
         const resp = await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload", { method:"POST", body:fd });
         const data = await resp.json();
-        if (data.secure_url) {
-          photoUrl = data.secure_url;
-          formMsg.textContent = "✅ Photo uploaded!";
-        } else throw new Error(data.error?.message || "Upload failed");
+        if (data.secure_url) { photoUrl = data.secure_url; formMsg.textContent = "✅ Photo uploaded!"; }
+        else throw new Error(data.error?.message || "Upload failed");
       } catch(err) {
         setLoading(submitBtn, false);
         formMsg.textContent = "⚠️ Photo upload failed: " + err.message;
@@ -388,48 +388,131 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderCertificate(member) {
     if (!certResult) return;
     certResult.hidden = false;
+    const statusColor = (member.status||"").toLowerCase() === "active" ? "#2E9E5B" : "#D9483A";
+    const statusIcon  = (member.status||"").toLowerCase() === "active" ? "✅" : "⚠️";
     certResult.innerHTML = `
-      <div class="cert-card">
-        <div class="cert-header">
-          <h3><i class="fa-solid fa-certificate"></i> Digital Membership Certificate</h3>
-          <span class="cert-badge">Active</span>
+      <div class="cert-card" style="max-width:520px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(20,83,79,.15);border:1px solid #E7DFD2">
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg,#14534F,#1a6b65);padding:24px 28px;text-align:center;color:#fff">
+          <img src="${window.NGO.logoUrl||'images/logo.png'}" style="width:56px;height:56px;border-radius:50%;object-fit:contain;background:#fff;padding:4px;margin-bottom:10px;border:2px solid rgba(255,255,255,.4)">
+          <div style="font-size:.7rem;letter-spacing:.2em;opacity:.8;margin-bottom:2px">DIGITAL MEMBERSHIP CERTIFICATE</div>
+          <div style="font-size:1.1rem;font-weight:700;font-family:'Fraunces',serif">${window.NGO.name}</div>
+          <div style="font-size:.72rem;opacity:.7;margin-top:2px">${window.NGO.address}</div>
         </div>
-        <div class="cert-grid">
-          <div class="item"><span class="lbl">Full Name</span><span class="val">${member.fullName}</span></div>
-          <div class="item"><span class="lbl">Reg No</span><span class="val">${member.registrationNo}</span></div>
-          <div class="item"><span class="lbl">Membership</span><span class="val">${member.membershipType||"—"}</span></div>
-          <div class="item"><span class="lbl">Gender</span><span class="val">${member.gender}</span></div>
-          <div class="item"><span class="lbl">Mobile</span><span class="val">${member.mobile}</span></div>
-          <div class="item"><span class="lbl">Valid Upto</span><span class="val">${member.validUpto||"—"}</span></div>
-          <div class="item" style="grid-column:1/-1"><span class="lbl">Address</span><span class="val">${member.address}</span></div>
+        <!-- Photo + Name -->
+        <div style="display:flex;align-items:center;gap:16px;padding:20px 24px;border-bottom:1px solid #F0EBE3">
+          ${member.photo
+            ? `<img src="${member.photo}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid #14534F;flex-shrink:0">`
+            : `<div style="width:72px;height:72px;border-radius:50%;background:#EEF8F1;display:flex;align-items:center;justify-content:center;border:3px solid #14534F;flex-shrink:0"><i class="fa-solid fa-user" style="font-size:1.8rem;color:#4CAF8A"></i></div>`
+          }
+          <div>
+            <div style="font-size:1.15rem;font-weight:700;color:#14534F;font-family:'Fraunces',serif">${member.fullName}</div>
+            <div style="font-size:.82rem;color:#8A9A96;margin-top:2px">${member.membershipType||"Member"}</div>
+            <div style="margin-top:6px"><span style="background:${statusColor}18;color:${statusColor};font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid ${statusColor}40">${statusIcon} ${member.status||"—"}</span></div>
+          </div>
         </div>
-        <div class="cert-actions">
-          <button class="btn btn-primary" onclick="printCertificate(${JSON.stringify(member).replace(/"/g,'&quot;')})">
-            Download / Print <i class="fa-solid fa-print"></i>
+        <!-- Details Grid -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;padding:0 0 8px">
+          ${[
+            ["Registration No", member.registrationNo],
+            ["CNIC", member.cnic],
+            ["Date of Birth", member.dob],
+            ["Gender", member.gender],
+            ["Mobile", member.mobile],
+            ["Valid Upto", member.validUpto||"—"],
+            ["Province", member.province||"—"],
+            ["Profession", member.profession||"—"],
+          ].map(([lbl,val])=>`
+            <div style="padding:10px 24px;border-bottom:1px solid #F5F0E8">
+              <div style="font-size:.68rem;color:#8A9A96;text-transform:uppercase;letter-spacing:.08em;font-weight:600">${lbl}</div>
+              <div style="font-size:.88rem;color:#1F2E2B;font-weight:600;margin-top:2px">${val}</div>
+            </div>`).join("")}
+          <div style="padding:10px 24px;border-bottom:1px solid #F5F0E8;grid-column:1/-1">
+            <div style="font-size:.68rem;color:#8A9A96;text-transform:uppercase;letter-spacing:.08em;font-weight:600">Address</div>
+            <div style="font-size:.88rem;color:#1F2E2B;font-weight:600;margin-top:2px">${member.address||"—"}</div>
+          </div>
+        </div>
+        <!-- Footer -->
+        <div style="padding:14px 24px;background:#F5F9F8;text-align:center">
+          <div style="font-size:.7rem;color:#8A9A96;margin-bottom:12px">⚠️ Computer-generated certificate. Verify at ${window.location.hostname}</div>
+          <button class="btn btn-primary" style="width:100%" onclick="printCertificate(${JSON.stringify(member).replace(/"/g,'&quot;')})">
+            <i class="fa-solid fa-download"></i> Download / Print Certificate
           </button>
         </div>
-        <p class="cert-footnote">Computer-generated digital certificate. No signature required.</p>
       </div>`;
   }
 
   window.printCertificate = function(member) {
     const pa = document.getElementById("printCert");
     if (!pa) return;
-    pa.innerHTML = `<div style="border:6px double #14534F;padding:40px;text-align:center;font-family:Georgia,serif;">
-      <h1 style="color:#14534F">${window.NGO.name}</h1>
-      <p style="letter-spacing:2px;color:#E8A33D">DIGITAL MEMBERSHIP CERTIFICATE</p>
-      <h2>${member.fullName}</h2>
-      <p>is a verified ${member.membershipType||"Member"} of ${window.NGO.name}</p>
-      <table style="margin:20px auto;text-align:left">
-        <tr><td style="padding:4px 12px;font-weight:bold">Reg No:</td><td>${member.registrationNo}</td></tr>
-        <tr><td style="padding:4px 12px;font-weight:bold">Valid Upto:</td><td>${member.validUpto||"—"}</td></tr>
-        <tr><td style="padding:4px 12px;font-weight:bold">Mobile:</td><td>${member.mobile}</td></tr>
-        <tr><td style="padding:4px 12px;font-weight:bold">Address:</td><td>${member.address}</td></tr>
-      </table>
-      <p style="margin-top:30px;color:#888;font-size:12px">${window.NGO.address} — Verified Digitally</p>
+    const statusColor = (member.status||"").toLowerCase() === "active" ? "#2E9E5B" : "#D9483A";
+    const photoHtml = member.photo
+      ? `<img src="${member.photo}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:4px solid #14534F;display:block;margin:0 auto 12px">`
+      : `<div style="width:100px;height:100px;border-radius:50%;background:#EEF8F1;display:flex;align-items:center;justify-content:center;border:4px solid #14534F;margin:0 auto 12px;font-size:2.5rem;color:#4CAF8A">👤</div>`;
+    pa.innerHTML = `
+    <style>
+      @page { margin: 12mm; size: A4; }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    </style>
+    <div style="font-family:Georgia,serif;max-width:680px;margin:0 auto;border:4px double #14534F;border-radius:12px;overflow:hidden">
+      <!-- Header -->
+      <div style="background:linear-gradient(135deg,#14534F,#1a6b65);padding:28px 32px;text-align:center;color:#fff">
+        <img src="${window.NGO.logoUrl||'images/logo.png'}" style="width:64px;height:64px;border-radius:50%;object-fit:contain;background:#fff;padding:5px;margin-bottom:10px;border:3px solid rgba(255,255,255,.5);display:block;margin:0 auto 12px">
+        <div style="font-size:.65rem;letter-spacing:.3em;opacity:.8;margin-bottom:4px">DIGITAL MEMBERSHIP CERTIFICATE</div>
+        <div style="font-size:1.3rem;font-weight:700;margin-bottom:4px">${window.NGO.name}</div>
+        <div style="font-size:.7rem;opacity:.75">${window.NGO.address}</div>
+      </div>
+      <!-- Gold divider -->
+      <div style="background:linear-gradient(90deg,#E8A33D,#F2C46A,#E8A33D);height:4px"></div>
+      <!-- Photo + Name -->
+      <div style="padding:28px 32px 20px;text-align:center;border-bottom:1px solid #E7DFD2">
+        ${photoHtml}
+        <div style="font-size:1.5rem;font-weight:700;color:#14534F;margin-bottom:4px">${member.fullName}</div>
+        <div style="font-size:.9rem;color:#8A9A96;margin-bottom:10px">${member.membershipType||"Member"}</div>
+        <div style="display:inline-block;background:${statusColor}18;color:${statusColor};font-size:.8rem;font-weight:700;padding:4px 16px;border-radius:20px;border:1px solid ${statusColor}">
+          ${(member.status||"").toLowerCase()==="active"?"✅":"⚠️"} ${member.status||"—"}
+        </div>
+      </div>
+      <!-- Details -->
+      <div style="padding:20px 32px">
+        <table style="width:100%;border-collapse:collapse;font-size:.88rem">
+          ${[
+            ["Registration No", member.registrationNo, "CNIC", member.cnic],
+            ["Date of Birth", member.dob, "Gender", member.gender],
+            ["Mobile", member.mobile, "Valid Upto", member.validUpto||"—"],
+            ["Profession", member.profession||"—", "Province", member.province||"—"],
+          ].map(([l1,v1,l2,v2])=>`
+            <tr>
+              <td style="padding:8px 12px;background:#F5F9F8;font-weight:700;font-size:.75rem;color:#8A9A96;text-transform:uppercase;width:18%;border:1px solid #E7DFD2">${l1}</td>
+              <td style="padding:8px 12px;font-weight:600;color:#1F2E2B;border:1px solid #E7DFD2;width:32%">${v1}</td>
+              <td style="padding:8px 12px;background:#F5F9F8;font-weight:700;font-size:.75rem;color:#8A9A96;text-transform:uppercase;width:18%;border:1px solid #E7DFD2">${l2}</td>
+              <td style="padding:8px 12px;font-weight:600;color:#1F2E2B;border:1px solid #E7DFD2;width:32%">${v2}</td>
+            </tr>`).join("")}
+          <tr>
+            <td style="padding:8px 12px;background:#F5F9F8;font-weight:700;font-size:.75rem;color:#8A9A96;text-transform:uppercase;border:1px solid #E7DFD2">Address</td>
+            <td colspan="3" style="padding:8px 12px;font-weight:600;color:#1F2E2B;border:1px solid #E7DFD2">${member.address||"—"}</td>
+          </tr>
+        </table>
+      </div>
+      <!-- Signature area -->
+      <div style="padding:16px 32px 20px;display:flex;justify-content:space-between;align-items:flex-end">
+        <div style="text-align:center">
+          <div style="width:120px;border-top:1px solid #1F2E2B;padding-top:6px;font-size:.75rem;color:#1F2E2B">
+            <strong>President</strong><br>${window.NGO.name}
+          </div>
+        </div>
+        <div style="text-align:right;font-size:.7rem;color:#8A9A96">
+          <div>Issued: ${new Date().toLocaleDateString("en-PK",{day:"2-digit",month:"long",year:"numeric"})}</div>
+          <div>Verify: ${window.location.hostname}</div>
+        </div>
+      </div>
+      <!-- Footer -->
+      <div style="background:#F5F9F8;padding:10px 32px;text-align:center;border-top:1px solid #E7DFD2">
+        <div style="font-size:.65rem;color:#8A9A96">⚠️ Computer-generated certificate. No physical signature required. | ${window.NGO.name} | ${window.NGO.phone}</div>
+      </div>
     </div>`;
     window.print();
-    setTimeout(() => { pa.innerHTML = ""; }, 2000);
+    setTimeout(() => { pa.innerHTML = ""; }, 3000);
   };
 
   /* CLEAR VERIFY BTN */
