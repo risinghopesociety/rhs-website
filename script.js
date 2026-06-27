@@ -445,13 +445,35 @@ document.addEventListener("DOMContentLoaded", () => {
         if (res.success && res.found && res.active) {
           renderCertificate(res.member);
         } else if (res.success && res.found) {
+          const m = res.member;
+          const st = (m.status || "Underprocess");
+          const isRejected = st.toLowerCase() === "rejected" || st.toLowerCase() === "banned";
+          const vibe  = isRejected ? "status-red"    : "status-yellow";
+          const icon  = isRejected ? "fa-circle-xmark" : "fa-hourglass-half";
+          const iconColor = isRejected ? "#D9483A" : "#E8A33D";
+          const titleColor = isRejected ? "#8B1A1A" : "#92620A";
+          const msgBody = isRejected
+            ? `Dear <strong>${m.fullName || "Applicant"}</strong>, Your Membership Request is currently <strong>${st}</strong>. Please visit our office or contact us for further information.`
+            : `Dear <strong>${m.fullName || "Applicant"}</strong>, Your Membership Request is currently <strong>${st}</strong>. Our team is reviewing your application. You will be contacted after approval. Please keep your CNIC and Date of Birth handy.`;
           certResult.hidden = false;
           certResult.innerHTML = `
-            <div class="status-msg status-yellow">
-              <i class="fa-solid fa-hourglass-half"></i>
-              <div class="status-title">Status: ${res.member.status}</div>
-              <p>${res.message || ""}</p>
-              <p class="status-note">📞 ${window.NGO.alert} | 📧 ${window.NGO.email}</p>
+            <div class="status-msg ${vibe}">
+              <i class="fa-solid ${icon}" style="font-size:2.2rem;color:${iconColor};display:block;margin-bottom:12px"></i>
+              <div class="status-title" style="color:${titleColor}">Membership Status: ${st}</div>
+              <p>${msgBody}</p>
+              <p style="margin-top:10px;font-size:.88rem;color:#555">
+                📞 <a href="tel:+92${window.NGO.alert.replace(/\D/g,'').slice(-10)}" style="color:var(--teal);font-weight:600">${window.NGO.alert}</a>
+                &nbsp;|&nbsp;
+                📧 <a href="mailto:${window.NGO.email}" style="color:var(--teal);font-weight:600">${window.NGO.email}</a>
+              </p>
+              <div class="reg-alert-btns">
+                <button class="btn btn-ghost" onclick="window.closeLedger();document.getElementById('certResult').hidden=true;document.getElementById('certResult').innerHTML='';">
+                  <i class="fa-solid fa-rotate-left"></i> Search Again
+                </button>
+                <button class="btn btn-ghost" onclick="hideMemberSection()">
+                  <i class="fa-solid fa-arrow-left"></i> Back to Portal
+                </button>
+              </div>
             </div>`;
         } else {
           verifyMsg.textContent = res.message || "Record not found.";
