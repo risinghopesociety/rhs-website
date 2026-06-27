@@ -137,7 +137,21 @@ function togglePass(){
 
 
 // ====== SIDEBAR ======
-function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open");}
+function closeSidebar(){
+  document.getElementById("sidebar").classList.remove("open");
+  const ov=document.getElementById("sidebarOverlay");
+  if(ov) ov.style.display="none";
+}
+function openSidebar(){
+  document.getElementById("sidebar").classList.add("open");
+  const ov=document.getElementById("sidebarOverlay");
+  if(ov) ov.style.display="block";
+}
+function toggleSidebar(){
+  const sb=document.getElementById("sidebar");
+  if(sb.classList.contains("open")) closeSidebar();
+  else openSidebar();
+}
 
 // ====== TABS ======
 function switchTab(name){
@@ -160,10 +174,7 @@ function switchTab(name){
   if(name==="adminexp"){loadAdminExpenses();setDefaultDates();}
   if(name==="messages") loadMessages();
   if(name==="setup") loadSetupData();
-  // Auto-close sidebar on mobile for ALL menu items
-  if(window.innerWidth<=900){
-    document.getElementById("sidebar").classList.remove("open");
-  }
+  closeSidebar();
 }
 
 // ====== SETUP SECTION TOGGLE ======
@@ -348,10 +359,16 @@ function loadMessages(){
     let html='';
     res.messages.forEach(m=>{
       const date=m.createdAt?.toDate?m.createdAt.toDate().toLocaleDateString("en-PK"):"—";
-      html+=`<div class="message-card">
+      html+=`<div class="message-card" id="msg-${m.id}">
         <div class="msg-header">
           <span class="msg-name"><i class="fa fa-user"></i> ${escHtml(m.name||"")}</span>
-          <span class="msg-date">${date}</span>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="msg-date">${date}</span>
+            <button class="btn btn-sm btn-reject" title="Delete Message"
+              onclick="deleteMessage('${m.id}','${escHtml(m.name||"")}')">
+              <i class="fa fa-trash"></i>
+            </button>
+          </div>
         </div>
         <div class="msg-email"><i class="fa fa-envelope"></i> ${escHtml(m.email||"")}</div>
         <div class="msg-text">${escHtml(m.message||"")}</div>
@@ -359,6 +376,23 @@ function loadMessages(){
     });
     wrap.innerHTML=html;
   }).catch(()=>{wrap.innerHTML='<div class="empty-state">Failed to load messages.</div>';});
+}
+
+function deleteMessage(id, name){
+  if(!confirm(`Delete message from "${name}"?`)) return;
+  if(!window.RHS?.deleteContactMessage){
+    alert("Delete function not available."); return;
+  }
+  RHS.deleteContactMessage(id).then(()=>{
+    // Remove card from DOM without reload
+    const card=document.getElementById("msg-"+id);
+    if(card) card.remove();
+    // If no messages left, show empty state
+    const wrap=document.getElementById("messagesWrap");
+    if(wrap && !wrap.querySelector(".message-card")){
+      wrap.innerHTML='<div class="empty-state"><i class="fa fa-envelope"></i><p>No messages yet.</p></div>';
+    }
+  }).catch(()=>alert("Failed to delete message."));
 }
 
 function setDefaultDates(){
