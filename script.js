@@ -45,34 +45,19 @@ function loadNGOSettings() {
   if (!window.RHS) { setTimeout(loadNGOSettings, 500); return; }
   RHS.getNGOSettings().then(res => {
     window.NGO = {
-      name:      res.ngoName        || window.NGO.name,
-      phone:     res.ngoPhone       || window.NGO.phone,
-      address:   res.ngoAddress     || window.NGO.address,
-      email:     res.ngoEmail       || window.NGO.email,
-      bank:      res.bankAccount    || window.NGO.bank,
-      alert:     res.alertNumber    || res.ngoPhone || window.NGO.alert,
-      logoUrl:   res.logoUrl        || "",
-      copyright: res.copyrightText  || "",
-      ourTeamTitle:  res.ourTeamTitle  || "Our Team",
-      ourTeamMatter: res.ourTeamMatter || ""
+      name:         res.ngoName        || window.NGO.name,
+      phone:        res.ngoPhone       || window.NGO.phone,
+      address:      res.ngoAddress     || window.NGO.address,
+      email:        res.ngoEmail       || window.NGO.email,
+      bank:         res.bankAccount    || window.NGO.bank,
+      alert:        res.alertNumber    || res.ngoPhone || window.NGO.alert,
+      ourTeamTitle: res.ourTeamTitle   || "Our Team",
+      ourTeamMatter:res.ourTeamMatter  || ""
     };
-    // Apply NGO name everywhere
     document.querySelectorAll(".ngo-name").forEach(el => el.textContent = window.NGO.name);
     document.querySelectorAll(".ngo-address").forEach(el => el.textContent = window.NGO.address);
     document.querySelectorAll(".ngo-phone").forEach(el => el.textContent = window.NGO.phone);
     document.querySelectorAll(".ngo-email").forEach(el => el.textContent = window.NGO.email);
-    // Apply logo to all logo elements
-    if (window.NGO.logoUrl) {
-      ["loaderLogo","navLogo"].forEach(id => {
-        const el = document.getElementById(id); if(el) el.src = window.NGO.logoUrl;
-      });
-    }
-    // Dynamic copyright
-    if (window.NGO.copyright) {
-      const cl = document.getElementById("copyrightLine");
-      if (cl) cl.innerHTML = `© <span id="year">${new Date().getFullYear()}</span> ${window.NGO.copyright}`;
-    }
-    // Team section
     const teamTitle = document.querySelector("#team .section-head h2");
     if (teamTitle) teamTitle.textContent = window.NGO.ourTeamTitle;
     const teamMatter = document.querySelector("#team .section-head p");
@@ -128,61 +113,35 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  /* HERO SLIDER — Dynamic from Firestore, fallback to static */
-  function initSlider(slideEls) {
-    const dotsWrap = document.getElementById("sliderDots");
-    if (!dotsWrap || !slideEls.length) return;
-    dotsWrap.innerHTML = "";
-    let cur = 0, iv;
-    slideEls[0].classList.add("active");
-    slideEls.forEach((_, i) => {
+  /* HERO SLIDER */
+  const slides = document.querySelectorAll(".slide");
+  const dotsWrap = document.getElementById("sliderDots");
+  if (slides.length && dotsWrap) {
+    let currentSlide = 0;
+    let sliderInterval;
+    slides.forEach((_, i) => {
       const dot = document.createElement("button");
       dot.classList.add("dot");
       if (i === 0) dot.classList.add("active");
-      dot.addEventListener("click", () => go(i));
+      dot.addEventListener("click", () => goToSlide(i));
       dotsWrap.appendChild(dot);
     });
     const dots = dotsWrap.querySelectorAll(".dot");
-    function go(i) {
-      slideEls[cur].classList.remove("active"); dots[cur].classList.remove("active");
-      cur = (i + slideEls.length) % slideEls.length;
-      slideEls[cur].classList.add("active"); dots[cur].classList.add("active");
+    function goToSlide(index) {
+      slides[currentSlide].classList.remove("active");
+      dots[currentSlide].classList.remove("active");
+      currentSlide = (index + slides.length) % slides.length;
+      slides[currentSlide].classList.add("active");
+      dots[currentSlide].classList.add("active");
     }
-    function start() { iv = setInterval(() => go(cur+1), 5500); }
-    function reset() { clearInterval(iv); start(); }
-    const nb = document.getElementById("nextSlide");
-    const pb = document.getElementById("prevSlide");
-    if (nb) nb.addEventListener("click", () => { go(cur+1); reset(); });
-    if (pb) pb.addEventListener("click", () => { go(cur-1); reset(); });
-    start();
+    function startSlider() { sliderInterval = setInterval(() => goToSlide(currentSlide + 1), 5500); }
+    function resetSlider() { clearInterval(sliderInterval); startSlider(); }
+    const nextBtn = document.getElementById("nextSlide");
+    const prevBtn = document.getElementById("prevSlide");
+    if (nextBtn) nextBtn.addEventListener("click", () => { goToSlide(currentSlide + 1); resetSlider(); });
+    if (prevBtn) prevBtn.addEventListener("click", () => { goToSlide(currentSlide - 1); resetSlider(); });
+    startSlider();
   }
-
-  function loadSlides() {
-    if (!window.RHS) { setTimeout(loadSlides, 800); return; }
-    RHS.getSlides().then(res => {
-      if (!res.slides || !res.slides.length) {
-        // Use static fallback slides
-        initSlider(Array.from(document.querySelectorAll(".slide")));
-        return;
-      }
-      // Replace static slides with dynamic ones
-      const slider = document.getElementById("heroSlider");
-      // Remove fallback slides
-      document.querySelectorAll('[id^="slide-fallback-"]').forEach(el => el.remove());
-      // Add dynamic slides
-      const overlay   = slider.querySelector(".slider-overlay");
-      res.slides.forEach((s, i) => {
-        const div = document.createElement("div");
-        div.className = "slide";
-        div.style.backgroundImage = `url('${s.imageUrl}')`;
-        slider.insertBefore(div, overlay);
-      });
-      initSlider(Array.from(slider.querySelectorAll(".slide")));
-    }).catch(() => {
-      initSlider(Array.from(document.querySelectorAll(".slide")));
-    });
-  }
-  loadSlides();
 
   /* CNIC FORMAT */
   document.querySelectorAll('[id*="cnic"],[id*="Cnic"],[placeholder*="00000-"]').forEach(el => {
@@ -267,79 +226,114 @@ document.addEventListener("DOMContentLoaded", () => {
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   /* REGISTRATION FORM */
-  const regForm = document.getElementById("regForm");
-  const formMsg = document.getElementById("formMsg");
-  const formResult = document.getElementById("formResult");
+  const regForm   = document.getElementById("regForm");
+  const formMsg   = document.getElementById("formMsg");
+  const formResult= document.getElementById("formResult");
   const submitBtn = document.getElementById("submitBtn");
+
+  // Photo change listener — attached to document (works on mobile Chrome even in hidden sections)
+  document.addEventListener("change", function(e) {
+    if (e.target && e.target.id === "regPhoto") {
+      const file = e.target.files[0];
+      const pm = document.getElementById("photoMsg");
+      const pv = document.getElementById("regPhotoPreview");
+      if (!file) return;
+      if (file.size > 3 * 1024 * 1024) {
+        if (pm) { pm.textContent = "⚠️ Max 3MB allowed"; pm.className = "form-msg error"; }
+        e.target.value = ""; return;
+      }
+      if (pm) { pm.textContent = "✅ " + file.name; pm.className = "form-msg success"; }
+      const reader = new FileReader();
+      reader.onload = ev => {
+        if (pv) pv.innerHTML = `<img src="${ev.target.result}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:3px solid #14534F;display:block;margin-top:6px">`;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
 
   if (regForm) {
     regForm.addEventListener("reset", () => {
       setTimeout(() => {
         if (formMsg) { formMsg.textContent = ""; formMsg.className = "form-msg"; }
+        const pm = document.getElementById("photoMsg"); if (pm) { pm.textContent = ""; pm.className = "form-msg"; }
+        const pv = document.getElementById("regPhotoPreview"); if (pv) pv.innerHTML = "";
       }, 0);
     });
 
     regForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       if (!formMsg) return;
-      formMsg.textContent = "";
-      formMsg.className = "form-msg";
+      formMsg.textContent = ""; formMsg.className = "form-msg";
 
-      const cnic     = document.getElementById("cnic")?.value.trim() || "";
-      const dob      = document.getElementById("dob")?.value.trim() || "";
-      const fullName = document.getElementById("fullName")?.value.trim() || "";
-      const father   = document.getElementById("fatherName")?.value.trim() || "";
-      const gender   = document.getElementById("gender")?.value || "";
-      const prof     = document.getElementById("profession")?.value.trim() || "";
-      const email    = document.getElementById("email")?.value.trim() || "";
-      const mobile   = document.getElementById("mobile")?.value.trim() || "";
-      const province = document.getElementById("province")?.value || "";
-      const address  = document.getElementById("address")?.value.trim() || "";
+      const cnic       = document.getElementById("regCnic")?.value.trim()       || "";
+      const dob        = document.getElementById("regDob")?.value.trim()         || "";
+      const fullName   = document.getElementById("regName")?.value.trim()        || "";
+      const father     = document.getElementById("regFather")?.value.trim()      || "";
+      const gender     = document.getElementById("regGender")?.value             || "";
+      const prof       = document.getElementById("regProfession")?.value.trim()  || "";
+      const mobile     = document.getElementById("regMobile")?.value.trim()      || "";
+      const email      = document.getElementById("regEmail")?.value.trim()       || "";
+      const province   = document.getElementById("regProvince")?.value           || "";
+      const membership = document.getElementById("regMembership")?.value         || "";
+      const address    = document.getElementById("regAddress")?.value.trim()     || "";
+      const photoFile  = document.getElementById("regPhoto")?.files?.[0]         || null;
 
-      if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic)) { formMsg.textContent = "⚠️ Valid CNIC required: 00000-0000000-0"; formMsg.classList.add("error"); return; }
-      if (!/^\d{2}-\d{2}-\d{4}$/.test(dob)) { formMsg.textContent = "⚠️ DOB format: dd-mm-yyyy"; formMsg.classList.add("error"); return; }
-      if (!fullName) { formMsg.textContent = "⚠️ Full Name required."; formMsg.classList.add("error"); return; }
-      if (!father) { formMsg.textContent = "⚠️ Father/Husband Name required."; formMsg.classList.add("error"); return; }
-      if (!gender) { formMsg.textContent = "⚠️ Please select Gender."; formMsg.classList.add("error"); return; }
-      if (!prof) { formMsg.textContent = "⚠️ Profession required."; formMsg.classList.add("error"); return; }
-      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { formMsg.textContent = "⚠️ Valid Email required."; formMsg.classList.add("error"); return; }
-      if (!/^\d{4}-\d{7}$/.test(mobile)) { formMsg.textContent = "⚠️ Mobile format: 0300-0000000"; formMsg.classList.add("error"); return; }
-      if (!province) { formMsg.textContent = "⚠️ Please select Province."; formMsg.classList.add("error"); return; }
-      if (!address) { formMsg.textContent = "⚠️ Address required."; formMsg.classList.add("error"); return; }
-
-      setLoading(submitBtn, true, 'Submitting...');
-
-      // Upload photo if selected
-      let photoUrl = "";
-      const photoFile = document.getElementById("regPhoto")?.files?.[0];
-      if (photoFile && window.RHS) {
-        try { photoUrl = await RHS.uploadImage(photoFile, "rhs/members"); } catch(err) {}
+      if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic)) { formMsg.textContent="⚠️ Valid CNIC: 00000-0000000-0"; formMsg.classList.add("error"); return; }
+      if (!/^\d{2}-\d{2}-\d{4}$/.test(dob))   { formMsg.textContent="⚠️ DOB: dd-mm-yyyy";             formMsg.classList.add("error"); return; }
+      if (!fullName)   { formMsg.textContent="⚠️ Full Name required";            formMsg.classList.add("error"); return; }
+      if (!father)     { formMsg.textContent="⚠️ Father/Husband Name required";  formMsg.classList.add("error"); return; }
+      if (!gender)     { formMsg.textContent="⚠️ Please select Gender";          formMsg.classList.add("error"); return; }
+      if (!prof)       { formMsg.textContent="⚠️ Profession required";           formMsg.classList.add("error"); return; }
+      if (!/^\d{4}-\d{7}$/.test(mobile))       { formMsg.textContent="⚠️ Mobile: 0300-0000000";        formMsg.classList.add("error"); return; }
+      if (!province)   { formMsg.textContent="⚠️ Please select Province";        formMsg.classList.add("error"); return; }
+      if (!membership) { formMsg.textContent="⚠️ Please select Membership Type"; formMsg.classList.add("error"); return; }
+      if (!address)    { formMsg.textContent="⚠️ Address required";              formMsg.classList.add("error"); return; }
+      if (!photoFile)  {
+        formMsg.textContent="⚠️ Photo required — please select your passport size photo";
+        formMsg.classList.add("error");
+        document.getElementById("regPhoto")?.scrollIntoView({behavior:"smooth",block:"center"});
+        return;
       }
 
-      if (!window.RHS) { setLoading(submitBtn, false); formMsg.textContent = "Please wait, loading..."; return; }
+      setLoading(submitBtn, true, "Uploading photo...");
+      formMsg.textContent = "Uploading photo..."; formMsg.className = "form-msg";
 
-      RHS.registerMember({ cnic, dob, fullName, fatherName: father, gender, profession: prof, email, mobile, province, address, photo: photoUrl })
+      // Direct Cloudinary upload
+      let photoUrl = "";
+      try {
+        const fd = new FormData();
+        fd.append("file", photoFile);
+        fd.append("upload_preset", "rhs-upload");
+        fd.append("folder", "rhs/members");
+        const resp = await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload", { method:"POST", body:fd });
+        const data = await resp.json();
+        if (data.secure_url) {
+          photoUrl = data.secure_url;
+          formMsg.textContent = "✅ Photo uploaded!";
+        } else throw new Error(data.error?.message || "Upload failed");
+      } catch(err) {
+        setLoading(submitBtn, false);
+        formMsg.textContent = "⚠️ Photo upload failed: " + err.message;
+        formMsg.classList.add("error"); return;
+      }
+
+      setLoading(submitBtn, true, "Submitting...");
+      if (!window.RHS) { setLoading(submitBtn, false); return; }
+
+      RHS.registerMember({ cnic, dob, fullName, fatherName:father, gender, profession:prof, email, mobile, province, address, membershipType:membership, photo:photoUrl })
       .then(res => {
         setLoading(submitBtn, false);
+        formMsg.textContent = "";
         if (res.success) {
-          if (regForm) regForm.hidden = true;
+          regForm.style.display = "none";
           if (formResult) {
             formResult.hidden = false;
-            formResult.classList.remove("error");
-            const resultTitle = document.getElementById("resultTitle");
-            const resultText = document.getElementById("resultText");
-            if (resultTitle) resultTitle.textContent = "Registration Submitted!";
-            if (resultText) resultText.textContent = res.message || "";
+            formResult.innerHTML = `<div class="status-msg status-green"><i class="fa-solid fa-circle-check"></i><div class="status-title">Registration Submitted!</div><p>Dear <strong>${fullName}</strong>, your registration has been received.<br>Status: <strong>Underprocess</strong><br><br>📞 ${window.NGO.alert} | 📧 ${window.NGO.email}</p></div>`;
           }
         } else if (res.code === "DUPLICATE") {
-          if (regForm) regForm.hidden = true;
           if (formResult) {
             formResult.hidden = false;
-            formResult.classList.add("error");
-            const resultTitle = document.getElementById("resultTitle");
-            const resultText = document.getElementById("resultText");
-            if (resultTitle) resultTitle.textContent = "Already Registered";
-            if (resultText) resultText.textContent = res.message || "";
+            formResult.innerHTML = `<div class="status-msg status-yellow"><i class="fa-solid fa-circle-info"></i><div class="status-title">Already Registered</div><p>${res.message || "You are already registered."}</p></div>`;
           }
         } else {
           formMsg.textContent = res.message || "Something went wrong.";
@@ -347,20 +341,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }).catch(() => {
         setLoading(submitBtn, false);
-        formMsg.textContent = "Network error. Please try again.";
+        formMsg.textContent = "⚠️ Network error. Please try again.";
         formMsg.classList.add("error");
       });
     });
-
-    const newRegBtn = document.getElementById("newRegBtn");
-    if (newRegBtn) {
-      newRegBtn.addEventListener("click", () => {
-        regForm.reset();
-        regForm.hidden = false;
-        if (formResult) formResult.hidden = true;
-        if (formMsg) formMsg.textContent = "";
-      });
-    }
   }
 
   /* CERTIFICATE VERIFICATION */
