@@ -363,153 +363,48 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderCertificate(member) {
     if (!certResult) return;
     certResult.hidden = false;
-    const isActive = (member.status||"").toLowerCase() === "active";
-    const statusColor = isActive ? "#2E9E5B" : "#D9483A";
-    const logoSrc = window.NGO.logoUrl || "images/logo.png";
-    const issueDate = new Date().toLocaleDateString("en-PK",{day:"2-digit",month:"long",year:"numeric"});
-    const photoHtml = member.photo
-      ? `<img src="${member.photo}" style="width:88px;height:88px;border-radius:50%;object-fit:cover;border:4px solid #14534F;flex-shrink:0">`
-      : `<div style="width:88px;height:88px;border-radius:50%;border:4px solid #14534F;background:#EEF8F1;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa-solid fa-user" style="font-size:2rem;color:#4CAF8A"></i></div>`;
     certResult.innerHTML = `
-      <div style="border:3px double #14534F;border-radius:10px;overflow:hidden;background:#fff;max-width:580px;margin:0 auto;font-family:Georgia,serif">
-        <div style="background:#14534F;padding:20px 26px;display:flex;align-items:center;gap:16px">
-          <img src="${logoSrc}" style="width:56px;height:56px;border-radius:50%;object-fit:contain;background:#fff;padding:4px;border:3px solid rgba(255,255,255,0.35);flex-shrink:0">
-          <div style="flex:1">
-            <div style="font-size:9px;letter-spacing:0.22em;color:rgba(255,255,255,0.6);font-family:sans-serif;margin-bottom:3px">DIGITAL MEMBERSHIP CERTIFICATE</div>
-            <div style="font-size:17px;font-weight:700;color:#fff">${window.NGO.name}</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.6);font-family:sans-serif;margin-top:1px">${window.NGO.address}</div>
-          </div>
-          <div style="text-align:right;flex-shrink:0">
-            <div style="font-size:9px;color:rgba(255,255,255,0.5);font-family:sans-serif;margin-bottom:3px">REG NO.</div>
-            <div style="font-size:13px;font-weight:700;color:#E8A33D;letter-spacing:0.06em;font-family:sans-serif">${member.registrationNo||"—"}</div>
-          </div>
+      <div class="cert-card">
+        <div class="cert-header">
+          <h3><i class="fa-solid fa-certificate"></i> Digital Membership Certificate</h3>
+          <span class="cert-badge">Active</span>
         </div>
-        <div style="height:4px;background:#E8A33D"></div>
-        <div style="padding:20px 26px;display:flex;gap:18px;align-items:center;border-bottom:1px solid #E7DFD2;background:#FAFAF8">
-          ${photoHtml}
-          <div style="flex:1;min-width:0">
-            <div style="font-size:19px;font-weight:700;color:#14534F;margin-bottom:3px">${member.fullName}</div>
-            <div style="font-size:13px;color:#666;font-family:sans-serif;margin-bottom:10px">${member.membershipType||"Member"}</div>
-            <div style="display:inline-flex;align-items:center;gap:6px;background:${isActive?"#EEF8F1":"#FEF2F2"};border:1px solid ${statusColor}40;border-radius:20px;padding:4px 12px">
-              <div style="width:7px;height:7px;border-radius:50%;background:${statusColor};flex-shrink:0"></div>
-              <span style="font-size:12px;font-weight:700;color:${statusColor};font-family:sans-serif">${(member.status||"Unknown").toUpperCase()}</span>
-            </div>
-          </div>
+        <div class="cert-grid">
+          <div class="item"><span class="lbl">Full Name</span><span class="val">${member.fullName}</span></div>
+          <div class="item"><span class="lbl">Reg No</span><span class="val">${member.registrationNo}</span></div>
+          <div class="item"><span class="lbl">Membership</span><span class="val">${member.membershipType||"—"}</span></div>
+          <div class="item"><span class="lbl">Gender</span><span class="val">${member.gender}</span></div>
+          <div class="item"><span class="lbl">Mobile</span><span class="val">${member.mobile}</span></div>
+          <div class="item"><span class="lbl">Valid Upto</span><span class="val">${member.validUpto||"—"}</span></div>
+          <div class="item" style="grid-column:1/-1"><span class="lbl">Address</span><span class="val">${member.address}</span></div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr">
-          ${[["CNIC",member.cnic||"—","Date of Birth",member.dob||"—"],["Mobile",member.mobile||"—","Valid Upto",`<span style="color:#14534F;font-weight:700">${member.validUpto||"—"}</span>`],["Gender",member.gender||"—","Province",member.province||"—"]].map(([l1,v1,l2,v2])=>`
-            <div style="padding:11px 26px;border-right:1px solid #E7DFD2;border-bottom:1px solid #E7DFD2">
-              <div style="font-size:9px;font-weight:700;color:#8A9A96;text-transform:uppercase;letter-spacing:0.12em;font-family:sans-serif;margin-bottom:3px">${l1}</div>
-              <div style="font-size:13px;color:#1F2E2B;font-weight:700;font-family:sans-serif">${v1}</div>
-            </div>
-            <div style="padding:11px 26px;border-bottom:1px solid #E7DFD2">
-              <div style="font-size:9px;font-weight:700;color:#8A9A96;text-transform:uppercase;letter-spacing:0.12em;font-family:sans-serif;margin-bottom:3px">${l2}</div>
-              <div style="font-size:13px;color:#1F2E2B;font-family:sans-serif">${v2}</div>
-            </div>`).join("")}
-          <div style="padding:11px 26px;grid-column:1/-1;border-bottom:1px solid #E7DFD2">
-            <div style="font-size:9px;font-weight:700;color:#8A9A96;text-transform:uppercase;letter-spacing:0.12em;font-family:sans-serif;margin-bottom:3px">ADDRESS</div>
-            <div style="font-size:13px;color:#1F2E2B;font-weight:700;font-family:sans-serif">${member.address||"—"}</div>
-          </div>
-        </div>
-        <div style="padding:14px 26px;display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid #E7DFD2">
-          <div>
-            <div style="font-size:9px;color:#8A9A96;font-family:sans-serif;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px">Issued On</div>
-            <div style="font-size:12px;color:#1F2E2B;font-weight:700;font-family:sans-serif">${issueDate}</div>
-          </div>
-          <div style="text-align:center">
-            <div style="width:110px;border-top:1px solid #1F2E2B;padding-top:7px;margin:0 auto">
-              <div style="font-size:11px;font-weight:700;color:#14534F;font-family:sans-serif">President</div>
-              <div style="font-size:10px;color:#8A9A96;font-family:sans-serif">${window.NGO.name}</div>
-            </div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:9px;color:#8A9A96;font-family:sans-serif;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px">Verify at</div>
-            <div style="font-size:11px;color:#14534F;font-weight:700;font-family:sans-serif">${window.location.hostname}</div>
-          </div>
-        </div>
-        <div style="padding:14px 26px;background:#F5F9F8;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
-          <div style="font-size:10px;color:#8A9A96;font-family:sans-serif">⚠️ Computer-generated · No physical signature required</div>
-          <button class="btn btn-primary" onclick="printCertificate(${JSON.stringify(member).replace(/"/g,'&quot;')})" style="font-size:13px">
-            <i class="fa-solid fa-download"></i> Download / Print
+        <div class="cert-actions">
+          <button class="btn btn-primary" onclick="printCertificate(${JSON.stringify(member).replace(/"/g,'&quot;')})">
+            Download / Print <i class="fa-solid fa-print"></i>
           </button>
         </div>
+        <p class="cert-footnote">Computer-generated digital certificate. No signature required.</p>
       </div>`;
   }
 
   window.printCertificate = function(member) {
     const pa = document.getElementById("printCert");
     if (!pa) return;
-    const isActive = (member.status||"").toLowerCase() === "active";
-    const statusColor = isActive ? "#2E9E5B" : "#D9483A";
-    const logoSrc = window.NGO.logoUrl || "images/logo.png";
-    const issueDate = new Date().toLocaleDateString("en-PK",{day:"2-digit",month:"long",year:"numeric"});
-    const photoHtml = member.photo
-      ? `<img src="${member.photo}" style="width:88px;height:88px;border-radius:50%;object-fit:cover;border:4px solid #14534F;flex-shrink:0">`
-      : `<div style="width:88px;height:88px;border-radius:50%;background:#EEF8F1;border:4px solid #14534F;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:2rem">👤</div>`;
-    pa.innerHTML = `
-    <style>@page{margin:12mm;size:A4;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}</style>
-    <div style="font-family:Georgia,serif;max-width:660px;margin:0 auto;border:3px double #14534F;border-radius:10px;overflow:hidden">
-      <div style="background:#14534F;padding:22px 30px;display:flex;align-items:center;gap:16px">
-        <img src="${logoSrc}" style="width:60px;height:60px;border-radius:50%;object-fit:contain;background:#fff;padding:5px;border:3px solid rgba(255,255,255,0.35);flex-shrink:0">
-        <div style="flex:1">
-          <div style="font-size:9px;letter-spacing:0.22em;color:rgba(255,255,255,0.6);font-family:sans-serif;margin-bottom:3px">DIGITAL MEMBERSHIP CERTIFICATE</div>
-          <div style="font-size:18px;font-weight:700;color:#fff">${window.NGO.name}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.6);font-family:sans-serif;margin-top:2px">${window.NGO.address}</div>
-        </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:9px;color:rgba(255,255,255,0.5);font-family:sans-serif;margin-bottom:3px">REG NO.</div>
-          <div style="font-size:14px;font-weight:700;color:#E8A33D;letter-spacing:0.06em;font-family:sans-serif">${member.registrationNo||"—"}</div>
-        </div>
-      </div>
-      <div style="height:4px;background:#E8A33D"></div>
-      <div style="padding:22px 30px;display:flex;gap:20px;align-items:center;border-bottom:1px solid #E7DFD2;background:#FAFAF8">
-        ${photoHtml}
-        <div>
-          <div style="font-size:21px;font-weight:700;color:#14534F;margin-bottom:3px">${member.fullName}</div>
-          <div style="font-size:13px;color:#666;font-family:sans-serif;margin-bottom:10px">${member.membershipType||"Member"}</div>
-          <div style="display:inline-flex;align-items:center;gap:6px;background:${isActive?"#EEF8F1":"#FEF2F2"};border:1px solid ${statusColor}50;border-radius:20px;padding:4px 14px">
-            <div style="width:7px;height:7px;border-radius:50%;background:${statusColor};flex-shrink:0"></div>
-            <span style="font-size:12px;font-weight:700;color:${statusColor};font-family:sans-serif">${(member.status||"Unknown").toUpperCase()}</span>
-          </div>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr">
-        ${[["CNIC",member.cnic||"—","Date of Birth",member.dob||"—"],["Mobile",member.mobile||"—","Valid Upto",member.validUpto||"—"],["Gender",member.gender||"—","Province",member.province||"—"]].map(([l1,v1,l2,v2])=>`
-          <div style="padding:11px 30px;border-right:1px solid #E7DFD2;border-bottom:1px solid #E7DFD2">
-            <div style="font-size:9px;font-weight:700;color:#8A9A96;text-transform:uppercase;letter-spacing:0.12em;font-family:sans-serif;margin-bottom:3px">${l1}</div>
-            <div style="font-size:13px;color:#1F2E2B;font-weight:700;font-family:sans-serif">${v1}</div>
-          </div>
-          <div style="padding:11px 30px;border-bottom:1px solid #E7DFD2">
-            <div style="font-size:9px;font-weight:700;color:#8A9A96;text-transform:uppercase;letter-spacing:0.12em;font-family:sans-serif;margin-bottom:3px">${l2}</div>
-            <div style="font-size:13px;color:#1F2E2B;font-weight:700;font-family:sans-serif">${v2}</div>
-          </div>`).join("")}
-        <div style="padding:11px 30px;grid-column:1/-1;border-bottom:1px solid #E7DFD2">
-          <div style="font-size:9px;font-weight:700;color:#8A9A96;text-transform:uppercase;letter-spacing:0.12em;font-family:sans-serif;margin-bottom:3px">ADDRESS</div>
-          <div style="font-size:13px;color:#1F2E2B;font-weight:700;font-family:sans-serif">${member.address||"—"}</div>
-        </div>
-      </div>
-      <div style="padding:16px 30px;display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid #E7DFD2">
-        <div>
-          <div style="font-size:9px;color:#8A9A96;font-family:sans-serif;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px">Issued On</div>
-          <div style="font-size:13px;color:#1F2E2B;font-weight:700;font-family:sans-serif">${issueDate}</div>
-        </div>
-        <div style="text-align:center">
-          <div style="width:120px;border-top:1px solid #1F2E2B;padding-top:8px;margin:0 auto">
-            <div style="font-size:12px;font-weight:700;color:#14534F;font-family:sans-serif">President</div>
-            <div style="font-size:10px;color:#8A9A96;font-family:sans-serif">${window.NGO.name}</div>
-          </div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:9px;color:#8A9A96;font-family:sans-serif;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px">Verify at</div>
-          <div style="font-size:12px;color:#14534F;font-weight:700;font-family:sans-serif">${window.location.hostname}</div>
-        </div>
-      </div>
-      <div style="padding:10px 30px;background:#F5F9F8;text-align:center">
-        <div style="font-size:10px;color:#8A9A96;font-family:sans-serif">⚠️ Computer-generated certificate · No physical signature required · ${window.NGO.name} · ${window.NGO.phone}</div>
-      </div>
+    pa.innerHTML = `<div style="border:6px double #14534F;padding:40px;text-align:center;font-family:Georgia,serif;">
+      <h1 style="color:#14534F">${window.NGO.name}</h1>
+      <p style="letter-spacing:2px;color:#E8A33D">DIGITAL MEMBERSHIP CERTIFICATE</p>
+      <h2>${member.fullName}</h2>
+      <p>is a verified ${member.membershipType||"Member"} of ${window.NGO.name}</p>
+      <table style="margin:20px auto;text-align:left">
+        <tr><td style="padding:4px 12px;font-weight:bold">Reg No:</td><td>${member.registrationNo}</td></tr>
+        <tr><td style="padding:4px 12px;font-weight:bold">Valid Upto:</td><td>${member.validUpto||"—"}</td></tr>
+        <tr><td style="padding:4px 12px;font-weight:bold">Mobile:</td><td>${member.mobile}</td></tr>
+        <tr><td style="padding:4px 12px;font-weight:bold">Address:</td><td>${member.address}</td></tr>
+      </table>
+      <p style="margin-top:30px;color:#888;font-size:12px">${window.NGO.address} — Verified Digitally</p>
     </div>`;
     window.print();
-    setTimeout(() => { pa.innerHTML = ""; }, 3000);
+    setTimeout(() => { pa.innerHTML = ""; }, 2000);
   };
 
   /* CLEAR VERIFY BTN */
@@ -541,73 +436,156 @@ document.addEventListener("DOMContentLoaded", () => {
   const verifyDonationBtn = document.getElementById("verifyDonationBtn");
   if (verifyDonationBtn) {
     verifyDonationBtn.addEventListener("click", () => {
-      const cnic = document.getElementById("vCnic")?.value.trim() || "";
-      const dob  = document.getElementById("vDob")?.value.trim() || "";
-      if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic) || !/^\d{2}-\d{2}-\d{4}$/.test(dob)) {
-        if (verifyMsg) { verifyMsg.textContent = "Please enter valid CNIC and DOB first."; verifyMsg.classList.add("error"); }
-        return;
+      // ✅ Correct IDs — vCnicD and vDobD (donation form fields)
+      const cnic = document.getElementById("vCnicD")?.value.trim() || "";
+      const dob  = document.getElementById("vDobD")?.value.trim()  || "";
+      const msg2 = document.getElementById("verifyMsg2");
+      const donResult = document.getElementById("donationResult");
+
+      if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic)) {
+        if (msg2) { msg2.textContent = "⚠️ Valid CNIC required: 00000-0000000-0"; msg2.className = "form-msg error"; } return;
       }
-      if (verifyMsg) { verifyMsg.textContent = ""; verifyMsg.className = "form-msg"; }
-      if (certResult) { certResult.hidden = true; certResult.innerHTML = ""; }
-      setLoading(verifyDonationBtn, true, 'Loading...');
+      if (!/^\d{2}-\d{2}-\d{4}$/.test(dob)) {
+        if (msg2) { msg2.textContent = "⚠️ DOB format: dd-mm-yyyy"; msg2.className = "form-msg error"; } return;
+      }
+      if (msg2) { msg2.textContent = ""; msg2.className = "form-msg"; }
+      if (donResult) donResult.innerHTML = "";
+
+      setLoading(verifyDonationBtn, true, "Loading...");
       if (!window.RHS) { setLoading(verifyDonationBtn, false); return; }
+
       RHS.getCharityLedger(cnic, dob).then(res => {
         setLoading(verifyDonationBtn, false);
-        if (!res.success) { if (verifyMsg) { verifyMsg.textContent = res.message || "Not found."; verifyMsg.classList.add("error"); } return; }
-        if (verifyForm) verifyForm.style.display = "none";
+        if (!res.success) {
+          if (msg2) { msg2.textContent = res.message || "No records found."; msg2.className = "form-msg error"; }
+          return;
+        }
         const m = res.member;
         const donations = res.donations || [];
-        let runningTotal = 0;
-        let rows = donations.length === 0
-          ? `<tr><td colspan="4" style="text-align:center;padding:20px;color:#8A9A96">No charity records found.</td></tr>`
-          : donations.map((d,i) => {
-              runningTotal += Number(d.amount)||0;
-              return `<tr style="background:${i%2?"#F5F9F8":"#fff"}">
-                <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2">${d.date||""}</td>
-                <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2">${d.paymentMethod||d.method||"Cash"}</td>
-                <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2;color:#2E9E5B;font-weight:600">Rs. ${Number(d.amount||0).toLocaleString()}</td>
-                <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2;font-weight:600">Rs. ${runningTotal.toLocaleString()}</td>
-              </tr>`;
-            }).join("");
-        if (certResult) {
-          certResult.hidden = false;
-          certResult.innerHTML = `
-            <div class="ledger-wrap">
-              <div class="ledger-header">
-                <img src="images/logo.png" alt="RHS" class="ledger-logo">
-                <div><h3>${window.NGO.name}</h3><small>${window.NGO.address}</small></div>
+        const logoSrc = window.NGO.logoUrl || "images/logo.png";
+        const issueDate = new Date().toLocaleDateString("en-PK",{day:"2-digit",month:"long",year:"numeric"});
+
+        // Build table rows
+        let rows = "";
+        if (!donations.length) {
+          rows = `<tr><td colspan="4" style="text-align:center;padding:20px;color:#8A9A96;font-style:italic">No charity records found.</td></tr>`;
+        } else {
+          donations.forEach((d,i) => {
+            rows += `<tr style="background:${i%2?"#F5F9F8":"#fff"}">
+              <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2;font-family:sans-serif;font-size:.88rem">${d.date||"—"}</td>
+              <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2;font-family:sans-serif;font-size:.88rem">${d.paymentMethod||d.method||"Cash"}</td>
+              <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2;color:#2E9E5B;font-weight:700;font-family:sans-serif;font-size:.88rem">Rs. ${Number(d.amount||0).toLocaleString()}</td>
+              <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2;font-weight:700;font-family:sans-serif;font-size:.88rem">Rs. ${Number(d.runningTotal||0).toLocaleString()}</td>
+            </tr>`;
+          });
+        }
+
+        const isActive = (m.status||"").toLowerCase()==="active";
+        const statusColor = isActive ? "#2E9E5B" : "#D9483A";
+
+        if (donResult) {
+          donResult.innerHTML = `
+            <div id="ledgerContent" style="border:2px solid #E7DFD2;border-radius:12px;overflow:hidden;background:#fff;font-family:Georgia,serif">
+
+              <!-- Header -->
+              <div style="background:#14534F;padding:18px 24px;display:flex;align-items:center;gap:14px">
+                <img src="${logoSrc}" style="width:50px;height:50px;border-radius:50%;object-fit:contain;background:#fff;padding:4px;border:2px solid rgba(255,255,255,0.3);flex-shrink:0">
+                <div style="flex:1">
+                  <div style="font-size:9px;letter-spacing:0.2em;color:rgba(255,255,255,0.6);font-family:sans-serif;margin-bottom:2px">CHARITY DONATION LEDGER</div>
+                  <div style="font-size:16px;font-weight:700;color:#fff">${window.NGO.name}</div>
+                  <div style="font-size:11px;color:rgba(255,255,255,0.6);font-family:sans-serif">${window.NGO.address}</div>
+                </div>
+                <div style="text-align:right;flex-shrink:0">
+                  <div style="font-size:9px;color:rgba(255,255,255,0.5);font-family:sans-serif;margin-bottom:2px">TOTAL CHARITY</div>
+                  <div style="font-size:16px;font-weight:700;color:#E8A33D;font-family:sans-serif">Rs. ${res.total.toLocaleString()}</div>
+                </div>
               </div>
-              <div class="ledger-member-info">
-                <div class="ledger-info-row"><span class="lbl">Member Name</span><span class="val">${m.fullName}</span></div>
-                <div class="ledger-info-row"><span class="lbl">Reg No</span><span class="val">${m.registrationNo}</span></div>
-                <div class="ledger-info-row"><span class="lbl">Valid Upto</span><span class="val" style="color:#14534F;font-weight:700">${m.validUpto||"—"}</span></div>
-                <div class="ledger-info-row"><span class="lbl">Status</span><span class="val"><span class="cert-badge">${m.status}</span></span></div>
+              <div style="height:3px;background:#E8A33D"></div>
+
+              <!-- Member Info -->
+              <div style="padding:16px 24px;display:flex;gap:16px;align-items:center;border-bottom:1px solid #E7DFD2;background:#FAFAF8;flex-wrap:wrap">
+                ${m.photo ? `<img src="${m.photo}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:3px solid #14534F;flex-shrink:0">` : `<div style="width:60px;height:60px;border-radius:50%;background:#EEF8F1;border:3px solid #14534F;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa-solid fa-user" style="font-size:1.5rem;color:#4CAF8A"></i></div>`}
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:16px;font-weight:700;color:#14534F">${m.fullName}</div>
+                  <div style="font-size:12px;color:#8A9A96;font-family:sans-serif">${m.registrationNo||"—"} · ${m.membershipType||"Member"}</div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-size:11px;color:#8A9A96;font-family:sans-serif;margin-bottom:4px">Valid Upto</div>
+                  <div style="font-size:14px;font-weight:700;color:#14534F;font-family:sans-serif">${m.validUpto||"—"}</div>
+                  <div style="margin-top:6px;display:inline-flex;align-items:center;gap:5px;background:${isActive?"#EEF8F1":"#FEF2F2"};border:1px solid ${statusColor}40;border-radius:20px;padding:3px 10px">
+                    <div style="width:6px;height:6px;border-radius:50%;background:${statusColor}"></div>
+                    <span style="font-size:11px;font-weight:700;color:${statusColor};font-family:sans-serif">${(m.status||"—").toUpperCase()}</span>
+                  </div>
+                </div>
               </div>
-              <div style="overflow-x:auto;margin-top:16px">
-                <table style="width:100%;border-collapse:collapse;font-size:.88rem">
-                  <thead><tr style="background:#14534F;color:#fff">
-                    <th style="padding:10px 14px;text-align:left">Date</th>
-                    <th style="padding:10px 14px;text-align:left">Payment</th>
-                    <th style="padding:10px 14px;text-align:left">Amount</th>
-                    <th style="padding:10px 14px;text-align:left">Total</th>
-                  </tr></thead>
+
+              <!-- Table -->
+              <div style="overflow-x:auto">
+                <table style="width:100%;border-collapse:collapse;min-width:400px">
+                  <thead>
+                    <tr style="background:#14534F;color:#fff">
+                      <th style="padding:10px 14px;text-align:left;font-family:sans-serif;font-size:.82rem;font-weight:600">Date</th>
+                      <th style="padding:10px 14px;text-align:left;font-family:sans-serif;font-size:.82rem;font-weight:600">Payment Method</th>
+                      <th style="padding:10px 14px;text-align:left;font-family:sans-serif;font-size:.82rem;font-weight:600">Amount</th>
+                      <th style="padding:10px 14px;text-align:left;font-family:sans-serif;font-size:.82rem;font-weight:600">Running Total</th>
+                    </tr>
+                  </thead>
                   <tbody>${rows}</tbody>
-                  <tfoot><tr style="background:#EEF8F1">
-                    <td colspan="2" style="padding:12px 14px;font-weight:700;color:#14534F">Total Charity</td>
-                    <td colspan="2" style="padding:12px 14px;font-weight:700;color:#14534F;font-size:1.05rem">Rs. ${res.total.toLocaleString()}</td>
-                  </tr></tfoot>
+                  <tfoot>
+                    <tr style="background:#EEF8F1">
+                      <td colspan="2" style="padding:12px 14px;font-weight:700;color:#14534F;font-family:sans-serif">Total Charity Donated</td>
+                      <td colspan="2" style="padding:12px 14px;font-weight:700;color:#14534F;font-size:1rem;font-family:sans-serif">Rs. ${res.total.toLocaleString()}</td>
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
-              <p class="cert-footnote">${window.NGO.name} | ${window.NGO.phone} | ${window.NGO.email}</p>
-              <div style="margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-                <button class="btn btn-primary" onclick="window.print()"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
-                <button class="btn btn-ghost" onclick="closeLedger()"><i class="fa-solid fa-arrow-left"></i> Back</button>
+
+              <!-- Footer -->
+              <div style="padding:12px 24px;background:#F5F9F8;text-align:center;border-top:1px solid #E7DFD2">
+                <div style="font-size:10px;color:#8A9A96;font-family:sans-serif">⚠️ Computer-generated statement · ${window.NGO.name} · ${window.NGO.phone} · ${window.NGO.email}</div>
+              </div>
+
+              <!-- Actions -->
+              <div style="padding:14px 24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;border-top:1px solid #E7DFD2">
+                <button class="btn btn-primary" onclick="printLedger()"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
+                <button class="btn btn-ghost" onclick="document.getElementById('donationResult').innerHTML='';document.getElementById('verifyMsg2').textContent=''">
+                  <i class="fa-solid fa-arrow-left"></i> Clear
+                </button>
               </div>
             </div>`;
         }
-      }).catch(() => { setLoading(verifyDonationBtn, false); if (verifyMsg) { verifyMsg.textContent = "Network error."; verifyMsg.classList.add("error"); } });
+      }).catch(() => {
+        setLoading(verifyDonationBtn, false);
+        if (msg2) { msg2.textContent = "⚠️ Network error. Please try again."; msg2.className = "form-msg error"; }
+      });
     });
   }
+
+  // Clear donation form
+  const verifyDonationClear = document.getElementById("verifyDonationClear");
+  if (verifyDonationClear) {
+    verifyDonationClear.addEventListener("click", () => {
+      const c = document.getElementById("vCnicD"); if(c) c.value = "";
+      const d = document.getElementById("vDobD");  if(d) d.value = "";
+      const m = document.getElementById("verifyMsg2"); if(m){m.textContent="";m.className="form-msg";}
+      const r = document.getElementById("donationResult"); if(r) r.innerHTML = "";
+    });
+  }
+
+  // Print ledger as proper PDF
+  window.printLedger = function() {
+    const content = document.getElementById("ledgerContent");
+    if (!content) return;
+    const pa = document.getElementById("printCert");
+    if (!pa) return;
+    const logoSrc = window.NGO.logoUrl || "images/logo.png";
+    const issueDate = new Date().toLocaleDateString("en-PK",{day:"2-digit",month:"long",year:"numeric"});
+    pa.innerHTML = `
+    <style>@page{margin:12mm;size:A4;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}</style>
+    ${content.outerHTML}`;
+    window.print();
+    setTimeout(() => { pa.innerHTML = ""; }, 3000);
+  };
 
   window.closeLedger = function() {
     if (certResult) { certResult.hidden = true; certResult.innerHTML = ""; }
