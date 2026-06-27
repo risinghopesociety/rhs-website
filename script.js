@@ -199,9 +199,21 @@ document.addEventListener("DOMContentLoaded", () => {
     requestAnimationFrame(tick);
   }
 
+  let statsLoaded = false;
+  let statsVisible = false;
+
+  function runStatsAnimation() {
+    if (!statsLoaded || !statsVisible) return;
+    ["pub-pending","pub-active","pub-expired","pub-banned",
+     "pub-completed","pub-approved","pub-rejected","pub-closed"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) animateCount(el, el.dataset.target || 0);
+    });
+  }
+
   function loadStatistics() {
     if (!window.RHS) { setTimeout(loadStatistics, 500); return; }
-    RHS.getAdminStats().then(res => {
+    RHS.getPublicStats().then(res => {
       if (!res || !res.success) return;
       const map = {
         "pub-pending":   res.pendingMembers  || 0,
@@ -217,6 +229,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const el = document.getElementById(id);
         if (el) el.dataset.target = val;
       });
+      statsLoaded = true;
+      runStatsAnimation();
     }).catch(() => {});
   }
   loadStatistics();
@@ -226,15 +240,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const statsObserver = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          ["pub-pending","pub-active","pub-expired","pub-banned",
-           "pub-completed","pub-approved","pub-rejected","pub-closed"].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) animateCount(el, el.dataset.target || 0);
-          });
+          statsVisible = true;
+          runStatsAnimation();
           statsObserver.disconnect();
         }
       });
-    }, { threshold: 0.3 });
+    }, { threshold: 0.2 });
     statsObserver.observe(statsEl);
   }
 

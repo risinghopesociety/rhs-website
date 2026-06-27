@@ -712,7 +712,46 @@ async function getAdminStats() {
 // ============================================================
 // EXPORT ALL FUNCTIONS
 // ============================================================
-window.RHS = {
+async function getPublicStats() {
+  await waitForFB();
+  try {
+    const [members, grants] = await Promise.all([
+      fs().getDocs(fs().collection(db(), "members")),
+      fs().getDocs(fs().collection(db(), "grantRequests"))
+    ]);
+
+    let pending = 0, active = 0, expired = 0, banned = 0;
+    members.forEach(d => {
+      const s = (d.data().status || "").toLowerCase();
+      if (s === "underprocess") pending++;
+      else if (s === "active") active++;
+      else if (s === "expired") expired++;
+      else if (s === "banned") banned++;
+    });
+
+    let completed = 0, approved = 0, rejected = 0, closed = 0;
+    grants.forEach(d => {
+      const s = (d.data().status || "").toLowerCase();
+      const dec = (d.data().decision || "").toLowerCase();
+      if (s === "completed") completed++;
+      if (dec === "approved" && s !== "closed") approved++;
+      if (dec === "rejected" && s !== "closed") rejected++;
+      if (s === "closed") closed++;
+    });
+
+    return {
+      success: true,
+      pendingMembers: pending, activeMembers: active,
+      expiredMembers: expired, bannedMembers: banned,
+      completedCases: completed, approvedCases: approved,
+      rejectedCases: rejected, closedCases: closed
+    };
+  } catch(e) {
+    return { success: false };
+  }
+}
+
+
   // Settings
   getNGOSettings, saveNGOSettings,
   getStatistics, getContent, saveContent,
@@ -733,7 +772,7 @@ window.RHS = {
   // Cash Book
   addCashEntry, getCashBook, getNetWorth,
   // Stats
-  getAdminStats,
+  getAdminStats, getPublicStats,
   // Messages
   submitContactMessage, getContactMessages,
   // Image
