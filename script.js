@@ -232,10 +232,64 @@ document.addEventListener("DOMContentLoaded", () => {
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   /* ===================== REGISTRATION FORM ===================== */
-  const regForm   = document.getElementById("regForm");
-  const formMsg   = document.getElementById("formMsg");
+  const regForm    = document.getElementById("regForm");
+  const formMsg    = document.getElementById("formMsg");
   const formResult = document.getElementById("formResult");
-  const submitBtn = document.getElementById("submitBtn");
+  const submitBtn  = document.getElementById("submitBtn");
+
+  /* Helper: show full-page alert replacing the form */
+  function showRegAlert(type, html) {
+    if (regForm) regForm.style.display = "none";
+    if (formResult) {
+      formResult.hidden = false;
+      formResult.innerHTML = `<div class="status-msg ${type}">${html}</div>`;
+    }
+  }
+
+  /* ---- LIVE CNIC DUPLICATE CHECK ---- */
+  /* Fires when CNIC field loses focus AND is fully valid (15 chars) */
+  const regCnicEl = document.getElementById("regCnic");
+  let cnicCheckTimer = null;
+  if (regCnicEl) {
+    regCnicEl.addEventListener("blur", function () {
+      const val = this.value.trim();
+      if (!/^\d{5}-\d{7}-\d{1}$/.test(val)) return; // not complete yet — skip
+      if (!window.RHS) return;
+      clearTimeout(cnicCheckTimer);
+      cnicCheckTimer = setTimeout(() => {
+        // Check duplicate by querying Firestore through a lightweight member search
+        RHS.getMembers && RHS.searchMembers
+          ? RHS.searchMembers(val).then(res => {
+              const found = res.members && res.members.length > 0;
+              if (found) {
+                const m = res.members[0];
+                showRegAlert("status-yellow", `
+                  <i class="fa-solid fa-circle-exclamation" style="font-size:2.2rem;color:#E8A33D;display:block;margin-bottom:12px"></i>
+                  <div class="status-title" style="color:#92620A">Already Registered!</div>
+                  <p>Dear <strong>${m.fullName || "Applicant"}</strong>, You are already a Registered Member of <strong>${window.NGO.name}</strong>.</p>
+                  <p style="margin-top:8px">Please check your Registration Status by using the <strong>Certificate &amp; Donation Verify</strong> portal.</p>
+                  <p style="margin-top:12px;font-size:.88rem;color:#555">
+                    📞 <a href="tel:+92${window.NGO.alert.replace(/\D/g,'').slice(-10)}" style="color:var(--teal);font-weight:600">${window.NGO.alert}</a>
+                    &nbsp;|&nbsp;
+                    📧 <a href="mailto:${window.NGO.email}" style="color:var(--teal);font-weight:600">${window.NGO.email}</a>
+                  </p>
+                  <div class="reg-alert-btns">
+                    <button class="btn btn-primary" onclick="hideMemberSection();setTimeout(()=>showMemberSection('verify'),100)">
+                      <i class="fa-solid fa-shield-halved"></i> Verify My Certificate
+                    </button>
+                    <button class="btn btn-ghost" onclick="if(formResult){formResult.hidden=true;} if(regForm){regForm.style.display='';document.getElementById('regCnic').value='';document.getElementById('regCnic').focus();}">
+                      <i class="fa-solid fa-rotate-left"></i> Try Different CNIC
+                    </button>
+                    <button class="btn btn-ghost" onclick="hideMemberSection()">
+                      <i class="fa-solid fa-arrow-left"></i> Back to Portal
+                    </button>
+                  </div>`);
+              }
+            }).catch(() => {})
+          : null;
+      }, 400);
+    });
+  }
 
   if (regForm) {
     regForm.addEventListener("reset", () => {
@@ -250,28 +304,29 @@ document.addEventListener("DOMContentLoaded", () => {
       formMsg.textContent = "";
       formMsg.className = "form-msg";
 
-      const cnic     = document.getElementById("regCnic")?.value.trim()       || "";
-      const dob      = document.getElementById("regDob")?.value.trim()        || "";
-      const fullName = document.getElementById("regName")?.value.trim()       || "";
-      const father   = document.getElementById("regFather")?.value.trim()     || "";
-      const gender   = document.getElementById("regGender")?.value            || "";
-      const prof     = document.getElementById("regProfession")?.value.trim() || "";
-      const email    = document.getElementById("regEmail")?.value.trim()      || "";
-      const mobile   = document.getElementById("regMobile")?.value.trim()     || "";
-      const province = document.getElementById("regProvince")?.value          || "";
-      const address  = document.getElementById("regAddress")?.value.trim()    || "";
-      const membership = document.getElementById("regMembership")?.value      || "";
+      const cnic       = document.getElementById("regCnic")?.value.trim()       || "";
+      const dob        = document.getElementById("regDob")?.value.trim()        || "";
+      const fullName   = document.getElementById("regName")?.value.trim()       || "";
+      const father     = document.getElementById("regFather")?.value.trim()     || "";
+      const gender     = document.getElementById("regGender")?.value            || "";
+      const prof       = document.getElementById("regProfession")?.value.trim() || "";
+      const email      = document.getElementById("regEmail")?.value.trim()      || "";
+      const mobile     = document.getElementById("regMobile")?.value.trim()     || "";
+      const province   = document.getElementById("regProvince")?.value          || "";
+      const address    = document.getElementById("regAddress")?.value.trim()    || "";
+      const membership = document.getElementById("regMembership")?.value        || "";
 
-      if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic))                    { formMsg.textContent = "⚠️ Valid CNIC required: 00000-0000000-0"; formMsg.classList.add("error"); return; }
-      if (!/^\d{2}-\d{2}-\d{4}$/.test(dob))                     { formMsg.textContent = "⚠️ DOB format: dd-mm-yyyy"; formMsg.classList.add("error"); return; }
-      if (!fullName)                                              { formMsg.textContent = "⚠️ Full Name required."; formMsg.classList.add("error"); return; }
-      if (!father)                                                { formMsg.textContent = "⚠️ Father/Husband Name required."; formMsg.classList.add("error"); return; }
-      if (!gender)                                                { formMsg.textContent = "⚠️ Please select Gender."; formMsg.classList.add("error"); return; }
-      if (!prof)                                                  { formMsg.textContent = "⚠️ Profession required."; formMsg.classList.add("error"); return; }
-      if (!/^\d{4}-\d{7}$/.test(mobile))                        { formMsg.textContent = "⚠️ Mobile format: 0300-0000000"; formMsg.classList.add("error"); return; }
-      if (!province)                                              { formMsg.textContent = "⚠️ Please select Province."; formMsg.classList.add("error"); return; }
-      if (!membership)                                            { formMsg.textContent = "⚠️ Please select Membership Type."; formMsg.classList.add("error"); return; }
-      if (!address)                                               { formMsg.textContent = "⚠️ Address required."; formMsg.classList.add("error"); return; }
+      // Validations — clear inline errors
+      if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic))   { formMsg.textContent = "⚠️ CNIC format: 00000-0000000-0"; formMsg.classList.add("error"); document.getElementById("regCnic")?.focus(); return; }
+      if (!/^\d{2}-\d{2}-\d{4}$/.test(dob))    { formMsg.textContent = "⚠️ Date of Birth format: dd-mm-yyyy"; formMsg.classList.add("error"); document.getElementById("regDob")?.focus(); return; }
+      if (!fullName)                             { formMsg.textContent = "⚠️ Full Name is required."; formMsg.classList.add("error"); document.getElementById("regName")?.focus(); return; }
+      if (!father)                               { formMsg.textContent = "⚠️ Father / Husband Name is required."; formMsg.classList.add("error"); document.getElementById("regFather")?.focus(); return; }
+      if (!gender)                               { formMsg.textContent = "⚠️ Please select Gender."; formMsg.classList.add("error"); return; }
+      if (!prof)                                 { formMsg.textContent = "⚠️ Profession is required."; formMsg.classList.add("error"); document.getElementById("regProfession")?.focus(); return; }
+      if (!/^\d{4}-\d{7}$/.test(mobile))        { formMsg.textContent = "⚠️ Mobile format: 0300-0000000"; formMsg.classList.add("error"); document.getElementById("regMobile")?.focus(); return; }
+      if (!province)                             { formMsg.textContent = "⚠️ Please select Province."; formMsg.classList.add("error"); return; }
+      if (!membership)                           { formMsg.textContent = "⚠️ Please select Membership Type."; formMsg.classList.add("error"); return; }
+      if (!address)                              { formMsg.textContent = "⚠️ Full Address is required."; formMsg.classList.add("error"); document.getElementById("regAddress")?.focus(); return; }
 
       setLoading(submitBtn, true, "Submitting...");
 
@@ -287,45 +342,57 @@ document.addEventListener("DOMContentLoaded", () => {
       RHS.registerMember({ cnic, dob, fullName, fatherName: father, gender, profession: prof, email, mobile, province, address, membershipType: membership, photo: photoUrl })
         .then(res => {
           setLoading(submitBtn, false);
+
           if (res.success) {
-            regForm.style.display = "none";
-            if (formResult) {
-              formResult.hidden = false;
-              formResult.innerHTML = `
-                <div class="status-msg status-green">
-                  <i class="fa-solid fa-circle-check"></i>
-                  <div class="status-title">Registration Submitted Successfully!</div>
-                  <p>Dear <strong>${fullName}</strong>, Your Registration Request has been Successfully Received.</p>
-                  <p style="margin-top:8px">Your Registration is now <strong>Underprocess</strong>. You will be notified after approval.</p>
-                  <p style="margin-top:12px;font-size:.88rem">📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}</p>
-                  <button class="btn btn-ghost" style="margin-top:16px" onclick="hideMemberSection()">
-                    <i class="fa-solid fa-arrow-left"></i> Back to Portal
-                  </button>
-                </div>`;
-            }
+            // ✅ SUCCESS ALERT
+            showRegAlert("status-green", `
+              <i class="fa-solid fa-circle-check" style="font-size:2.5rem;color:#2E9E5B;display:block;margin-bottom:12px"></i>
+              <div class="status-title" style="color:#1A6B3A">Registration Submitted Successfully!</div>
+              <p>Dear <strong>${fullName}</strong>, Your Registration Application has been <strong>Successfully Submitted</strong> to <strong>${window.NGO.name}</strong>.</p>
+              <p style="margin-top:8px">Your application is currently <strong>Under Process</strong>. Our team will review your application and contact you after approval. Please keep your CNIC and Date of Birth handy for future verification.</p>
+              <p style="margin-top:12px;font-size:.9rem;color:#555">
+                📞 <a href="tel:+92${window.NGO.alert.replace(/\D/g,'').slice(-10)}" style="color:var(--teal);font-weight:600">${window.NGO.alert}</a>
+                &nbsp;|&nbsp;
+                📧 <a href="mailto:${window.NGO.email}" style="color:var(--teal);font-weight:600">${window.NGO.email}</a>
+              </p>
+              <div class="reg-alert-btns">
+                <button class="btn btn-primary" onclick="hideMemberSection();setTimeout(()=>showMemberSection('verify'),100)">
+                  <i class="fa-solid fa-shield-halved"></i> Verify My Status
+                </button>
+                <button class="btn btn-ghost" onclick="hideMemberSection()">
+                  <i class="fa-solid fa-arrow-left"></i> Back to Portal
+                </button>
+              </div>`);
+
           } else if (res.code === "DUPLICATE") {
-            regForm.style.display = "none";
-            if (formResult) {
-              formResult.hidden = false;
-              formResult.innerHTML = `
-                <div class="status-msg status-yellow">
-                  <i class="fa-solid fa-circle-info"></i>
-                  <div class="status-title">Already Registered</div>
-                  <p>Dear <strong>${fullName}</strong>, you are already a Registered Member. Please verify your membership using the <strong>Certificate &amp; Donation Verify</strong> button.</p>
-                  <p style="margin-top:12px;font-size:.88rem">📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}</p>
-                  <button class="btn btn-ghost" style="margin-top:16px" onclick="hideMemberSection()">
-                    <i class="fa-solid fa-arrow-left"></i> Back to Portal
-                  </button>
-                </div>`;
-            }
+            // ⚠️ DUPLICATE ALERT
+            showRegAlert("status-yellow", `
+              <i class="fa-solid fa-circle-exclamation" style="font-size:2.2rem;color:#E8A33D;display:block;margin-bottom:12px"></i>
+              <div class="status-title" style="color:#92620A">Already Registered!</div>
+              <p>Dear <strong>${fullName}</strong>, You are already a Registered Member of <strong>${window.NGO.name}</strong>.</p>
+              <p style="margin-top:8px">Please check your Registration Status by using the <strong>Certificate &amp; Donation Verify</strong> portal.</p>
+              <p style="margin-top:12px;font-size:.9rem;color:#555">
+                📞 <a href="tel:+92${window.NGO.alert.replace(/\D/g,'').slice(-10)}" style="color:var(--teal);font-weight:600">${window.NGO.alert}</a>
+                &nbsp;|&nbsp;
+                📧 <a href="mailto:${window.NGO.email}" style="color:var(--teal);font-weight:600">${window.NGO.email}</a>
+              </p>
+              <div class="reg-alert-btns">
+                <button class="btn btn-primary" onclick="hideMemberSection();setTimeout(()=>showMemberSection('verify'),100)">
+                  <i class="fa-solid fa-shield-halved"></i> Verify My Certificate
+                </button>
+                <button class="btn btn-ghost" onclick="hideMemberSection()">
+                  <i class="fa-solid fa-arrow-left"></i> Back to Portal
+                </button>
+              </div>`);
+
           } else {
-            formMsg.textContent = res.message || "Something went wrong.";
+            formMsg.textContent = res.message || "Something went wrong. Please try again.";
             formMsg.classList.add("error");
           }
         })
         .catch(() => {
           setLoading(submitBtn, false);
-          formMsg.textContent = "Network error. Please try again.";
+          formMsg.textContent = "⚠️ Network error. Please check your connection and try again.";
           formMsg.classList.add("error");
         });
     });
@@ -336,7 +403,7 @@ document.addEventListener("DOMContentLoaded", () => {
         regForm.reset();
         regForm.style.display = "";
         if (formResult) formResult.hidden = true;
-        if (formMsg) formMsg.textContent = "";
+        if (formMsg) { formMsg.textContent = ""; formMsg.className = "form-msg"; }
       });
     }
   }
@@ -416,7 +483,13 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="cert-actions">
           <button class="btn btn-primary" onclick="printCertificate(${JSON.stringify(member).replace(/"/g, '&quot;')})">
-            Download / Print <i class="fa-solid fa-print"></i>
+            <i class="fa-solid fa-print"></i> Download / Print
+          </button>
+          <button class="btn btn-ghost" onclick="window.closeLedger ? window.closeLedger() : null; document.getElementById('certResult').hidden=true; document.getElementById('certResult').innerHTML='';">
+            <i class="fa-solid fa-rotate-left"></i> Search Again
+          </button>
+          <button class="btn btn-ghost" onclick="hideMemberSection()">
+            <i class="fa-solid fa-arrow-left"></i> Back to Portal
           </button>
         </div>
         <p class="cert-footnote">Computer-generated digital certificate. No signature required.</p>
@@ -574,7 +647,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
                 <div style="padding:14px 24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;border-top:1px solid #E7DFD2">
                   <button class="btn btn-primary" onclick="printLedger()"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
-                  <button class="btn btn-ghost" onclick="window.closeLedger()"><i class="fa-solid fa-arrow-left"></i> Clear</button>
+                  <button class="btn btn-ghost" onclick="window.closeLedger()"><i class="fa-solid fa-rotate-left"></i> Search Again</button>
+                  <button class="btn btn-ghost" onclick="hideMemberSection()"><i class="fa-solid fa-arrow-left"></i> Back to Portal</button>
                 </div>
               </div>`;
           }

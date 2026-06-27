@@ -303,20 +303,20 @@
             <p class="form-msg" id="photoMsg"></p>
           </div>
         </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary" id="submitBtn">
-            Submit Registration <i class="fa-solid fa-paper-plane"></i>
+        <div class="form-actions reg-form-actions">
+          <button type="button" class="btn btn-ghost" onclick="hideMemberSection()">
+            <i class="fa-solid fa-arrow-left"></i> Back
           </button>
-          <button type="reset" class="btn btn-ghost">Clear Form</button>
+          <button type="reset" class="btn btn-ghost">
+            <i class="fa-solid fa-rotate-left"></i> Clear
+          </button>
+          <button type="submit" class="btn btn-primary" id="submitBtn">
+            <i class="fa-solid fa-paper-plane"></i> Submit Registration
+          </button>
         </div>
         <p class="form-msg" id="formMsg"></p>
       </form>
       <div id="formResult" hidden class="result-card"></div>
-    </div>
-    <div style="text-align:center;margin-top:20px">
-      <button class="btn btn-ghost" onclick="hideMemberSection()">
-        <i class="fa-solid fa-arrow-left"></i> Back to Member Portal
-      </button>
     </div>
   </div>
 </section>
@@ -343,22 +343,22 @@
         </div>
         <div class="form-actions wrap">
           <button type="submit" class="btn btn-primary" id="verifyBtn">
-            Verify Certificate <i class="fa-solid fa-shield-halved"></i>
+            <i class="fa-solid fa-shield-halved"></i> Verify Certificate
           </button>
           <button type="button" class="btn btn-secondary" id="verifyCharityBtn">
-            Verify Charity Record <i class="fa-solid fa-hand-holding-heart"></i>
+            <i class="fa-solid fa-hand-holding-heart"></i> Verify Charity Record
           </button>
-          <button type="button" class="btn btn-ghost" id="verifyClearBtn">Clear</button>
+          <button type="button" class="btn btn-ghost" id="verifyClearBtn">
+            <i class="fa-solid fa-rotate-left"></i> Clear
+          </button>
+          <button type="button" class="btn btn-ghost" onclick="hideMemberSection()">
+            <i class="fa-solid fa-arrow-left"></i> Back
+          </button>
         </div>
         <p class="form-msg" id="verifyMsg"></p>
       </form>
       <div id="certResult" hidden></div>
       <div id="donationResult" style="margin-top:24px"></div>
-      <div style="text-align:center;margin-top:20px">
-        <button class="btn btn-ghost" onclick="hideMemberSection()">
-          <i class="fa-solid fa-arrow-left"></i> Back to Member Portal
-        </button>
-      </div>
     </div>
   </div>
 </section>

@@ -366,6 +366,19 @@ img, video { max-width: 100%; display: block; }
 .form-actions { display: flex; gap: 16px; margin-top: 32px; flex-wrap: wrap; }
 .form-actions.wrap .btn { flex: 1 1 auto; justify-content: center; }
 
+/* Registration form — 3 buttons in one row */
+.reg-form-actions { display:flex; flex-wrap:nowrap; gap:12px; margin-top:32px; align-items:center; }
+.reg-form-actions .btn { flex:1; justify-content:center; min-width:0; }
+@media (max-width:540px) { .reg-form-actions { flex-wrap:wrap; } .reg-form-actions .btn { flex:1 1 45%; } }
+
+/* Alert buttons — one row centered */
+.reg-alert-btns { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:20px; }
+.reg-alert-btns .btn { flex:1 1 auto; max-width:220px; justify-content:center; }
+
+/* Certificate actions — one row */
+.cert-card .cert-actions { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:24px; }
+.cert-card .cert-actions .btn { flex:1 1 auto; max-width:200px; justify-content:center; }
+
 .form-msg {
   margin-top: 16px;
   font-size: 0.92rem;
@@ -421,7 +434,6 @@ img, video { max-width: 100%; display: block; }
 .cert-grid .item { display: flex; flex-direction: column; gap: 4px; }
 .cert-grid .item .lbl { font-size: 0.78rem; text-transform: uppercase; letter-spacing: .06em; color: #8A9A96; font-weight: 600; }
 .cert-grid .item .val { font-size: 1.02rem; font-weight: 600; color: var(--ink); }
-.cert-card .cert-actions { margin-top: 24px; display: flex; gap: 14px; flex-wrap: wrap; }
 .cert-footnote {
   margin-top: 20px;
   font-size: 0.78rem;
