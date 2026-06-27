@@ -322,8 +322,8 @@ img, video { max-width: 100%; display: block; }
 
 /* ===================== FORMS (Registration / Verification / Contact) ===================== */
 .registration, .verify { padding: 90px 0; }
-.registration { visibility: hidden; height: 0; overflow: hidden; padding: 0; margin: 0; }
-.registration.show { visibility: visible; height: auto; overflow: visible; padding: 90px 0; margin: 0; }
+.registration { display: none; }
+.registration.show { display: block; }
 .verify { background: #F4ECE0; }
 
 .form-card {
@@ -381,6 +381,8 @@ img, video { max-width: 100%; display: block; }
 .form-result h3 { font-size: 1.5rem; color: var(--teal); margin-bottom: 10px; }
 .form-result p { color: #4A5C58; max-width: 480px; margin: 0 auto 24px; }
 .form-result.error .result-icon { color: var(--coral); }
+.registration { display: none; }
+.registration.show { display: block; }
 
 /* ===================== CERTIFICATE RESULT CARD ===================== */
 .cert-result { margin-top: 32px; }
@@ -709,3 +711,11 @@ img, video { max-width: 100%; display: block; }
 .photo-preview:hover { border-color: var(--teal); background: #EEF8F1; }
 .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
 .photo-preview i { font-size: 1.4rem; color: var(--teal-2); }
+
+/* Verify Charity button */
+.btn-secondary {
+  background: #E8A33D;
+  color: #fff;
+  border: none;
+}
+.btn-secondary:hover { background: #d4922e; }

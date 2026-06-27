@@ -433,39 +433,33 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   /* CHARITY LEDGER */
-  const verifyDonationBtn = document.getElementById("verifyDonationBtn");
+  const verifyDonationBtn = document.getElementById("verifyCharityBtn");
   if (verifyDonationBtn) {
     verifyDonationBtn.addEventListener("click", () => {
-      // ✅ Correct IDs — vCnicD and vDobD (donation form fields)
-      const cnic = document.getElementById("vCnicD")?.value.trim() || "";
-      const dob  = document.getElementById("vDobD")?.value.trim()  || "";
-      const msg2 = document.getElementById("verifyMsg2");
+      const cnic = document.getElementById("vCnic")?.value.trim() || "";
+      const dob  = document.getElementById("vDob")?.value.trim()  || "";
       const donResult = document.getElementById("donationResult");
-
       if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic)) {
-        if (msg2) { msg2.textContent = "⚠️ Valid CNIC required: 00000-0000000-0"; msg2.className = "form-msg error"; } return;
+        if (verifyMsg) { verifyMsg.textContent = "⚠️ Valid CNIC: 00000-0000000-0"; verifyMsg.className = "form-msg error"; } return;
       }
       if (!/^\d{2}-\d{2}-\d{4}$/.test(dob)) {
-        if (msg2) { msg2.textContent = "⚠️ DOB format: dd-mm-yyyy"; msg2.className = "form-msg error"; } return;
+        if (verifyMsg) { verifyMsg.textContent = "⚠️ DOB: dd-mm-yyyy"; verifyMsg.className = "form-msg error"; } return;
       }
-      if (msg2) { msg2.textContent = ""; msg2.className = "form-msg"; }
+      if (verifyMsg) { verifyMsg.textContent = ""; verifyMsg.className = "form-msg"; }
+      if (certResult) { certResult.hidden = true; certResult.innerHTML = ""; }
       if (donResult) donResult.innerHTML = "";
-
       setLoading(verifyDonationBtn, true, "Loading...");
       if (!window.RHS) { setLoading(verifyDonationBtn, false); return; }
-
       RHS.getCharityLedger(cnic, dob).then(res => {
         setLoading(verifyDonationBtn, false);
         if (!res.success) {
-          if (msg2) { msg2.textContent = res.message || "No records found."; msg2.className = "form-msg error"; }
-          return;
+          if (verifyMsg) { verifyMsg.textContent = res.message || "Not found."; verifyMsg.className = "form-msg error"; } return;
         }
         const m = res.member;
         const donations = res.donations || [];
         const logoSrc = window.NGO.logoUrl || "images/logo.png";
-        const issueDate = new Date().toLocaleDateString("en-PK",{day:"2-digit",month:"long",year:"numeric"});
-
-        // Build table rows
+        const isActive = (m.status||"").toLowerCase()==="active";
+        const statusColor = isActive ? "#2E9E5B" : "#D9483A";
         let rows = "";
         if (!donations.length) {
           rows = `<tr><td colspan="4" style="text-align:center;padding:20px;color:#8A9A96;font-style:italic">No charity records found.</td></tr>`;
@@ -479,15 +473,9 @@ document.addEventListener("DOMContentLoaded", () => {
             </tr>`;
           });
         }
-
-        const isActive = (m.status||"").toLowerCase()==="active";
-        const statusColor = isActive ? "#2E9E5B" : "#D9483A";
-
         if (donResult) {
           donResult.innerHTML = `
             <div id="ledgerContent" style="border:2px solid #E7DFD2;border-radius:12px;overflow:hidden;background:#fff;font-family:Georgia,serif">
-
-              <!-- Header -->
               <div style="background:#14534F;padding:18px 24px;display:flex;align-items:center;gap:14px">
                 <img src="${logoSrc}" style="width:50px;height:50px;border-radius:50%;object-fit:contain;background:#fff;padding:4px;border:2px solid rgba(255,255,255,0.3);flex-shrink:0">
                 <div style="flex:1">
@@ -501,10 +489,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
               </div>
               <div style="height:3px;background:#E8A33D"></div>
-
-              <!-- Member Info -->
               <div style="padding:16px 24px;display:flex;gap:16px;align-items:center;border-bottom:1px solid #E7DFD2;background:#FAFAF8;flex-wrap:wrap">
-                ${m.photo ? `<img src="${m.photo}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:3px solid #14534F;flex-shrink:0">` : `<div style="width:60px;height:60px;border-radius:50%;background:#EEF8F1;border:3px solid #14534F;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa-solid fa-user" style="font-size:1.5rem;color:#4CAF8A"></i></div>`}
+                ${m.photo?`<img src="${m.photo}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:3px solid #14534F;flex-shrink:0">`:`<div style="width:60px;height:60px;border-radius:50%;background:#EEF8F1;border:3px solid #14534F;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa-solid fa-user" style="font-size:1.5rem;color:#4CAF8A"></i></div>`}
                 <div style="flex:1;min-width:0">
                   <div style="font-size:16px;font-weight:700;color:#14534F">${m.fullName}</div>
                   <div style="font-size:12px;color:#8A9A96;font-family:sans-serif">${m.registrationNo||"—"} · ${m.membershipType||"Member"}</div>
@@ -518,76 +504,49 @@ document.addEventListener("DOMContentLoaded", () => {
                   </div>
                 </div>
               </div>
-
-              <!-- Table -->
               <div style="overflow-x:auto">
                 <table style="width:100%;border-collapse:collapse;min-width:400px">
-                  <thead>
-                    <tr style="background:#14534F;color:#fff">
-                      <th style="padding:10px 14px;text-align:left;font-family:sans-serif;font-size:.82rem;font-weight:600">Date</th>
-                      <th style="padding:10px 14px;text-align:left;font-family:sans-serif;font-size:.82rem;font-weight:600">Payment Method</th>
-                      <th style="padding:10px 14px;text-align:left;font-family:sans-serif;font-size:.82rem;font-weight:600">Amount</th>
-                      <th style="padding:10px 14px;text-align:left;font-family:sans-serif;font-size:.82rem;font-weight:600">Running Total</th>
-                    </tr>
-                  </thead>
+                  <thead><tr style="background:#14534F;color:#fff">
+                    <th style="padding:10px 14px;text-align:left;font-family:sans-serif;font-size:.82rem">Date</th>
+                    <th style="padding:10px 14px;text-align:left;font-family:sans-serif;font-size:.82rem">Payment Method</th>
+                    <th style="padding:10px 14px;text-align:left;font-family:sans-serif;font-size:.82rem">Amount</th>
+                    <th style="padding:10px 14px;text-align:left;font-family:sans-serif;font-size:.82rem">Running Total</th>
+                  </tr></thead>
                   <tbody>${rows}</tbody>
-                  <tfoot>
-                    <tr style="background:#EEF8F1">
-                      <td colspan="2" style="padding:12px 14px;font-weight:700;color:#14534F;font-family:sans-serif">Total Charity Donated</td>
-                      <td colspan="2" style="padding:12px 14px;font-weight:700;color:#14534F;font-size:1rem;font-family:sans-serif">Rs. ${res.total.toLocaleString()}</td>
-                    </tr>
-                  </tfoot>
+                  <tfoot><tr style="background:#EEF8F1">
+                    <td colspan="2" style="padding:12px 14px;font-weight:700;color:#14534F;font-family:sans-serif">Total Charity Donated</td>
+                    <td colspan="2" style="padding:12px 14px;font-weight:700;color:#14534F;font-size:1rem;font-family:sans-serif">Rs. ${res.total.toLocaleString()}</td>
+                  </tr></tfoot>
                 </table>
               </div>
-
-              <!-- Footer -->
-              <div style="padding:12px 24px;background:#F5F9F8;text-align:center;border-top:1px solid #E7DFD2">
-                <div style="font-size:10px;color:#8A9A96;font-family:sans-serif">⚠️ Computer-generated statement · ${window.NGO.name} · ${window.NGO.phone} · ${window.NGO.email}</div>
+              <div style="padding:10px 24px;background:#F5F9F8;text-align:center;border-top:1px solid #E7DFD2">
+                <div style="font-size:10px;color:#8A9A96;font-family:sans-serif">⚠️ Computer-generated statement · ${window.NGO.name} · ${window.NGO.phone}</div>
               </div>
-
-              <!-- Actions -->
               <div style="padding:14px 24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;border-top:1px solid #E7DFD2">
                 <button class="btn btn-primary" onclick="printLedger()"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
-                <button class="btn btn-ghost" onclick="document.getElementById('donationResult').innerHTML='';document.getElementById('verifyMsg2').textContent=''">
+                <button class="btn btn-ghost" onclick="document.getElementById('donationResult').innerHTML='';document.getElementById('verifyMsg').textContent=''">
                   <i class="fa-solid fa-arrow-left"></i> Clear
                 </button>
               </div>
             </div>`;
         }
-      }).catch(() => {
-        setLoading(verifyDonationBtn, false);
-        if (msg2) { msg2.textContent = "⚠️ Network error. Please try again."; msg2.className = "form-msg error"; }
-      });
+      }).catch(() => { setLoading(verifyDonationBtn, false); if(verifyMsg){verifyMsg.textContent="⚠️ Network error.";verifyMsg.className="form-msg error";} });
     });
   }
 
-  // Clear donation form
-  const verifyDonationClear = document.getElementById("verifyDonationClear");
-  if (verifyDonationClear) {
-    verifyDonationClear.addEventListener("click", () => {
-      const c = document.getElementById("vCnicD"); if(c) c.value = "";
-      const d = document.getElementById("vDobD");  if(d) d.value = "";
-      const m = document.getElementById("verifyMsg2"); if(m){m.textContent="";m.className="form-msg";}
-      const r = document.getElementById("donationResult"); if(r) r.innerHTML = "";
-    });
-  }
-
-  // Print ledger as proper PDF
   window.printLedger = function() {
     const content = document.getElementById("ledgerContent");
     if (!content) return;
     const pa = document.getElementById("printCert");
     if (!pa) return;
-    const logoSrc = window.NGO.logoUrl || "images/logo.png";
-    const issueDate = new Date().toLocaleDateString("en-PK",{day:"2-digit",month:"long",year:"numeric"});
-    pa.innerHTML = `
-    <style>@page{margin:12mm;size:A4;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}</style>
-    ${content.outerHTML}`;
+    pa.innerHTML = `<style>@page{margin:12mm;size:A4;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}</style>${content.outerHTML}`;
     window.print();
     setTimeout(() => { pa.innerHTML = ""; }, 3000);
   };
 
   window.closeLedger = function() {
+    const donResult = document.getElementById("donationResult");
+    if (donResult) donResult.innerHTML = "";
     if (certResult) { certResult.hidden = true; certResult.innerHTML = ""; }
     if (verifyForm) verifyForm.style.display = "block";
     if (verifyMsg) { verifyMsg.textContent = ""; verifyMsg.className = "form-msg"; }
