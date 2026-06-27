@@ -896,7 +896,7 @@ function viewGrant(g){
           <input class="modal-input" id="gAssignContact" value="${escHtml(g.assignedContact||"")}" placeholder="0300-0000000">
         </div>
       </div>
-      <button class="btn btn-assign btn-sm" onclick="doAssignGrant(${g.row})"><i class="fa fa-user-tag"></i> Assign Case</button>
+      <button class="btn btn-assign btn-sm" onclick="doAssignGrant('${g.id}')"  ><i class="fa fa-user-tag"></i> Assign Case</button>
       `:""}
 
       ${stLower==="assigned"||stLower==="completed"?`
@@ -907,35 +907,35 @@ function viewGrant(g){
         <textarea id="verifyComment" rows="3" class="modal-input" style="width:100%;resize:vertical;font-family:'Inter',sans-serif;font-size:0.9rem" 
           placeholder="Write your verification notes here... e.g. Physically visited, documents checked, beneficiary confirmed...">${g.decisionNote&&g.decisionNote.startsWith("Verification Notes:")?g.decisionNote.replace("Verification Notes:","").trim():""}</textarea>
       </div>
-      ${stLower==="assigned"?`<button class="btn btn-sm" style="background:#F0EBFF;color:#6D28D9;border:1px solid #C4B5FD;margin-top:10px" onclick="doVerificationComplete(${g.row})">
+      ${stLower==="assigned"?`<button class="btn btn-sm" style="background:#F0EBFF;color:#6D28D9;border:1px solid #C4B5FD;margin-top:10px" onclick="doVerificationComplete('${g.id}')"  >
         <i class="fa fa-clipboard-check"></i> Mark Verification Complete → Case Completed
       </button>`:""}
       `:""}
 
       ${stLower==="completed"?`
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-        <button class="btn btn-approve btn-sm" onclick="doDecision(${g.row},'Approved','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-check-circle"></i> ✅ Case Approved</button>
-        <button class="btn btn-reject btn-sm" onclick="doDecision(${g.row},'Rejected','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-times-circle"></i> ❌ Case Rejected</button>
+        <button class="btn btn-approve btn-sm" onclick="doDecision('${g.id}','Approved','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-check-circle"></i> ✅ Case Approved</button>
+        <button class="btn btn-reject btn-sm" onclick="doDecision('${g.id}','Rejected','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-times-circle"></i> ❌ Case Rejected</button>
       </div>`:""}
 
       ${g.verificationStatus==="Completed"&&decLower!==""&&decLower!=="approved"&&decLower!=="rejected"?`
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-        <button class="btn btn-approve btn-sm" onclick="doDecision(${g.row},'Approved','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-check-circle"></i> Approve</button>
-        <button class="btn btn-reject btn-sm" onclick="doDecision(${g.row},'Rejected','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-times-circle"></i> Reject</button>
+        <button class="btn btn-approve btn-sm" onclick="doDecision('${g.id}','Approved','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-check-circle"></i> Approve</button>
+        <button class="btn btn-reject btn-sm" onclick="doDecision('${g.id}','Rejected','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-times-circle"></i> Reject</button>
       </div>`:""}
 
       ${decLower==="approved"&&stLower!=="closed"?`
-      <button class="btn btn-sm" style="background:#1F2E2B;color:#fff;margin-top:10px" onclick="doCloseGrant(${g.row})">
+      <button class="btn btn-sm" style="background:#1F2E2B;color:#fff;margin-top:10px" onclick="doCloseGrant('${g.id}')"  >
         <i class="fa fa-lock"></i> Close — Successfully Granted
       </button>`:""}
     </div>`:""}
 
     ${stLower==="rejected"?`
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
-      <button class="btn btn-sm" style="background:#1F2E2B;color:#fff" onclick="doCloseGrant(${g.row})">
+      <button class="btn btn-sm" style="background:#1F2E2B;color:#fff" onclick="doCloseGrant('${g.id}')"  >
         <i class="fa fa-lock"></i> Close Case
       </button>
-      <button class="btn btn-assign btn-sm" onclick="doSendBackToCompleted(${g.row})">
+      <button class="btn btn-assign btn-sm" onclick="doSendBackToCompleted('${g.id}')"  >
         <i class="fa fa-undo"></i> Send Back to Completed
       </button>
     </div>`:""}
@@ -943,7 +943,7 @@ function viewGrant(g){
     ${stLower==="closed"?`
     <div style="margin-top:16px">
       ${decLower==="rejected"?`
-      <button class="btn btn-approve btn-sm" onclick="doReopenGrant(${g.row})">
+      <button class="btn btn-approve btn-sm" onclick="doReopenGrant('${g.id}')"  >
         <i class="fa fa-redo"></i> Reopen → Case Completed
       </button>`:`
       <p style="color:#8A9A96;font-size:0.88rem;font-style:italic">
@@ -1007,25 +1007,25 @@ function viewGrant(g){
   }
 }
 
-function doAssignGrant(row){
+function doAssignGrant(id){
   const name=document.getElementById("gAssignName")?.value.trim()||"";
   const contact=document.getElementById("gAssignContact")?.value.trim()||"";
   if(!name||!contact){showMsg("grantActionMsg","Please enter name and contact.","error");return;}
   showMsg("grantActionMsg","Assigning...","");
   if(!window.RHS){showMsg("grantActionMsg","System loading...","error");return;}
-  RHS.updateGrant(row,{status:"Assigned",assignedTo:name,assignedContact:contact}).then(res=>{
+  RHS.updateGrant(id,{status:"Assigned",assignedTo:name,assignedContact:contact}).then(res=>{
     if(res.success){showMsg("grantActionMsg","✅ Case assigned to "+name,"success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
-  }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
+  }).catch(()=>showMsg("grantActionMsg","Network error. Please check connection.","error"));
 }
 
-function doVerificationComplete(row){
+function doVerificationComplete(id){
   const comment = document.getElementById("verifyComment")?.value?.trim() || "";
-  const btn = document.querySelector(`button[onclick="doVerificationComplete(${row})"]`);
+  const btn = document.querySelector(`button[onclick="doVerificationComplete('${id}')"]`);
   setLoading(btn, true, "Saving...");
   showMsg("grantActionMsg","Updating...","");
   if(!window.RHS){setLoading(btn,false);showMsg("grantActionMsg","System loading...","error");return;}
-  RHS.updateGrant(row,{
+  RHS.updateGrant(id,{
     verificationStatus:"Completed",
     status:"Completed",
     decisionNote: comment ? "Verification Notes: "+comment : ""
@@ -1035,10 +1035,10 @@ function doVerificationComplete(row){
       showMsg("grantActionMsg","✅ Case moved to Case Completed tab"+(comment?" with notes.":"."), "success");
       loadGrants(currentGrantFilter); loadAdminStats();
     } else showMsg("grantActionMsg",res.message||"Failed.","error");
-  }).catch(()=>{setLoading(btn, false);showMsg("grantActionMsg","Network error.","error");});
+  }).catch(()=>{setLoading(btn, false);showMsg("grantActionMsg","Network error. Please check connection.","error");});
 }
 
-function doDecision(row,decision,name,crn){
+function doDecision(id,decision,name,crn){
   showMsg("grantActionMsg","Processing...","");
   if(!window.RHS){showMsg("grantActionMsg","System loading...","error");return;}
   const ph=window.NGO.alert||window.NGO.phone;
@@ -1046,37 +1046,37 @@ function doDecision(row,decision,name,crn){
   const note=decision==="Approved"
     ?`Dear ${name}, Congratulations! 🎉 Your Charity Case ${crn} has been Successfully Approved. Our team will contact you at your doorstep. Jazak Allah Khair!\n\n📞 ${ph} | 📧 ${em}`
     :`Dear ${name}, Unfortunately your Case ${crn} does not qualify under our current criteria. Your case has been Rejected.\n\nTo appeal, please physically meet our President with Case No: ${crn}.\n\n📞 ${ph} | 📧 ${em}`;
-  RHS.updateGrant(row,{decision:decision,decisionNote:note}).then(res=>{
+  RHS.updateGrant(id,{decision:decision,decisionNote:note}).then(res=>{
     if(res.success){showMsg("grantActionMsg","✅ Decision recorded: "+decision,"success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
-  }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
+  }).catch(()=>showMsg("grantActionMsg","Network error. Please check connection.","error"));
 }
 
-function doCloseGrant(row){
+function doCloseGrant(id){
   showMsg("grantActionMsg","Closing case...","");
   if(!window.RHS){showMsg("grantActionMsg","System loading...","error");return;}
-  RHS.updateGrant(row,{status:"Closed",decisionNote:"Successfully Granted & Closed"}).then(res=>{
+  RHS.updateGrant(id,{status:"Closed",decisionNote:"Successfully Granted & Closed"}).then(res=>{
     if(res.success){showMsg("grantActionMsg","✅ Case closed — Successfully Granted.","success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
-  }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
+  }).catch(()=>showMsg("grantActionMsg","Network error. Please check connection.","error"));
 }
 
-function doSendBackToCompleted(row){
+function doSendBackToCompleted(id){
   showMsg("grantActionMsg","Sending back...","");
   if(!window.RHS){showMsg("grantActionMsg","System loading...","error");return;}
-  RHS.updateGrant(row,{status:"Completed",decision:"",decisionNote:""}).then(res=>{
+  RHS.updateGrant(id,{status:"Completed",decision:"",decisionNote:""}).then(res=>{
     if(res.success){showMsg("grantActionMsg","✅ Case sent back to Case Completed tab.","success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
-  }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
+  }).catch(()=>showMsg("grantActionMsg","Network error. Please check connection.","error"));
 }
 
-function doReopenGrant(row){
+function doReopenGrant(id){
   showMsg("grantActionMsg","Reopening...","");
   if(!window.RHS){showMsg("grantActionMsg","System loading...","error");return;}
-  RHS.updateGrant(row,{status:"Completed",decision:"",decisionNote:""}).then(res=>{
+  RHS.updateGrant(id,{status:"Completed",decision:"",decisionNote:""}).then(res=>{
     if(res.success){showMsg("grantActionMsg","✅ Case reopened → Case Completed tab.","success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
-  }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
+  }).catch(()=>showMsg("grantActionMsg","Network error. Please check connection.","error"));
 }
 
 // ====== CASE EXPENSES ======
