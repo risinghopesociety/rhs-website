@@ -167,36 +167,36 @@
     </div>
     <div class="stats-grid" id="statsGrid">
       <div class="stat-card">
-        <div class="stat-num" data-key="Total Register Members" data-count="0">0</div>
-        <div class="stat-label">Total Registered Members</div>
+        <div class="stat-num" id="pub-pending" data-count="0">0</div>
+        <div class="stat-label">Underprocess Members</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num" data-key="Active Members" data-count="0">0</div>
+        <div class="stat-num" id="pub-active" data-count="0">0</div>
         <div class="stat-label">Active Members</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num" data-key="Total Donater" data-count="0">0</div>
-        <div class="stat-label">Total Donors</div>
+        <div class="stat-num" id="pub-expired" data-count="0">0</div>
+        <div class="stat-label">Expired Members</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num" data-key="Total Project Completed" data-count="0">0</div>
-        <div class="stat-label">Projects Completed</div>
+        <div class="stat-num" id="pub-banned" data-count="0">0</div>
+        <div class="stat-label">Banned Members</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num" data-key="Male Members" data-count="0">0</div>
-        <div class="stat-label">Male Members</div>
+        <div class="stat-num" id="pub-completed" data-count="0">0</div>
+        <div class="stat-label">Charity Case Completed</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num" data-key="Female Members" data-count="0">0</div>
-        <div class="stat-label">Female Members</div>
+        <div class="stat-num" id="pub-approved" data-count="0">0</div>
+        <div class="stat-label">Approved Charity Cases</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num" data-key="Registration Under-Process" data-count="0">0</div>
-        <div class="stat-label">Under Process</div>
+        <div class="stat-num" id="pub-rejected" data-count="0">0</div>
+        <div class="stat-label">Rejected Charity Cases</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num" data-key="Un-Active Members" data-count="0">0</div>
-        <div class="stat-label">Un-Active Members</div>
+        <div class="stat-num" id="pub-closed" data-count="0">0</div>
+        <div class="stat-label">Closed Charity Cases</div>
       </div>
     </div>
   </div>
@@ -304,14 +304,14 @@
           </div>
         </div>
         <div class="form-actions reg-form-actions">
-          <button type="button" class="btn btn-ghost" onclick="hideMemberSection()">
-            <i class="fa-solid fa-arrow-left"></i> Back
+          <button type="submit" class="btn btn-primary" id="submitBtn">
+            <i class="fa-solid fa-paper-plane"></i> Submit Registration
           </button>
           <button type="reset" class="btn btn-ghost">
             <i class="fa-solid fa-rotate-left"></i> Clear
           </button>
-          <button type="submit" class="btn btn-primary" id="submitBtn">
-            <i class="fa-solid fa-paper-plane"></i> Submit Registration
+          <button type="button" class="btn btn-ghost" onclick="hideMemberSection()">
+            <i class="fa-solid fa-arrow-left"></i> Back
           </button>
         </div>
         <p class="form-msg" id="formMsg"></p>
@@ -592,11 +592,6 @@
       <a href="#team">Our Team</a>
       <a href="#contact">Contact</a>
     </nav>
-    <div class="footer-social">
-      <a href="https://wa.me/923464800064" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i></a>
-      <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-      <a href="#"><i class="fa-brands fa-instagram"></i></a>
-    </div>
     <p class="copyright">© <span id="year"></span> Rising Hope Society — Khairpur Tamewali, Bahawalpur. All rights reserved.</p>
   </div>
 </footer>

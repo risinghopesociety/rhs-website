@@ -201,12 +201,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function loadStatistics() {
     if (!window.RHS) { setTimeout(loadStatistics, 500); return; }
-    RHS.getStatistics().then(res => {
-      document.querySelectorAll(".stat-num").forEach(el => {
-        const key = el.dataset.key;
-        if (key && res[key] !== undefined) {
-          el.dataset.target = res[key];
-        }
+    RHS.getAdminStats().then(res => {
+      if (!res || !res.success) return;
+      const map = {
+        "pub-pending":   res.pendingMembers  || 0,
+        "pub-active":    res.activeMembers   || 0,
+        "pub-expired":   res.expiredMembers  || 0,
+        "pub-banned":    res.bannedMembers   || 0,
+        "pub-completed": res.completedCases  || 0,
+        "pub-approved":  res.approvedCases   || 0,
+        "pub-rejected":  res.rejectedCases   || 0,
+        "pub-closed":    res.closedCases     || 0
+      };
+      Object.entries(map).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el) el.dataset.target = val;
       });
     }).catch(() => {});
   }
@@ -217,8 +226,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const statsObserver = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          document.querySelectorAll(".stat-num").forEach(el => {
-            animateCount(el, el.dataset.target || 0);
+          ["pub-pending","pub-active","pub-expired","pub-banned",
+           "pub-completed","pub-approved","pub-rejected","pub-closed"].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) animateCount(el, el.dataset.target || 0);
           });
           statsObserver.disconnect();
         }
@@ -243,6 +254,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (formResult) {
       formResult.hidden = false;
       formResult.innerHTML = `<div class="status-msg ${type}">${html}</div>`;
+      setTimeout(() => formResult.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
     }
   }
 
@@ -1076,7 +1088,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function gsShowResult(html) {
     if (grantStatusForm) grantStatusForm.style.display = "none";
     if (gsMsg) { gsMsg.textContent = ""; gsMsg.className = "form-msg"; }
-    if (grantStatusResult) { grantStatusResult.innerHTML = html; grantStatusResult.style.display = ""; }
+    if (grantStatusResult) {
+      grantStatusResult.innerHTML = html;
+      grantStatusResult.style.display = "";
+      setTimeout(() => grantStatusResult.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
+    }
   }
   function gsShowForm() {
     if (grantStatusForm) grantStatusForm.style.display = "";
@@ -1164,7 +1180,7 @@ document.addEventListener("DOMContentLoaded", () => {
                      &nbsp;|&nbsp; 📧 <a href="mailto:${window.NGO.email}" style="color:inherit;font-weight:600">${window.NGO.email}</a>`;
               vibe = "status-green"; icon = "fa-user-check";
 
-            } else if (s === "completed") {
+            } else if (s === "completed" && d !== "approved" && d !== "rejected") {
               msg = `Dear <strong>${g.name}</strong>, Case <strong>${g.crn}</strong> verification completed. Please wait for the decision.<br>
                      📞 <a href="tel:+92${window.NGO.alert.replace(/\D/g,'').slice(-10)}" style="color:inherit;font-weight:600">${window.NGO.alert}</a>`;
               vibe = "status-yellow"; icon = "fa-clipboard-check";
