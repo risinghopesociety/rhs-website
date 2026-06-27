@@ -231,7 +231,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const formResult= document.getElementById("formResult");
   const submitBtn = document.getElementById("submitBtn");
 
-  // Photo preview — document level for mobile Chrome
+  // Photo preview — document level (mobile Chrome fix)
   document.addEventListener("change", function(e) {
     if (e.target && e.target.id === "regPhoto") {
       const file = e.target.files[0];
@@ -239,7 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const pv = document.getElementById("regPhotoPreview");
       if (!file) return;
       if (file.size > 3*1024*1024) {
-        if (pm) { pm.textContent="⚠️ Max 3MB"; pm.className="form-msg error"; }
+        if (pm) { pm.textContent="⚠️ Max 3MB allowed"; pm.className="form-msg error"; }
         e.target.value=""; return;
       }
       if (pm) { pm.textContent="✅ "+file.name; pm.className="form-msg success"; }
@@ -270,7 +270,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const gender     = document.getElementById("regGender")?.value            || "";
       const prof       = document.getElementById("regProfession")?.value.trim() || "";
       const mobile     = document.getElementById("regMobile")?.value.trim()     || "";
-      const email      = document.getElementById("regEmail")?.value.trim()      || "";
+      const email      = document.getElementById("regEmail")?.value.trim()       || "";
       const province   = document.getElementById("regProvince")?.value          || "";
       const membership = document.getElementById("regMembership")?.value        || "";
       const address    = document.getElementById("regAddress")?.value.trim()    || "";
@@ -299,9 +299,7 @@ document.addEventListener("DOMContentLoaded", () => {
       let photoUrl="";
       try {
         const fd=new FormData();
-        fd.append("file", photoFile);
-        fd.append("upload_preset","rhs-upload");
-        fd.append("folder","rhs/members");
+        fd.append("file",photoFile); fd.append("upload_preset","rhs-upload"); fd.append("folder","rhs/members");
         const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
         const data=await resp.json();
         if (data.secure_url) { photoUrl=data.secure_url; formMsg.textContent="✅ Photo uploaded!"; }
@@ -323,18 +321,31 @@ document.addEventListener("DOMContentLoaded", () => {
           regForm.style.display="none";
           if (formResult) {
             formResult.hidden=false;
-            formResult.innerHTML=`<div class="status-msg status-green"><i class="fa-solid fa-circle-check"></i><div class="status-title">Registration Submitted!</div><p>Dear <strong>${fullName}</strong>, your registration has been received.<br>Status: <strong>Underprocess</strong><br><br>📞 ${window.NGO.alert} | 📧 ${window.NGO.email}</p></div>`;
+            formResult.innerHTML=`
+              <div class="status-msg status-green">
+                <i class="fa-solid fa-circle-check"></i>
+                <div class="status-title">Registration Submitted Successfully!</div>
+                <p>Dear <strong>${fullName}</strong>, Your Registration Request has been Successfully Received.</p>
+                <p style="margin-top:8px">Your Registration is now <strong>Underprocess</strong>. You will be notified after approval.</p>
+                <p style="margin-top:12px;font-size:.88rem">📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}</p>
+              </div>`;
           }
         } else if (res.code==="DUPLICATE") {
           if (formResult) {
             formResult.hidden=false;
-            formResult.innerHTML=`<div class="status-msg status-yellow"><i class="fa-solid fa-circle-info"></i><div class="status-title">Already Registered</div><p>${res.message||"You are already registered."}</p></div>`;
+            formResult.innerHTML=`
+              <div class="status-msg status-yellow">
+                <i class="fa-solid fa-circle-info"></i>
+                <div class="status-title">Already Registered</div>
+                <p>Dear <strong>${fullName}</strong>, you are already a Registered Member. Please check your status by using the <strong>Registration & Certificate Verification</strong> button.</p>
+                <p style="margin-top:12px;font-size:.88rem">📞 ${window.NGO.alert} &nbsp;|&nbsp; 📧 ${window.NGO.email}</p>
+              </div>`;
           }
         } else {
           formMsg.textContent=res.message||"Something went wrong.";
           formMsg.classList.add("error");
         }
-      }).catch(()=>{ setLoading(submitBtn,false); formMsg.textContent="⚠️ Network error."; formMsg.classList.add("error"); });
+      }).catch(()=>{ setLoading(submitBtn,false); formMsg.textContent="⚠️ Network error. Please try again."; formMsg.classList.add("error"); });
     });
   }
 
@@ -354,6 +365,9 @@ document.addEventListener("DOMContentLoaded", () => {
     verifyMsg.className = "form-msg";
     certResult.hidden = true;
     certResult.innerHTML = "";
+    // Hide donation result when verifying certificate
+    const donResult = document.getElementById("donationResult");
+    if (donResult) donResult.innerHTML = "";
     const cnic = document.getElementById("vCnic")?.value.trim() || "";
     const dob  = document.getElementById("vDob")?.value.trim() || "";
     if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic) || !/^\d{2}-\d{2}-\d{4}$/.test(dob)) {
@@ -378,6 +392,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderCertificate(member) {
     if (!certResult) return;
+    // Hide donation result when certificate shows
+    const donResult = document.getElementById("donationResult");
+    if (donResult) donResult.innerHTML = "";
     certResult.hidden=false;
     const isActive=(member.status||"").toLowerCase()==="active";
     const statusColor=isActive?"#2E9E5B":"#D9483A";
@@ -447,6 +464,11 @@ document.addEventListener("DOMContentLoaded", () => {
           <div style="font-size:10px;color:#8A9A96;font-family:sans-serif">⚠️ Computer-generated · No physical signature required</div>
           <button class="btn btn-primary" onclick="printCertificate(${JSON.stringify(member).replace(/"/g,'&quot;')})" style="font-size:13px">
             <i class="fa-solid fa-download"></i> Download / Print
+          </button>
+        </div>
+        <div style="padding:12px 26px;text-align:center;border-top:1px solid #E7DFD2">
+          <button class="btn btn-ghost" onclick="hideMemberSection()" style="font-size:13px">
+            <i class="fa-solid fa-arrow-left"></i> Back
           </button>
         </div>
       </div>`;
@@ -531,25 +553,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const verifyClearBtn = document.getElementById("verifyClearBtn");
   if (verifyClearBtn) {
     verifyClearBtn.addEventListener("click", () => {
-      const vCnic = document.getElementById("vCnic");
-      const vDob = document.getElementById("vDob");
-      if (vCnic) vCnic.value = "";
-      if (vDob) vDob.value = "";
-      if (certResult) { certResult.hidden = true; certResult.innerHTML = ""; }
-      if (verifyMsg) { verifyMsg.textContent = ""; verifyMsg.className = "form-msg"; }
-      if (verifyForm) verifyForm.style.display = "block";
+      const vCnic = document.getElementById("vCnic"); if(vCnic) vCnic.value="";
+      const vDob  = document.getElementById("vDob");  if(vDob)  vDob.value="";
+      if (certResult) { certResult.hidden=true; certResult.innerHTML=""; }
+      const donResult=document.getElementById("donationResult"); if(donResult) donResult.innerHTML="";
+      if (verifyMsg) { verifyMsg.textContent=""; verifyMsg.className="form-msg"; }
     });
   }
-  
-  /* CHARITY DONATION CLEAR BTN */
+
   window.closeLedger = function() {
-    if (certResult) { certResult.hidden = true; certResult.innerHTML = ""; }
-    if (verifyForm) verifyForm.style.display = "block";
-    if (verifyMsg) { verifyMsg.textContent = ""; verifyMsg.className = "form-msg"; }
-    const vCnic = document.getElementById("vCnic");
-    const vDob = document.getElementById("vDob");
-    if (vCnic) vCnic.value = "";
-    if (vDob) vDob.value = "";
+    if (certResult) { certResult.hidden=true; certResult.innerHTML=""; }
+    const donResult=document.getElementById("donationResult"); if(donResult) donResult.innerHTML="";
+    if (verifyMsg) { verifyMsg.textContent=""; verifyMsg.className="form-msg"; }
   };
 
   /* CHARITY LEDGER */
@@ -644,8 +659,8 @@ document.addEventListener("DOMContentLoaded", () => {
               </div>
               <div style="padding:14px 24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;border-top:1px solid #E7DFD2">
                 <button class="btn btn-primary" onclick="printLedger()"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
-                <button class="btn btn-ghost" onclick="document.getElementById('donationResult').innerHTML='';document.getElementById('verifyMsg').textContent=''">
-                  <i class="fa-solid fa-arrow-left"></i> Clear
+                <button class="btn btn-ghost" onclick="closeLedger()">
+                  <i class="fa-solid fa-arrow-left"></i> Back
                 </button>
               </div>
             </div>`;
@@ -717,22 +732,25 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* MEMBER PORTAL — show/hide logic */
+  /* MEMBER PORTAL — Show/Hide */
   window.showMemberSection = function(which) {
-    const regSection    = document.getElementById("registration");
-    const verSection    = document.getElementById("verify");
-    const btns          = document.getElementById("memberPortalBtns");
-
-    // Hide both first
+    const regSection = document.getElementById("registration");
+    const verSection = document.getElementById("verify");
+    // Hide both
     if (regSection) regSection.style.display = "none";
     if (verSection) verSection.style.display = "none";
-
+    // Show requested
     if (which === "registration") {
       if (regSection) {
         regSection.style.display = "block";
         setTimeout(() => regSection.scrollIntoView({behavior:"smooth", block:"start"}), 50);
       }
     } else {
+      // Clear previous results
+      const certResult2 = document.getElementById("certResult");
+      const donResult   = document.getElementById("donationResult");
+      if (certResult2) { certResult2.hidden = true; certResult2.innerHTML = ""; }
+      if (donResult)   donResult.innerHTML = "";
       if (verSection) {
         verSection.style.display = "block";
         setTimeout(() => verSection.scrollIntoView({behavior:"smooth", block:"start"}), 50);
@@ -752,7 +770,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (donResult)   donResult.innerHTML = "";
     const verMsg = document.getElementById("verifyMsg");
     if (verMsg) { verMsg.textContent = ""; verMsg.className = "form-msg"; }
-    // Scroll back to member portal
     document.getElementById("memberSection")?.scrollIntoView({behavior:"smooth"});
   };
 

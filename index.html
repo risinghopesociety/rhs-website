@@ -99,7 +99,7 @@
 
     <nav class="nav-links" id="navLinks">
       <a href="#home" class="active" data-en="Home" data-ur="ہوم">Home</a>
-      <a href="#memberSection" data-en="Members" data-ur="رکنیت">Members</a>
+      <a href="#memberSection" onclick="hideMemberSection()" data-en="Members" data-ur="رکنیت">Members</a>
       <a href="#charityDesk" data-en="Charity Help" data-ur="امداد">Charity Help</a>
       <a href="#news" data-en="News" data-ur="خبریں">News</a>
       <a href="#stories" data-en="Stories" data-ur="کہانیاں">Stories</a>
@@ -130,7 +130,7 @@
     <h1 id="heroHeading">Where a small step <br> becomes <span class="accent">rising hope.</span></h1>
     <p id="heroText">Rising Hope Society (RHS) is a registered non-profit organization dedicated to the welfare, education, and dignity of the people of Khairpur Tamewali and surrounding areas.</p>
     <div class="hero-actions">
-      <a href="#memberSection" class="btn btn-primary">Join Us <i class="fa-solid fa-arrow-right"></i></a>
+      <a href="#memberSection" onclick="showMemberSection('registration')" class="btn btn-primary">Join Us <i class="fa-solid fa-arrow-right"></i></a>
       <a href="#charityDesk" class="btn btn-ghost">Get Help <i class="fa-solid fa-hand-holding-heart"></i></a>
     </div>
   </div>
@@ -308,13 +308,15 @@
             Submit Registration <i class="fa-solid fa-paper-plane"></i>
           </button>
           <button type="reset" class="btn btn-ghost">Clear Form</button>
-          <button type="button" class="btn btn-ghost" onclick="hideMemberSection()">
-            <i class="fa-solid fa-arrow-left"></i> Back
-          </button>
         </div>
         <p class="form-msg" id="formMsg"></p>
       </form>
       <div id="formResult" hidden class="result-card"></div>
+    </div>
+    <div style="text-align:center;margin-top:20px">
+      <button class="btn btn-ghost" onclick="hideMemberSection()">
+        <i class="fa-solid fa-arrow-left"></i> Back to Member Portal
+      </button>
     </div>
   </div>
 </section>
@@ -352,96 +354,11 @@
       </form>
       <div id="certResult" hidden></div>
       <div id="donationResult" style="margin-top:24px"></div>
-      <div style="margin-top:16px;text-align:center">
+      <div style="text-align:center;margin-top:20px">
         <button class="btn btn-ghost" onclick="hideMemberSection()">
-          <i class="fa-solid fa-arrow-left"></i> Back
+          <i class="fa-solid fa-arrow-left"></i> Back to Member Portal
         </button>
       </div>
-    </div>
-  </div>
-</section>
-  <div class="container">
-    <div class="section-head">
-      <span class="eyebrow">Join Us</span>
-      <h2>Become a Member</h2>
-      <p>Register as an official member of Rising Hope Society. After approval, you'll receive a digital membership certificate.</p>
-    </div>
-    <div class="form-card" id="formCard">
-      <form id="regForm" novalidate autocomplete="off">
-        <div class="form-grid two-col">
-          <div class="field">
-            <label for="regCnic">CNIC <span class="req">*</span></label>
-            <input type="text" id="regCnic" placeholder="00000-0000000-0" maxlength="15" inputmode="numeric" required autocomplete="off" autocorrect="off" spellcheck="false">
-          </div>
-          <div class="field">
-            <label for="regDob">Date of Birth <span class="req">*</span></label>
-            <input type="text" id="regDob" placeholder="dd-mm-yyyy" maxlength="10" inputmode="numeric" required autocomplete="off">
-          </div>
-          <div class="field">
-            <label for="regName">Full Name <span class="req">*</span></label>
-            <input type="text" id="regName" placeholder="As on CNIC" required autocomplete="off">
-          </div>
-          <div class="field">
-            <label for="regFather">Father / Husband Name <span class="req">*</span></label>
-            <input type="text" id="regFather" placeholder="Father or husband name" required autocomplete="off">
-          </div>
-          <div class="field">
-            <label for="regGender">Gender <span class="req">*</span></label>
-            <select id="regGender" required autocomplete="off">
-              <option value="">Select gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="regProfession">Profession <span class="req">*</span></label>
-            <input type="text" id="regProfession" placeholder="e.g. Teacher, Farmer…" required autocomplete="off">
-          </div>
-          <div class="field">
-            <label for="regMobile">Mobile Number <span class="req">*</span></label>
-            <input type="text" id="regMobile" placeholder="0300-0000000" maxlength="12" inputmode="numeric" required autocomplete="off">
-          </div>
-          <div class="field">
-            <label for="regEmail">Email <small>(optional)</small></label>
-            <input type="email" id="regEmail" placeholder="you@example.com" autocomplete="off">
-          </div>
-          <div class="field">
-            <label for="regProvince">Province <span class="req">*</span></label>
-            <select id="regProvince" required autocomplete="off">
-              <option value="">Select province</option>
-              <option value="Punjab" selected>Punjab</option>
-              <option value="Sindh">Sindh</option>
-              <option value="KPK">KPK</option>
-              <option value="Balochistan">Balochistan</option>
-              <option value="AJK">AJK</option>
-              <option value="GB">GB</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="regMembership">Membership Type <span class="req">*</span></label>
-            <select id="regMembership" required autocomplete="off">
-              <option value="">Select type</option>
-              <option value="General Member">General Member</option>
-              <option value="Life Member">Life Member</option>
-              <option value="Honorary Member">Honorary Member</option>
-              <option value="Patron Member">Patron Member</option>
-            </select>
-          </div>
-          <div class="field full-col">
-            <label for="regAddress">Full Address <span class="req">*</span></label>
-            <textarea id="regAddress" rows="2" placeholder="House no, street, area, city…" required autocomplete="off"></textarea>
-          </div>
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary" id="submitBtn">
-            Submit <i class="fa-solid fa-paper-plane"></i>
-          </button>
-          <button type="reset" class="btn btn-ghost">Clear Form</button>
-        </div>
-        <p class="form-msg" id="formMsg"></p>
-      </form>
-      <div id="formResult" hidden class="result-card"></div>
     </div>
   </div>
 </section>
