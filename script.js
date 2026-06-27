@@ -1193,14 +1193,15 @@ document.addEventListener("DOMContentLoaded", () => {
                      📞 <a href="tel:+92${window.NGO.alert.replace(/\D/g,'').slice(-10)}" style="color:inherit;font-weight:600">${window.NGO.alert}</a>`;
             }
 
-            // Build the status title differently for "assigned" (already included in msg)
+            // For "assigned": icon is inside titleHtml only — skip top icon to avoid duplicate
             const titleHtml = s === "assigned"
               ? `<div class="status-title"><i class="fa-solid fa-user-check"></i> Case Assigned</div>`
               : `<div class="status-title">${g.crn} — ${g.helpType || ""}</div>`;
+            const topIcon = s === "assigned" ? "" : `<i class="fa-solid ${icon}"></i>`;
 
             html += `
               <div class="status-msg ${vibe}" style="margin-bottom:16px">
-                <i class="fa-solid ${icon}"></i>
+                ${topIcon}
                 ${titleHtml}
                 <p style="line-height:1.7">${msg}</p>
                 <p class="status-note" style="margin-top:10px">
