@@ -137,21 +137,7 @@ function togglePass(){
 
 
 // ====== SIDEBAR ======
-function closeSidebar(){
-  document.getElementById("sidebar").classList.remove("open");
-  const ov=document.getElementById("sidebarOverlay");
-  if(ov) ov.style.display="none";
-}
-function openSidebar(){
-  document.getElementById("sidebar").classList.add("open");
-  const ov=document.getElementById("sidebarOverlay");
-  if(ov) ov.style.display="block";
-}
-function toggleSidebar(){
-  const sb=document.getElementById("sidebar");
-  if(sb.classList.contains("open")) closeSidebar();
-  else openSidebar();
-}
+function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open");}
 
 // ====== TABS ======
 function switchTab(name){
@@ -174,7 +160,10 @@ function switchTab(name){
   if(name==="adminexp"){loadAdminExpenses();setDefaultDates();}
   if(name==="messages") loadMessages();
   if(name==="setup") loadSetupData();
-  closeSidebar();
+  // Auto-close sidebar on mobile for ALL menu items
+  if(window.innerWidth<=900){
+    document.getElementById("sidebar").classList.remove("open");
+  }
 }
 
 // ====== SETUP SECTION TOGGLE ======
