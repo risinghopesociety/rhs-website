@@ -626,6 +626,55 @@
     window.__fs = { collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy, limit, serverTimestamp };
     window.__fbReady = true;
     window.dispatchEvent(new Event('firebaseReady'));
+
+    // ===== PUBLIC STATS — runs right after Firebase is ready =====
+    (async function loadPublicStats() {
+      try {
+        const [membersSnap, grantsSnap] = await Promise.all([
+          getDocs(collection(db, "members")),
+          getDocs(collection(db, "grantRequests"))
+        ]);
+        let pending=0, active=0, expired=0, banned=0;
+        membersSnap.forEach(d => {
+          const s=(d.data().status||"").toLowerCase();
+          if(s==="underprocess") pending++;
+          else if(s==="active") active++;
+          else if(s==="expired") expired++;
+          else if(s==="banned") banned++;
+        });
+        let completed=0, approved=0, rejected=0, closed=0;
+        grantsSnap.forEach(d => {
+          const s=(d.data().status||"").toLowerCase();
+          const dec=(d.data().decision||"").toLowerCase();
+          if(s==="completed") completed++;
+          if(dec==="approved"&&s!=="closed") approved++;
+          if(dec==="rejected"&&s!=="closed") rejected++;
+          if(s==="closed") closed++;
+        });
+        const map = {
+          "pub-pending": pending, "pub-active": active,
+          "pub-expired": expired, "pub-banned": banned,
+          "pub-completed": completed, "pub-approved": approved,
+          "pub-rejected": rejected, "pub-closed": closed
+        };
+        function animateNum(el, target) {
+          target = Number(target)||0;
+          const dur=1400, start=performance.now();
+          function tick(now){
+            const p=Math.min((now-start)/dur,1);
+            const e=1-Math.pow(1-p,3);
+            el.textContent=Math.floor(target*e).toLocaleString();
+            if(p<1) requestAnimationFrame(tick);
+            else el.textContent=target.toLocaleString();
+          }
+          requestAnimationFrame(tick);
+        }
+        Object.entries(map).forEach(([id,val])=>{
+          const el=document.getElementById(id);
+          if(el){ el.dataset.target=val; animateNum(el,val); }
+        });
+      } catch(e) { console.warn("Public stats error:", e); }
+    })();
   </script>
 </body>
 </html>

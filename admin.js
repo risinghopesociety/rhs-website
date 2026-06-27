@@ -146,7 +146,6 @@ function switchTab(name){
   const tabEl = document.getElementById("tab-"+name);
   if(tabEl){
     tabEl.classList.remove("hidden");
-    // Scroll to top of page
     window.scrollTo(0,0);
     document.querySelector(".main-content")?.scrollTo(0,0);
   }
@@ -161,7 +160,10 @@ function switchTab(name){
   if(name==="adminexp"){loadAdminExpenses();setDefaultDates();}
   if(name==="messages") loadMessages();
   if(name==="setup") loadSetupData();
-  if(window.innerWidth<=900) document.getElementById("sidebar").classList.remove("open");
+  // Auto-close sidebar on mobile for ALL menu items
+  if(window.innerWidth<=900){
+    document.getElementById("sidebar").classList.remove("open");
+  }
 }
 
 // ====== SETUP SECTION TOGGLE ======
@@ -972,28 +974,28 @@ function viewGrant(g){
 
       <!-- Add Expense Form — only when Approved (not closed) -->
       ${stLower!=="closed"?`
-      <div style="background:#F5F9F8;border-radius:12px;padding:16px;margin-bottom:16px">
-        <p style="font-size:0.82rem;font-weight:600;color:#8A9A96;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">
-          <i class="fa fa-plus-circle"></i> Add Expense
+      <div style="background:#F5F9F8;border-radius:14px;padding:20px;margin-bottom:18px;border:1.5px solid #D8E8E5">
+        <p style="font-size:0.82rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px;display:flex;align-items:center;gap:7px">
+          <i class="fa fa-plus-circle"></i> Add New Expense
         </p>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
           <div>
-            <label style="font-size:0.78rem;font-weight:600;color:#8A9A96;display:block;margin-bottom:4px">Date *</label>
-            <input type="date" id="expDate" class="modal-input" value="${new Date().toISOString().split('T')[0]}">
+            <label style="font-size:0.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:6px">📅 Date <span style='color:#D9483A'>*</span></label>
+            <input type="date" id="expDate" style="width:100%;padding:11px 13px;border:1.5px solid #C8D5D3;border-radius:10px;font-size:0.95rem;box-sizing:border-box;background:#fff" value="${new Date().toISOString().split('T')[0]}">
           </div>
           <div>
-            <label style="font-size:0.78rem;font-weight:600;color:#8A9A96;display:block;margin-bottom:4px">Detail *</label>
-            <input type="text" id="expDetail" class="modal-input" placeholder="e.g. Cement, Labour...">
-          </div>
-          <div>
-            <label style="font-size:0.78rem;font-weight:600;color:#8A9A96;display:block;margin-bottom:4px">Amount (Rs.) *</label>
-            <input type="number" id="expAmount" class="modal-input" placeholder="e.g. 5000" min="1">
+            <label style="font-size:0.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:6px">💰 Amount (Rs.) <span style='color:#D9483A'>*</span></label>
+            <input type="number" id="expAmount" style="width:100%;padding:11px 13px;border:1.5px solid #C8D5D3;border-radius:10px;font-size:0.95rem;box-sizing:border-box;background:#fff" placeholder="e.g. 5000" min="1">
           </div>
         </div>
-        <button class="btn btn-sm btn-primary" onclick="addCaseExpense('${escHtml(g.crn)}','${escHtml(g.cnic)}','${escHtml(g.dob)}','${escHtml(g.name)}','${escHtml(g.fatherName)}','${escHtml(g.gender)}','${escHtml(g.email)}','${escHtml(g.mobile)}','${escHtml(g.address)}','${escHtml(g.helpType)}')">
+        <div style="margin-bottom:14px">
+          <label style="font-size:0.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:6px">📝 Expense Detail <span style='color:#D9483A'>*</span></label>
+          <textarea id="expDetail" rows="3" style="width:100%;padding:11px 13px;border:1.5px solid #C8D5D3;border-radius:10px;font-size:0.95rem;box-sizing:border-box;background:#fff;resize:vertical;font-family:inherit;line-height:1.5" placeholder="e.g. Cement 10 bags, Labour charges, Material transport, Plumbing work..."></textarea>
+        </div>
+        <button class="btn btn-primary" style="width:100%;padding:13px;font-size:1rem" onclick="addCaseExpense('${escHtml(g.crn)}','${escHtml(g.cnic)}','${escHtml(g.dob)}','${escHtml(g.name)}','${escHtml(g.fatherName)}','${escHtml(g.gender)}','${escHtml(g.email)}','${escHtml(g.mobile)}','${escHtml(g.address)}','${escHtml(g.helpType)}')">
           <i class="fa fa-plus"></i> Add Expense & Debit Cash Book
         </button>
-        <p class="form-msg" id="expMsg" style="margin-top:8px"></p>
+        <p class="form-msg" id="expMsg" style="margin-top:10px;font-size:0.9rem"></p>
       </div>`:""}
 
       <!-- Expenses List -->
