@@ -321,20 +321,153 @@ function loadTeamList(){
   if(!wrap) return;
   wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i></div>';
   RHS.getTeam().then(res=>{
-    if(!res.team||!res.team.length){wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:20px">No team members yet.</p>';return;}
-    let html='<table class="data-table"><thead><tr><th>Photo</th><th>Name</th><th>Designation</th><th>Order</th><th>Action</th></tr></thead><tbody>';
+    if(!res.team||!res.team.length){
+      wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:20px">No team members yet.</p>';
+      return;
+    }
+    let html=`<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;border:1px solid #E7DFD2">
+      <table class="data-table" style="min-width:520px;width:100%">
+        <thead><tr>
+          <th style="white-space:nowrap">Photo</th>
+          <th style="white-space:nowrap">Name</th>
+          <th style="white-space:nowrap">Designation</th>
+          <th style="white-space:nowrap">Order</th>
+          <th style="white-space:nowrap">Actions</th>
+        </tr></thead><tbody>`;
     res.team.forEach(m=>{
+      const safeId   = m.id;
+      const safeName = escHtml(m.name||"");
+      const safeDesig= escHtml(m.designation||"");
+      const safeBio  = escHtml(m.bio||"").replace(/'/g,"&#39;");
+      const safePhoto= escHtml(m.photo||"");
+      const safeOrder= m.order||99;
       html+=`<tr>
-        <td>${m.photo?`<img src="${m.photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover">`:"—"}</td>
-        <td><strong>${escHtml(m.name)}</strong></td>
-        <td>${escHtml(m.designation)}</td>
-        <td>${m.order||"—"}</td>
-        <td><button class="btn btn-sm btn-reject" onclick="deleteTeamMember('${m.id}','${escHtml(m.name)}')"><i class="fa fa-trash"></i></button></td>
+        <td style="white-space:nowrap">
+          ${m.photo
+            ?`<img src="${m.photo}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid #14534F">`
+            :`<div style="width:42px;height:42px;border-radius:50%;background:#EEF8F1;border:2px solid #4CAF8A;display:flex;align-items:center;justify-content:center;font-size:1.2rem">👤</div>`}
+        </td>
+        <td style="white-space:nowrap"><strong>${safeName}</strong></td>
+        <td style="white-space:nowrap">${safeDesig}</td>
+        <td style="white-space:nowrap;text-align:center">${safeOrder}</td>
+        <td style="white-space:nowrap">
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm" style="background:#14534F;color:#fff;border:none"
+              onclick="openEditTeam('${safeId}','${safeName}','${safeDesig}','${safeOrder}','${safePhoto}','${safeBio}')">
+              <i class="fa fa-edit"></i> Edit
+            </button>
+            <button class="btn btn-sm btn-reject"
+              onclick="deleteTeamMember('${safeId}','${safeName}')">
+              <i class="fa fa-trash"></i>
+            </button>
+          </div>
+        </td>
       </tr>`;
     });
-    html+='</tbody></table>';
+    html+='</tbody></table></div>';
     wrap.innerHTML=html;
   }).catch(()=>{wrap.innerHTML='<p style="color:#D9483A">Failed to load team.</p>';});
+}
+
+function openEditTeam(id,name,desig,order,photo,bio){
+  const old=document.getElementById("teamEditModal");
+  if(old) old.remove();
+  const modal=document.createElement("div");
+  modal.id="teamEditModal";
+  modal.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box";
+  modal.innerHTML=`
+    <div style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h3 style="color:#14534F;margin:0"><i class="fa fa-edit"></i> Edit Team Member</h3>
+        <button onclick="document.getElementById('teamEditModal').remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#8A9A96">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div>
+          <label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Full Name *</label>
+          <input id="edit-team-name" value="${name}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;font-size:.95rem;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Designation *</label>
+          <input id="edit-team-desig" value="${desig}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;font-size:.95rem;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Display Order</label>
+          <input id="edit-team-order" type="number" value="${order}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;font-size:.95rem;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Bio</label>
+          <textarea id="edit-team-bio" rows="3" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;font-size:.95rem;box-sizing:border-box;resize:vertical">${bio}</textarea>
+        </div>
+        <div>
+          <label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:6px">Photo (change optional)</label>
+          ${photo?`<img src="${photo}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #14534F;display:block;margin-bottom:8px">`:""}
+          <input type="file" id="edit-team-photo" accept="image/*"
+            style="display:block;width:100%;padding:10px;border:2px dashed #4CAF8A;border-radius:8px;background:#F5F9F8;cursor:pointer;box-sizing:border-box">
+          <div id="edit-team-photo-preview" style="margin-top:6px"></div>
+        </div>
+        <p id="editTeamMsg" style="margin:0;font-size:.85rem;color:#D9483A"></p>
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <button id="editTeamSaveBtn" class="btn btn-primary" style="flex:1" onclick="saveEditTeam('${id}','${photo}')">
+            <i class="fa fa-save"></i> Save Changes
+          </button>
+          <button class="btn btn-ghost" onclick="document.getElementById('teamEditModal').remove()">Cancel</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  document.getElementById("edit-team-photo").addEventListener("change",function(){
+    const file=this.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+      document.getElementById("edit-team-photo-preview").innerHTML=
+        `<img src="${e.target.result}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #14534F">`;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function saveEditTeam(id, existingPhoto){
+  const name  = document.getElementById("edit-team-name")?.value.trim();
+  const desig = document.getElementById("edit-team-desig")?.value.trim();
+  const order = Number(document.getElementById("edit-team-order")?.value)||99;
+  const bio   = document.getElementById("edit-team-bio")?.value.trim()||"";
+  const photoFile = document.getElementById("edit-team-photo")?.files?.[0];
+  const msgEl = document.getElementById("editTeamMsg");
+  const saveBtn= document.getElementById("editTeamSaveBtn");
+  if(!name||!desig){
+    if(msgEl) msgEl.textContent="⚠️ Name and Designation required.";
+    return;
+  }
+  setLoading(saveBtn,true,"Saving...");
+  if(msgEl) msgEl.textContent="";
+  let photoUrl=existingPhoto;
+  if(photoFile){
+    try{
+      const fd=new FormData();
+      fd.append("file",photoFile);
+      fd.append("upload_preset","rhs-upload");
+      fd.append("folder","rhs/team");
+      const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
+      const data=await resp.json();
+      if(data.secure_url) photoUrl=data.secure_url;
+      else throw new Error(data.error?.message||"Upload failed");
+    }catch(err){
+      setLoading(saveBtn,false);
+      if(msgEl) msgEl.textContent="⚠️ Photo upload failed: "+err.message;
+      return;
+    }
+  }
+  RHS.updateTeamMember(id,{name,designation:desig,order,bio,photo:photoUrl})
+  .then(()=>{
+    setLoading(saveBtn,false);
+    document.getElementById("teamEditModal")?.remove();
+    showMsg("teamMsg","✅ Team member updated!","success");
+    loadTeamList();
+  })
+  .catch(()=>{
+    setLoading(saveBtn,false);
+    if(msgEl) msgEl.textContent="⚠️ Failed to save.";
+  });
 }
 
 function deleteTeamMember(id,name){
