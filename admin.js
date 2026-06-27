@@ -5,11 +5,11 @@
 // NGO Settings defaults
 window.NGO = {
   name: "Rising Hope Society",
-  phone: "0346-4800064",
+  phone: "0308-8919628",
   address: "Khairpur Tamewali, Bahawalpur, Punjab, Pakistan",
   email: "risinghopesociety@gmail.com",
   bank: "111111111111111",
-  alert: "0346-4800064"
+  alert: "0308-8919628"
 };
 
 function loadNGOSettings() {
