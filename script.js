@@ -1142,7 +1142,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const closed = res.grants.filter(g => (g.status || "").toLowerCase() === "closed");
           const list   = active.length ? active : closed;
           let html = "";
-          list.forEach(g => {
+          for (const g of list) {
             let msg = "", vibe = "status-yellow", icon = "fa-hourglass-half";
             const s = (g.status   || "").toLowerCase();
             const d = (g.decision || "").toLowerCase();
@@ -1244,7 +1244,7 @@ document.addEventListener("DOMContentLoaded", () => {
                   </div>
                 </div>`;
               // skip default card rendering for this grant
-              return;
+              continue;
               // ---- END SPECIAL APPROVED CARD ----
 
             } else if (d === "rejected" && s !== "closed") {
@@ -1281,7 +1281,7 @@ document.addEventListener("DOMContentLoaded", () => {
                   📅 Applied: <strong>${g.timestamp}</strong> &nbsp;•&nbsp; 💰 Rs. <strong>${amt}</strong>
                 </p>
               </div>`;
-          });
+          } // end for...of
 
           // Append Back & Search Again buttons below all results
           html += `
