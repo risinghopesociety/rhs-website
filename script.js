@@ -1080,6 +1080,51 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 0);
     });
 
+    /* Helper: show search form, hide result */
+    function showGrantSearchForm() {
+      if (grantStatusForm) grantStatusForm.style.display = "";
+      if (gsMsg) { gsMsg.textContent = ""; gsMsg.className = "form-msg"; }
+      if (grantStatusResult) grantStatusResult.innerHTML = "";
+      // clear inputs
+      const cnicEl = document.getElementById("gsCnic");
+      const dobEl  = document.getElementById("gsDob");
+      if (cnicEl) cnicEl.value = "";
+      if (dobEl)  dobEl.value  = "";
+    }
+
+    /* Helper: hide form, show result */
+    function showGrantResult(html) {
+      if (grantStatusForm) grantStatusForm.style.display = "none";
+      if (gsMsg) { gsMsg.textContent = ""; gsMsg.className = "form-msg"; }
+      if (grantStatusResult) {
+        grantStatusResult.innerHTML = html + `
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:18px">
+            <button onclick="window.__grantGoBack && window.__grantGoBack()" class="btn btn-primary">
+              <i class="fa-solid fa-arrow-left"></i> Back
+            </button>
+            <button onclick="window.__grantSearchAgain && window.__grantSearchAgain()" class="btn btn-ghost">
+              <i class="fa-solid fa-search"></i> Search Again
+            </button>
+          </div>`;
+      }
+    }
+
+    /* Back → go to charity help main menu */
+    window.__grantGoBack = function() {
+      showGrantSearchForm();
+      // show charity help section main view (hide check-status panel, show main)
+      if (typeof hideHelpSection === "function") hideHelpSection();
+      else {
+        const charityDesk = document.getElementById("charityDesk");
+        if (charityDesk) charityDesk.scrollIntoView({ behavior: "smooth" });
+      }
+    };
+
+    /* Search Again → show the CNIC+DOB search form again */
+    window.__grantSearchAgain = function() {
+      showGrantSearchForm();
+    };
+
     grantStatusForm.addEventListener("submit", (e) => {
       e.preventDefault();
       if (gsMsg) { gsMsg.textContent = ""; gsMsg.className = "form-msg"; }
@@ -1097,7 +1142,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(res => {
           setLoading(gsBtn, false);
           if (!res.success || !res.grants || !res.grants.length) {
-            if (grantStatusResult) grantStatusResult.innerHTML = `<div class="status-msg status-red"><i class="fa-solid fa-circle-xmark"></i><div class="status-title">No Request Found</div><p>${res.message || "Not found."}</p></div>`;
+            showGrantResult(`<div class="status-msg status-red"><i class="fa-solid fa-circle-xmark"></i><div class="status-title">No Request Found</div><p>${res.message || "Not found."}</p></div>`);
             return;
           }
           const active = res.grants.filter(g => (g.status || "").toLowerCase() !== "closed");
@@ -1108,8 +1153,10 @@ document.addEventListener("DOMContentLoaded", () => {
             let msg = "", vibe = "status-yellow", icon = "fa-hourglass-half";
             const s = (g.status   || "").toLowerCase();
             const d = (g.decision || "").toLowerCase();
+            // Build assigned-to contact line
+            const assignedContact = g.assignedToContact ? ` 📞 ${g.assignedToContact}` : "";
             if      (s === "new")                          { msg = `Dear <strong>${g.name}</strong>, Your Request <strong>${g.crn}</strong> received. Team will contact you soon. 📞 ${window.NGO.alert} | 📧 ${window.NGO.email}`; vibe = "status-yellow"; icon = "fa-hourglass-half"; }
-            else if (s === "assigned")                     { msg = `Dear <strong>${g.name}</strong>, Case <strong>${g.crn}</strong> assigned to <strong>${g.assignedTo || ""}</strong>. Please cooperate. 📞 ${window.NGO.alert}`; vibe = "status-green"; icon = "fa-user-check"; }
+            else if (s === "assigned")                     { msg = `Dear <strong>${g.name}</strong>, Case <strong>${g.crn}</strong> assigned to our team member <strong>${g.assignedTo || ""}</strong> with contact no${assignedContact} (number as mentioned during case assign). Please cooperate. 📞 ${window.NGO.alert} | 📧 ${window.NGO.email}`; vibe = "status-green"; icon = "fa-user-check"; }
             else if (s === "completed")                    { msg = `Dear <strong>${g.name}</strong>, Case <strong>${g.crn}</strong> verification completed. Please wait for decision. 📞 ${window.NGO.alert}`; vibe = "status-yellow"; icon = "fa-clipboard-check"; }
             else if (d === "approved" && s !== "closed")   { msg = `Dear <strong>${g.name}</strong>, Congratulations! Case <strong>${g.crn}</strong> Approved. Team will contact you. 📞 ${window.NGO.alert}`; vibe = "status-green"; icon = "fa-circle-check"; }
             else if (d === "rejected" && s !== "closed")   { msg = `Dear <strong>${g.name}</strong>, Case <strong>${g.crn}</strong> Rejected. Please meet President. 📞 ${window.NGO.alert}`; vibe = "status-red"; icon = "fa-circle-xmark"; }
@@ -1123,7 +1170,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <p class="status-note">Applied: ${g.timestamp} • Rs. ${Number(g.amount || 0).toLocaleString()}</p>
             </div>`;
           });
-          if (grantStatusResult) grantStatusResult.innerHTML = html;
+          showGrantResult(html);
         })
         .catch(() => {
           setLoading(gsBtn, false);
