@@ -226,100 +226,116 @@ document.addEventListener("DOMContentLoaded", () => {
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   /* REGISTRATION FORM */
-  const regForm = document.getElementById("regForm");
-  const formMsg = document.getElementById("formMsg");
-  const formResult = document.getElementById("formResult");
+  const regForm   = document.getElementById("regForm");
+  const formMsg   = document.getElementById("formMsg");
+  const formResult= document.getElementById("formResult");
   const submitBtn = document.getElementById("submitBtn");
+
+  // Photo preview — document level for mobile Chrome
+  document.addEventListener("change", function(e) {
+    if (e.target && e.target.id === "regPhoto") {
+      const file = e.target.files[0];
+      const pm = document.getElementById("photoMsg");
+      const pv = document.getElementById("regPhotoPreview");
+      if (!file) return;
+      if (file.size > 3*1024*1024) {
+        if (pm) { pm.textContent="⚠️ Max 3MB"; pm.className="form-msg error"; }
+        e.target.value=""; return;
+      }
+      if (pm) { pm.textContent="✅ "+file.name; pm.className="form-msg success"; }
+      const reader=new FileReader();
+      reader.onload=ev=>{ if(pv) pv.innerHTML=`<img src="${ev.target.result}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:3px solid #14534F;display:block;margin-top:6px">`; };
+      reader.readAsDataURL(file);
+    }
+  });
 
   if (regForm) {
     regForm.addEventListener("reset", () => {
       setTimeout(() => {
-        if (formMsg) { formMsg.textContent = ""; formMsg.className = "form-msg"; }
+        if (formMsg) { formMsg.textContent=""; formMsg.className="form-msg"; }
+        const pm=document.getElementById("photoMsg"); if(pm){pm.textContent="";pm.className="form-msg";}
+        const pv=document.getElementById("regPhotoPreview"); if(pv) pv.innerHTML="";
       }, 0);
     });
 
     regForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       if (!formMsg) return;
-      formMsg.textContent = "";
-      formMsg.className = "form-msg";
+      formMsg.textContent=""; formMsg.className="form-msg";
 
-      const cnic     = document.getElementById("cnic")?.value.trim() || "";
-      const dob      = document.getElementById("dob")?.value.trim() || "";
-      const fullName = document.getElementById("fullName")?.value.trim() || "";
-      const father   = document.getElementById("fatherName")?.value.trim() || "";
-      const gender   = document.getElementById("gender")?.value || "";
-      const prof     = document.getElementById("profession")?.value.trim() || "";
-      const email    = document.getElementById("email")?.value.trim() || "";
-      const mobile   = document.getElementById("mobile")?.value.trim() || "";
-      const province = document.getElementById("province")?.value || "";
-      const address  = document.getElementById("address")?.value.trim() || "";
+      const cnic       = document.getElementById("regCnic")?.value.trim()      || "";
+      const dob        = document.getElementById("regDob")?.value.trim()        || "";
+      const fullName   = document.getElementById("regName")?.value.trim()       || "";
+      const father     = document.getElementById("regFather")?.value.trim()     || "";
+      const gender     = document.getElementById("regGender")?.value            || "";
+      const prof       = document.getElementById("regProfession")?.value.trim() || "";
+      const mobile     = document.getElementById("regMobile")?.value.trim()     || "";
+      const email      = document.getElementById("regEmail")?.value.trim()      || "";
+      const province   = document.getElementById("regProvince")?.value          || "";
+      const membership = document.getElementById("regMembership")?.value        || "";
+      const address    = document.getElementById("regAddress")?.value.trim()    || "";
+      const photoFile  = document.getElementById("regPhoto")?.files?.[0]        || null;
 
-      if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic)) { formMsg.textContent = "⚠️ Valid CNIC required: 00000-0000000-0"; formMsg.classList.add("error"); return; }
-      if (!/^\d{2}-\d{2}-\d{4}$/.test(dob)) { formMsg.textContent = "⚠️ DOB format: dd-mm-yyyy"; formMsg.classList.add("error"); return; }
-      if (!fullName) { formMsg.textContent = "⚠️ Full Name required."; formMsg.classList.add("error"); return; }
-      if (!father) { formMsg.textContent = "⚠️ Father/Husband Name required."; formMsg.classList.add("error"); return; }
-      if (!gender) { formMsg.textContent = "⚠️ Please select Gender."; formMsg.classList.add("error"); return; }
-      if (!prof) { formMsg.textContent = "⚠️ Profession required."; formMsg.classList.add("error"); return; }
-      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { formMsg.textContent = "⚠️ Valid Email required."; formMsg.classList.add("error"); return; }
-      if (!/^\d{4}-\d{7}$/.test(mobile)) { formMsg.textContent = "⚠️ Mobile format: 0300-0000000"; formMsg.classList.add("error"); return; }
-      if (!province) { formMsg.textContent = "⚠️ Please select Province."; formMsg.classList.add("error"); return; }
-      if (!address) { formMsg.textContent = "⚠️ Address required."; formMsg.classList.add("error"); return; }
-
-      setLoading(submitBtn, true, 'Submitting...');
-
-      // Upload photo if selected
-      let photoUrl = "";
-      const photoFile = document.getElementById("regPhoto")?.files?.[0];
-      if (photoFile && window.RHS) {
-        try { photoUrl = await RHS.uploadImage(photoFile, "rhs/members"); } catch(err) {}
+      if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic)) { formMsg.textContent="⚠️ Valid CNIC: 00000-0000000-0"; formMsg.classList.add("error"); return; }
+      if (!/^\d{2}-\d{2}-\d{4}$/.test(dob))   { formMsg.textContent="⚠️ DOB: dd-mm-yyyy";             formMsg.classList.add("error"); return; }
+      if (!fullName)   { formMsg.textContent="⚠️ Full Name required";            formMsg.classList.add("error"); return; }
+      if (!father)     { formMsg.textContent="⚠️ Father/Husband Name required";  formMsg.classList.add("error"); return; }
+      if (!gender)     { formMsg.textContent="⚠️ Please select Gender";          formMsg.classList.add("error"); return; }
+      if (!prof)       { formMsg.textContent="⚠️ Profession required";           formMsg.classList.add("error"); return; }
+      if (!/^\d{4}-\d{7}$/.test(mobile))       { formMsg.textContent="⚠️ Mobile: 0300-0000000";        formMsg.classList.add("error"); return; }
+      if (!province)   { formMsg.textContent="⚠️ Please select Province";        formMsg.classList.add("error"); return; }
+      if (!membership) { formMsg.textContent="⚠️ Please select Membership Type"; formMsg.classList.add("error"); return; }
+      if (!address)    { formMsg.textContent="⚠️ Address required";              formMsg.classList.add("error"); return; }
+      if (!photoFile)  {
+        formMsg.textContent="⚠️ Photo required — please select passport size photo";
+        formMsg.classList.add("error");
+        document.getElementById("regPhoto")?.scrollIntoView({behavior:"smooth",block:"center"});
+        return;
       }
 
-      if (!window.RHS) { setLoading(submitBtn, false); formMsg.textContent = "Please wait, loading..."; return; }
+      setLoading(submitBtn, true, "Uploading photo...");
+      formMsg.textContent="Uploading photo..."; formMsg.className="form-msg";
 
-      RHS.registerMember({ cnic, dob, fullName, fatherName: father, gender, profession: prof, email, mobile, province, address, photo: photoUrl })
+      let photoUrl="";
+      try {
+        const fd=new FormData();
+        fd.append("file", photoFile);
+        fd.append("upload_preset","rhs-upload");
+        fd.append("folder","rhs/members");
+        const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
+        const data=await resp.json();
+        if (data.secure_url) { photoUrl=data.secure_url; formMsg.textContent="✅ Photo uploaded!"; }
+        else throw new Error(data.error?.message||"Upload failed");
+      } catch(err) {
+        setLoading(submitBtn,false);
+        formMsg.textContent="⚠️ Photo upload failed: "+err.message;
+        formMsg.classList.add("error"); return;
+      }
+
+      setLoading(submitBtn, true, "Submitting...");
+      if (!window.RHS) { setLoading(submitBtn,false); return; }
+
+      RHS.registerMember({cnic,dob,fullName,fatherName:father,gender,profession:prof,email,mobile,province,address,membershipType:membership,photo:photoUrl})
       .then(res => {
-        setLoading(submitBtn, false);
+        setLoading(submitBtn,false);
+        formMsg.textContent="";
         if (res.success) {
-          if (regForm) regForm.hidden = true;
+          regForm.style.display="none";
           if (formResult) {
-            formResult.hidden = false;
-            formResult.classList.remove("error");
-            const resultTitle = document.getElementById("resultTitle");
-            const resultText = document.getElementById("resultText");
-            if (resultTitle) resultTitle.textContent = "Registration Submitted!";
-            if (resultText) resultText.textContent = res.message || "";
+            formResult.hidden=false;
+            formResult.innerHTML=`<div class="status-msg status-green"><i class="fa-solid fa-circle-check"></i><div class="status-title">Registration Submitted!</div><p>Dear <strong>${fullName}</strong>, your registration has been received.<br>Status: <strong>Underprocess</strong><br><br>📞 ${window.NGO.alert} | 📧 ${window.NGO.email}</p></div>`;
           }
-        } else if (res.code === "DUPLICATE") {
-          if (regForm) regForm.hidden = true;
+        } else if (res.code==="DUPLICATE") {
           if (formResult) {
-            formResult.hidden = false;
-            formResult.classList.add("error");
-            const resultTitle = document.getElementById("resultTitle");
-            const resultText = document.getElementById("resultText");
-            if (resultTitle) resultTitle.textContent = "Already Registered";
-            if (resultText) resultText.textContent = res.message || "";
+            formResult.hidden=false;
+            formResult.innerHTML=`<div class="status-msg status-yellow"><i class="fa-solid fa-circle-info"></i><div class="status-title">Already Registered</div><p>${res.message||"You are already registered."}</p></div>`;
           }
         } else {
-          formMsg.textContent = res.message || "Something went wrong.";
+          formMsg.textContent=res.message||"Something went wrong.";
           formMsg.classList.add("error");
         }
-      }).catch(() => {
-        setLoading(submitBtn, false);
-        formMsg.textContent = "Network error. Please try again.";
-        formMsg.classList.add("error");
-      });
+      }).catch(()=>{ setLoading(submitBtn,false); formMsg.textContent="⚠️ Network error."; formMsg.classList.add("error"); });
     });
-
-    const newRegBtn = document.getElementById("newRegBtn");
-    if (newRegBtn) {
-      newRegBtn.addEventListener("click", () => {
-        regForm.reset();
-        regForm.hidden = false;
-        if (formResult) formResult.hidden = true;
-        if (formMsg) formMsg.textContent = "";
-      });
-    }
   }
 
   /* CERTIFICATE VERIFICATION */
@@ -362,49 +378,153 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderCertificate(member) {
     if (!certResult) return;
-    certResult.hidden = false;
-    certResult.innerHTML = `
-      <div class="cert-card">
-        <div class="cert-header">
-          <h3><i class="fa-solid fa-certificate"></i> Digital Membership Certificate</h3>
-          <span class="cert-badge">Active</span>
+    certResult.hidden=false;
+    const isActive=(member.status||"").toLowerCase()==="active";
+    const statusColor=isActive?"#2E9E5B":"#D9483A";
+    const logoSrc=window.NGO.logoUrl||"images/logo.png";
+    const issueDate=new Date().toLocaleDateString("en-PK",{day:"2-digit",month:"long",year:"numeric"});
+    const photoHtml=member.photo
+      ?`<img src="${member.photo}" style="width:88px;height:88px;border-radius:50%;object-fit:cover;border:4px solid #14534F;flex-shrink:0">`
+      :`<div style="width:88px;height:88px;border-radius:50%;border:4px solid #14534F;background:#EEF8F1;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa-solid fa-user" style="font-size:2rem;color:#4CAF8A"></i></div>`;
+    certResult.innerHTML=`
+      <div style="border:3px double #14534F;border-radius:10px;overflow:hidden;background:#fff;max-width:580px;margin:0 auto;font-family:Georgia,serif">
+        <div style="background:#14534F;padding:20px 26px;display:flex;align-items:center;gap:16px">
+          <img src="${logoSrc}" style="width:56px;height:56px;border-radius:50%;object-fit:contain;background:#fff;padding:4px;border:3px solid rgba(255,255,255,0.35);flex-shrink:0">
+          <div style="flex:1">
+            <div style="font-size:9px;letter-spacing:0.22em;color:rgba(255,255,255,0.6);font-family:sans-serif;margin-bottom:3px">DIGITAL MEMBERSHIP CERTIFICATE</div>
+            <div style="font-size:17px;font-weight:700;color:#fff">${window.NGO.name}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.6);font-family:sans-serif;margin-top:1px">${window.NGO.address}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:9px;color:rgba(255,255,255,0.5);font-family:sans-serif;margin-bottom:3px">REG NO.</div>
+            <div style="font-size:13px;font-weight:700;color:#E8A33D;letter-spacing:0.06em;font-family:sans-serif">${member.registrationNo||"—"}</div>
+          </div>
         </div>
-        <div class="cert-grid">
-          <div class="item"><span class="lbl">Full Name</span><span class="val">${member.fullName}</span></div>
-          <div class="item"><span class="lbl">Reg No</span><span class="val">${member.registrationNo}</span></div>
-          <div class="item"><span class="lbl">Membership</span><span class="val">${member.membershipType||"—"}</span></div>
-          <div class="item"><span class="lbl">Gender</span><span class="val">${member.gender}</span></div>
-          <div class="item"><span class="lbl">Mobile</span><span class="val">${member.mobile}</span></div>
-          <div class="item"><span class="lbl">Valid Upto</span><span class="val">${member.validUpto||"—"}</span></div>
-          <div class="item" style="grid-column:1/-1"><span class="lbl">Address</span><span class="val">${member.address}</span></div>
+        <div style="height:4px;background:#E8A33D"></div>
+        <div style="padding:20px 26px;display:flex;gap:18px;align-items:center;border-bottom:1px solid #E7DFD2;background:#FAFAF8">
+          ${photoHtml}
+          <div style="flex:1;min-width:0">
+            <div style="font-size:19px;font-weight:700;color:#14534F;margin-bottom:3px">${member.fullName}</div>
+            <div style="font-size:13px;color:#666;font-family:sans-serif;margin-bottom:10px">${member.membershipType||"Member"}</div>
+            <div style="display:inline-flex;align-items:center;gap:6px;background:${isActive?"#EEF8F1":"#FEF2F2"};border:1px solid ${statusColor}40;border-radius:20px;padding:4px 12px">
+              <div style="width:7px;height:7px;border-radius:50%;background:${statusColor};flex-shrink:0"></div>
+              <span style="font-size:12px;font-weight:700;color:${statusColor};font-family:sans-serif">${(member.status||"Unknown").toUpperCase()}</span>
+            </div>
+          </div>
         </div>
-        <div class="cert-actions">
-          <button class="btn btn-primary" onclick="printCertificate(${JSON.stringify(member).replace(/"/g,'&quot;')})">
-            Download / Print <i class="fa-solid fa-print"></i>
+        <div style="display:grid;grid-template-columns:1fr 1fr">
+          ${[["CNIC",member.cnic||"—","Date of Birth",member.dob||"—"],["Mobile",member.mobile||"—","Valid Upto",`<span style="color:#14534F;font-weight:700">${member.validUpto||"—"}</span>`],["Gender",member.gender||"—","Province",member.province||"—"]].map(([l1,v1,l2,v2])=>`
+            <div style="padding:11px 26px;border-right:1px solid #E7DFD2;border-bottom:1px solid #E7DFD2">
+              <div style="font-size:9px;font-weight:700;color:#8A9A96;text-transform:uppercase;letter-spacing:0.12em;font-family:sans-serif;margin-bottom:3px">${l1}</div>
+              <div style="font-size:13px;color:#1F2E2B;font-weight:700;font-family:sans-serif">${v1}</div>
+            </div>
+            <div style="padding:11px 26px;border-bottom:1px solid #E7DFD2">
+              <div style="font-size:9px;font-weight:700;color:#8A9A96;text-transform:uppercase;letter-spacing:0.12em;font-family:sans-serif;margin-bottom:3px">${l2}</div>
+              <div style="font-size:13px;color:#1F2E2B;font-family:sans-serif">${v2}</div>
+            </div>`).join("")}
+          <div style="padding:11px 26px;grid-column:1/-1;border-bottom:1px solid #E7DFD2">
+            <div style="font-size:9px;font-weight:700;color:#8A9A96;text-transform:uppercase;letter-spacing:0.12em;font-family:sans-serif;margin-bottom:3px">ADDRESS</div>
+            <div style="font-size:13px;color:#1F2E2B;font-weight:700;font-family:sans-serif">${member.address||"—"}</div>
+          </div>
+        </div>
+        <div style="padding:14px 26px;display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid #E7DFD2">
+          <div>
+            <div style="font-size:9px;color:#8A9A96;font-family:sans-serif;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px">Issued On</div>
+            <div style="font-size:12px;color:#1F2E2B;font-weight:700;font-family:sans-serif">${issueDate}</div>
+          </div>
+          <div style="text-align:center">
+            <div style="width:110px;border-top:1px solid #1F2E2B;padding-top:7px;margin:0 auto">
+              <div style="font-size:11px;font-weight:700;color:#14534F;font-family:sans-serif">President</div>
+              <div style="font-size:10px;color:#8A9A96;font-family:sans-serif">${window.NGO.name}</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:9px;color:#8A9A96;font-family:sans-serif;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px">Verify at</div>
+            <div style="font-size:11px;color:#14534F;font-weight:700;font-family:sans-serif">${window.location.hostname}</div>
+          </div>
+        </div>
+        <div style="padding:14px 26px;background:#F5F9F8;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+          <div style="font-size:10px;color:#8A9A96;font-family:sans-serif">⚠️ Computer-generated · No physical signature required</div>
+          <button class="btn btn-primary" onclick="printCertificate(${JSON.stringify(member).replace(/"/g,'&quot;')})" style="font-size:13px">
+            <i class="fa-solid fa-download"></i> Download / Print
           </button>
         </div>
-        <p class="cert-footnote">Computer-generated digital certificate. No signature required.</p>
       </div>`;
   }
 
   window.printCertificate = function(member) {
-    const pa = document.getElementById("printCert");
-    if (!pa) return;
-    pa.innerHTML = `<div style="border:6px double #14534F;padding:40px;text-align:center;font-family:Georgia,serif;">
-      <h1 style="color:#14534F">${window.NGO.name}</h1>
-      <p style="letter-spacing:2px;color:#E8A33D">DIGITAL MEMBERSHIP CERTIFICATE</p>
-      <h2>${member.fullName}</h2>
-      <p>is a verified ${member.membershipType||"Member"} of ${window.NGO.name}</p>
-      <table style="margin:20px auto;text-align:left">
-        <tr><td style="padding:4px 12px;font-weight:bold">Reg No:</td><td>${member.registrationNo}</td></tr>
-        <tr><td style="padding:4px 12px;font-weight:bold">Valid Upto:</td><td>${member.validUpto||"—"}</td></tr>
-        <tr><td style="padding:4px 12px;font-weight:bold">Mobile:</td><td>${member.mobile}</td></tr>
-        <tr><td style="padding:4px 12px;font-weight:bold">Address:</td><td>${member.address}</td></tr>
-      </table>
-      <p style="margin-top:30px;color:#888;font-size:12px">${window.NGO.address} — Verified Digitally</p>
+    const pa=document.getElementById("printCert"); if(!pa) return;
+    const isActive=(member.status||"").toLowerCase()==="active";
+    const statusColor=isActive?"#2E9E5B":"#D9483A";
+    const logoSrc=window.NGO.logoUrl||"images/logo.png";
+    const issueDate=new Date().toLocaleDateString("en-PK",{day:"2-digit",month:"long",year:"numeric"});
+    const photoHtml=member.photo
+      ?`<img src="${member.photo}" style="width:88px;height:88px;border-radius:50%;object-fit:cover;border:4px solid #14534F;flex-shrink:0">`
+      :`<div style="width:88px;height:88px;border-radius:50%;background:#EEF8F1;border:4px solid #14534F;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:2rem">👤</div>`;
+    pa.innerHTML=`
+    <style>@page{margin:12mm;size:A4;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}</style>
+    <div style="font-family:Georgia,serif;max-width:660px;margin:0 auto;border:3px double #14534F;border-radius:10px;overflow:hidden">
+      <div style="background:#14534F;padding:22px 30px;display:flex;align-items:center;gap:16px">
+        <img src="${logoSrc}" style="width:60px;height:60px;border-radius:50%;object-fit:contain;background:#fff;padding:5px;border:3px solid rgba(255,255,255,0.35);flex-shrink:0">
+        <div style="flex:1">
+          <div style="font-size:9px;letter-spacing:0.22em;color:rgba(255,255,255,0.6);font-family:sans-serif;margin-bottom:3px">DIGITAL MEMBERSHIP CERTIFICATE</div>
+          <div style="font-size:18px;font-weight:700;color:#fff">${window.NGO.name}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.6);font-family:sans-serif;margin-top:2px">${window.NGO.address}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:9px;color:rgba(255,255,255,0.5);font-family:sans-serif;margin-bottom:3px">REG NO.</div>
+          <div style="font-size:14px;font-weight:700;color:#E8A33D;font-family:sans-serif">${member.registrationNo||"—"}</div>
+        </div>
+      </div>
+      <div style="height:4px;background:#E8A33D"></div>
+      <div style="padding:22px 30px;display:flex;gap:20px;align-items:center;border-bottom:1px solid #E7DFD2;background:#FAFAF8">
+        ${photoHtml}
+        <div>
+          <div style="font-size:21px;font-weight:700;color:#14534F;margin-bottom:3px">${member.fullName}</div>
+          <div style="font-size:13px;color:#666;font-family:sans-serif;margin-bottom:10px">${member.membershipType||"Member"}</div>
+          <div style="display:inline-flex;align-items:center;gap:6px;background:${isActive?"#EEF8F1":"#FEF2F2"};border:1px solid ${statusColor}50;border-radius:20px;padding:4px 14px">
+            <div style="width:7px;height:7px;border-radius:50%;background:${statusColor};flex-shrink:0"></div>
+            <span style="font-size:12px;font-weight:700;color:${statusColor};font-family:sans-serif">${(member.status||"Unknown").toUpperCase()}</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr">
+        ${[["CNIC",member.cnic||"—","Date of Birth",member.dob||"—"],["Mobile",member.mobile||"—","Valid Upto",member.validUpto||"—"],["Gender",member.gender||"—","Province",member.province||"—"]].map(([l1,v1,l2,v2])=>`
+          <div style="padding:11px 30px;border-right:1px solid #E7DFD2;border-bottom:1px solid #E7DFD2">
+            <div style="font-size:9px;font-weight:700;color:#8A9A96;text-transform:uppercase;letter-spacing:0.12em;font-family:sans-serif;margin-bottom:3px">${l1}</div>
+            <div style="font-size:13px;color:#1F2E2B;font-weight:700;font-family:sans-serif">${v1}</div>
+          </div>
+          <div style="padding:11px 30px;border-bottom:1px solid #E7DFD2">
+            <div style="font-size:9px;font-weight:700;color:#8A9A96;text-transform:uppercase;letter-spacing:0.12em;font-family:sans-serif;margin-bottom:3px">${l2}</div>
+            <div style="font-size:13px;color:#1F2E2B;font-weight:700;font-family:sans-serif">${v2}</div>
+          </div>`).join("")}
+        <div style="padding:11px 30px;grid-column:1/-1;border-bottom:1px solid #E7DFD2">
+          <div style="font-size:9px;font-weight:700;color:#8A9A96;text-transform:uppercase;letter-spacing:0.12em;font-family:sans-serif;margin-bottom:3px">ADDRESS</div>
+          <div style="font-size:13px;color:#1F2E2B;font-weight:700;font-family:sans-serif">${member.address||"—"}</div>
+        </div>
+      </div>
+      <div style="padding:16px 30px;display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid #E7DFD2">
+        <div>
+          <div style="font-size:9px;color:#8A9A96;font-family:sans-serif;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px">Issued On</div>
+          <div style="font-size:13px;color:#1F2E2B;font-weight:700;font-family:sans-serif">${issueDate}</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:120px;border-top:1px solid #1F2E2B;padding-top:8px;margin:0 auto">
+            <div style="font-size:12px;font-weight:700;color:#14534F;font-family:sans-serif">President</div>
+            <div style="font-size:10px;color:#8A9A96;font-family:sans-serif">${window.NGO.name}</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:9px;color:#8A9A96;font-family:sans-serif;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px">Verify at</div>
+          <div style="font-size:12px;color:#14534F;font-weight:700;font-family:sans-serif">${window.location.hostname}</div>
+        </div>
+      </div>
+      <div style="padding:10px 30px;background:#F5F9F8;text-align:center">
+        <div style="font-size:10px;color:#8A9A96;font-family:sans-serif">⚠️ Computer-generated certificate · No physical signature required · ${window.NGO.name} · ${window.NGO.phone}</div>
+      </div>
     </div>`;
     window.print();
-    setTimeout(() => { pa.innerHTML = ""; }, 2000);
+    setTimeout(()=>{pa.innerHTML="";},3000);
   };
 
   /* CLEAR VERIFY BTN */
@@ -597,19 +717,43 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* MEMBER PORTAL */
+  /* MEMBER PORTAL — show/hide logic */
   window.showMemberSection = function(which) {
+    const regSection    = document.getElementById("registration");
+    const verSection    = document.getElementById("verify");
+    const btns          = document.getElementById("memberPortalBtns");
+
+    // Hide both first
+    if (regSection) regSection.style.display = "none";
+    if (verSection) verSection.style.display = "none";
+
     if (which === "registration") {
-      const regSection = document.getElementById("registration");
       if (regSection) {
-        regSection.classList.add("show");
         regSection.style.display = "block";
-        regSection.scrollIntoView({ behavior: "smooth" });
+        setTimeout(() => regSection.scrollIntoView({behavior:"smooth", block:"start"}), 50);
       }
     } else {
-      const verSection = document.getElementById("verify");
-      if (verSection) verSection.scrollIntoView({ behavior: "smooth" });
+      if (verSection) {
+        verSection.style.display = "block";
+        setTimeout(() => verSection.scrollIntoView({behavior:"smooth", block:"start"}), 50);
+      }
     }
+  };
+
+  window.hideMemberSection = function() {
+    const regSection = document.getElementById("registration");
+    const verSection = document.getElementById("verify");
+    if (regSection) regSection.style.display = "none";
+    if (verSection) verSection.style.display = "none";
+    // Clear results
+    const certResult2 = document.getElementById("certResult");
+    const donResult   = document.getElementById("donationResult");
+    if (certResult2) { certResult2.hidden = true; certResult2.innerHTML = ""; }
+    if (donResult)   donResult.innerHTML = "";
+    const verMsg = document.getElementById("verifyMsg");
+    if (verMsg) { verMsg.textContent = ""; verMsg.className = "form-msg"; }
+    // Scroll back to member portal
+    document.getElementById("memberSection")?.scrollIntoView({behavior:"smooth"});
   };
 
   /* CHARITY HELP DESK */

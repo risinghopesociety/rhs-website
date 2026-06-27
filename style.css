@@ -322,8 +322,8 @@ img, video { max-width: 100%; display: block; }
 
 /* ===================== FORMS (Registration / Verification / Contact) ===================== */
 .registration, .verify { padding: 90px 0; }
-.registration { display: none; }
-.registration.show { display: block; }
+.registration { }
+.registration.show { }
 .verify { background: #F4ECE0; }
 
 .form-card {
@@ -381,8 +381,8 @@ img, video { max-width: 100%; display: block; }
 .form-result h3 { font-size: 1.5rem; color: var(--teal); margin-bottom: 10px; }
 .form-result p { color: #4A5C58; max-width: 480px; margin: 0 auto 24px; }
 .form-result.error .result-icon { color: var(--coral); }
-.registration { display: none; }
-.registration.show { display: block; }
+.registration { }
+.registration.show { }
 
 /* ===================== CERTIFICATE RESULT CARD ===================== */
 .cert-result { margin-top: 32px; }
