@@ -48,7 +48,7 @@
   },
   "contactPoint": {
     "@type": "ContactPoint",
-    "telephone": "+92-308-8919628",
+    "telephone": "+92-346-4800064",
     "contactType": "customer support",
     "email": "risinghopesociety@gmail.com"
   },
@@ -68,7 +68,7 @@
 <!-- ===== PAGE LOADER ===== -->
 <div id="pageLoader">
   <div class="loader-inner">
-    <img id="loaderLogo" src="images/logo.png" alt="Rising Hope Society" style="width:70px;height:70px;object-fit:contain;border-radius:50%;background:#EEF8F1">
+    <img id="loaderLogo" src="" alt="Rising Hope Society" style="width:70px;height:70px;object-fit:contain;border-radius:50%;background:#EEF8F1">
     <div class="loader-bar"><div class="loader-fill"></div></div>
     <p>Rising Hope Society</p>
   </div>
@@ -116,10 +116,8 @@
 <!-- ===== HERO ===== -->
 <section class="hero" id="home">
   <div class="slider" id="heroSlider">
-    <div class="slide active" style="background-image:url('images/slide1.jpg')"></div>
-    <div class="slide" style="background-image:url('images/slide2.jpg')"></div>
-    <div class="slide" style="background-image:url('images/slide3.jpg')"></div>
-    <div class="slide" style="background-image:url('images/slide4.jpg')"></div>
+    <!-- Slides loaded from Firebase — fallback shown until load -->
+    <div class="slide active" id="fallbackSlide" style="background-image:url('images/slide1.jpg')"></div>
     <div class="slider-overlay"></div>
     <button class="slider-arrow prev" id="prevSlide" aria-label="Previous slide"><i class="fa-solid fa-chevron-left"></i></button>
     <button class="slider-arrow next" id="nextSlide" aria-label="Next slide"><i class="fa-solid fa-chevron-right"></i></button>

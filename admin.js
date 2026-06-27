@@ -5,11 +5,11 @@
 // NGO Settings defaults
 window.NGO = {
   name: "Rising Hope Society",
-  phone: "0308-8919628",
+  phone: "0346-4800064",
   address: "Khairpur Tamewali, Bahawalpur, Punjab, Pakistan",
   email: "risinghopesociety@gmail.com",
   bank: "111111111111111",
-  alert: "0308-8919628"
+  alert: "0346-4800064"
 };
 
 function loadNGOSettings() {
@@ -232,6 +232,10 @@ function showSetupSection(section, btn){
   const el = document.getElementById("setup-"+section);
   if(el) el.classList.remove("hidden");
   if(btn) btn.classList.add("active");
+  // Load data when section opens
+  if(section==="slides") loadSlidesList();
+  if(section==="team") loadTeamList();
+  if(section==="messages") loadMessages();
 }
 
 // ====== LOAD ALL SETUP DATA ======
@@ -441,6 +445,195 @@ function deleteTeamMember(id,name){
     loadTeamList();
     showMsg("teamMsg","✅ Member deleted.","success");
   }).catch(()=>showMsg("teamMsg","Failed to delete.","error"));
+}
+
+// ====== SLIDES ======
+function previewSlideImage(input){
+  const file=input.files?.[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    document.getElementById("slideImagePreview").innerHTML=
+      `<img src="${e.target.result}" style="max-height:120px;border-radius:8px;object-fit:cover">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function addSlide(){
+  if(!window.RHS) return;
+  const heading  = document.getElementById("slide-heading")?.value.trim();
+  const text     = document.getElementById("slide-text")?.value.trim()||"";
+  const order    = Number(document.getElementById("slide-order")?.value)||1;
+  const imgFile  = document.getElementById("slide-image")?.files?.[0];
+  const btn      = document.querySelector('#setup-slides .btn-primary');
+
+  if(!heading){ showMsg("slideMsg","⚠️ Slide Heading required.","error"); return; }
+  if(!imgFile){ showMsg("slideMsg","⚠️ Slide Image required.","error"); return; }
+
+  setLoading(btn,true,"Uploading image...");
+  let imageUrl="";
+  try{
+    const fd=new FormData();
+    fd.append("file",imgFile);
+    fd.append("upload_preset","rhs-upload");
+    fd.append("folder","rhs/slides");
+    const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
+    const data=await resp.json();
+    if(data.secure_url) imageUrl=data.secure_url;
+    else throw new Error(data.error?.message||"Upload failed");
+  }catch(err){
+    setLoading(btn,false);
+    showMsg("slideMsg","⚠️ Image upload failed: "+err.message,"error");
+    return;
+  }
+
+  setLoading(btn,true,"Adding slide...");
+  RHS.addSlide({heading,text,imageUrl,order}).then(()=>{
+    setLoading(btn,false);
+    showMsg("slideMsg","✅ Slide added!","success");
+    document.getElementById("slide-heading").value="";
+    document.getElementById("slide-text").value="";
+    document.getElementById("slide-order").value="1";
+    document.getElementById("slideImagePreview").innerHTML=
+      `<i class="fa fa-image" style="font-size:2rem;color:#4CAF8A;display:block;margin-bottom:8px"></i><span style="color:#14534F;font-size:.9rem">Tap to select slide image</span>`;
+    document.getElementById("slide-image").value="";
+    loadSlidesList();
+  }).catch(()=>{ setLoading(btn,false); showMsg("slideMsg","❌ Failed to add slide.","error"); });
+}
+
+function loadSlidesList(){
+  if(!window.RHS) return;
+  const wrap=document.getElementById("slidesListWrap");
+  if(!wrap) return;
+  wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
+  RHS.getSlides().then(res=>{
+    if(!res.slides||!res.slides.length){
+      wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:20px">No slides yet. Add your first slide above.</p>';
+      return;
+    }
+    let html=`<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;border:1px solid #E7DFD2">
+      <table class="data-table" style="min-width:560px;width:100%">
+        <thead><tr>
+          <th>Image</th><th>Heading</th><th>Text</th><th>Order</th><th>Actions</th>
+        </tr></thead><tbody>`;
+    res.slides.forEach(s=>{
+      html+=`<tr>
+        <td><img src="${s.imageUrl||''}" style="width:60px;height:40px;object-fit:cover;border-radius:4px;border:1px solid #E7DFD2"></td>
+        <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><strong>${escHtml(s.heading||"—")}</strong></td>
+        <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#666;font-size:.85rem">${escHtml(s.text||"—")}</td>
+        <td style="text-align:center">${s.order||1}</td>
+        <td>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm" style="background:#14534F;color:#fff;border:none"
+              onclick="openEditSlide('${s.id}','${escHtml(s.heading||"")}','${escHtml(s.text||"").replace(/'/g,"&#39;")}','${s.order||1}','${s.imageUrl||""}')">
+              <i class="fa fa-edit"></i>
+            </button>
+            <button class="btn btn-sm btn-reject" onclick="deleteSlideItem('${s.id}')">
+              <i class="fa fa-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+    });
+    html+='</tbody></table></div>';
+    wrap.innerHTML=html;
+  }).catch(()=>{ wrap.innerHTML='<p style="color:#D9483A">Failed to load slides.</p>'; });
+}
+
+function openEditSlide(id, heading, text, order, imageUrl){
+  const old=document.getElementById("slideEditModal"); if(old) old.remove();
+  const modal=document.createElement("div");
+  modal.id="slideEditModal";
+  modal.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box";
+  modal.innerHTML=`
+    <div style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h3 style="color:#14534F;margin:0"><i class="fa fa-edit"></i> Edit Slide</h3>
+        <button onclick="document.getElementById('slideEditModal').remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#8A9A96">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div>
+          <label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Heading *</label>
+          <input id="edit-slide-heading" value="${heading}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;font-size:.95rem;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Text / Material</label>
+          <textarea id="edit-slide-text" rows="3" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;font-size:.95rem;box-sizing:border-box;resize:vertical">${text}</textarea>
+        </div>
+        <div>
+          <label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Order No</label>
+          <input id="edit-slide-order" type="number" value="${order}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;font-size:.95rem;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:6px">Image (change optional)</label>
+          ${imageUrl?`<img src="${imageUrl}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;margin-bottom:8px">`:""}
+          <input type="file" id="edit-slide-image" accept="image/*"
+            style="display:block;width:100%;padding:10px;border:2px dashed #4CAF8A;border-radius:8px;background:#F5F9F8;cursor:pointer;box-sizing:border-box">
+          <div id="edit-slide-preview" style="margin-top:6px"></div>
+        </div>
+        <p id="editSlideMsg" style="margin:0;font-size:.85rem;color:#D9483A"></p>
+        <div style="display:flex;gap:10px">
+          <button id="editSlideSaveBtn" class="btn btn-primary" style="flex:1" onclick="saveEditSlide('${id}','${imageUrl}')">
+            <i class="fa fa-save"></i> Save Changes
+          </button>
+          <button class="btn btn-ghost" onclick="document.getElementById('slideEditModal').remove()">Cancel</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  document.getElementById("edit-slide-image").addEventListener("change",function(){
+    const file=this.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+      document.getElementById("edit-slide-preview").innerHTML=
+        `<img src="${e.target.result}" style="width:100%;height:80px;object-fit:cover;border-radius:8px">`;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function saveEditSlide(id, existingImage){
+  const heading  = document.getElementById("edit-slide-heading")?.value.trim();
+  const text     = document.getElementById("edit-slide-text")?.value.trim()||"";
+  const order    = Number(document.getElementById("edit-slide-order")?.value)||1;
+  const imgFile  = document.getElementById("edit-slide-image")?.files?.[0];
+  const msgEl    = document.getElementById("editSlideMsg");
+  const saveBtn  = document.getElementById("editSlideSaveBtn");
+
+  if(!heading){ if(msgEl) msgEl.textContent="⚠️ Heading required."; return; }
+  setLoading(saveBtn,true,"Saving...");
+  if(msgEl) msgEl.textContent="";
+
+  let imageUrl=existingImage;
+  if(imgFile){
+    try{
+      const fd=new FormData();
+      fd.append("file",imgFile);
+      fd.append("upload_preset","rhs-upload");
+      fd.append("folder","rhs/slides");
+      const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
+      const data=await resp.json();
+      if(data.secure_url) imageUrl=data.secure_url;
+      else throw new Error(data.error?.message||"Upload failed");
+    }catch(err){
+      setLoading(saveBtn,false);
+      if(msgEl) msgEl.textContent="⚠️ Image upload failed: "+err.message;
+      return;
+    }
+  }
+  RHS.updateSlide(id,{heading,text,imageUrl,order}).then(()=>{
+    setLoading(saveBtn,false);
+    document.getElementById("slideEditModal")?.remove();
+    showMsg("slideMsg","✅ Slide updated!","success");
+    loadSlidesList();
+  }).catch(()=>{ setLoading(saveBtn,false); if(msgEl) msgEl.textContent="⚠️ Failed to save."; });
+}
+
+function deleteSlideItem(id){
+  if(!confirm("Delete this slide?")) return;
+  RHS.deleteSlide(id).then(()=>{
+    showMsg("slideMsg","✅ Slide deleted.","success");
+    loadSlidesList();
+  }).catch(()=>showMsg("slideMsg","❌ Failed to delete.","error"));
 }
 
 // ====== MESSAGES ======

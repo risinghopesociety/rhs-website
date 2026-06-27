@@ -868,12 +868,16 @@ async function addSlide(data) {
   const ref = await fs().addDoc(fs().collection(db(), "slides"), { ...data, createdAt: fs().serverTimestamp() });
   return { success: true, id: ref.id };
 }
+async function updateSlide(id, data) {
+  await waitForFB();
+  await fs().updateDoc(fs().doc(db(), "slides", id), data);
+  return { success: true };
+}
 async function deleteSlide(id) {
   await waitForFB();
   await fs().deleteDoc(fs().doc(db(), "slides", id));
   return { success: true };
 }
-
 // DELETE CONTACT MESSAGE
 async function deleteContactMessage(id) {
   await waitForFB();
@@ -888,6 +892,7 @@ window.RHS.addStory              = addStory;
 window.RHS.deleteStory           = deleteStory;
 window.RHS.getSlides             = getSlides;
 window.RHS.addSlide              = addSlide;
+window.RHS.updateSlide           = updateSlide;
 window.RHS.deleteSlide           = deleteSlide;
 window.RHS.deleteContactMessage  = deleteContactMessage;
 

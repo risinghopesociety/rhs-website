@@ -34,11 +34,11 @@ function resetForm(formId) {
 /* ===================== NGO SETTINGS ===================== */
 window.NGO = {
   name: "Rising Hope Society",
-  phone: "0308-8919628",
+  phone: "0346-4800064",
   address: "Khairpur Tamewali, Bahawalpur, Punjab, Pakistan",
   email: "risinghopesociety@gmail.com",
   bank: "111111111111111",
-  alert: "0308-8919628",
+  alert: "0346-4800064",
   logoUrl: "",
   ourTeamTitle: "Our Team",
   ourTeamMatter: ""
@@ -141,11 +141,15 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* ===================== HERO SLIDER ===================== */
-  const slides   = document.querySelectorAll(".slide");
-  const dotsWrap = document.getElementById("sliderDots");
-  if (slides.length && dotsWrap) {
+  function initSlider() {
+    const sliderEl = document.getElementById("heroSlider");
+    const dotsWrap = document.getElementById("sliderDots");
+    if (!sliderEl || !dotsWrap) return;
+    const slides = sliderEl.querySelectorAll(".slide");
+    if (!slides.length) return;
     let currentSlide = 0;
     let sliderInterval;
+    dotsWrap.innerHTML = "";
     slides.forEach((_, i) => {
       const dot = document.createElement("button");
       dot.classList.add("dot");
@@ -156,19 +160,74 @@ document.addEventListener("DOMContentLoaded", () => {
     const dots = dotsWrap.querySelectorAll(".dot");
     function goToSlide(index) {
       slides[currentSlide].classList.remove("active");
-      dots[currentSlide].classList.remove("active");
+      if(dots[currentSlide]) dots[currentSlide].classList.remove("active");
       currentSlide = (index + slides.length) % slides.length;
       slides[currentSlide].classList.add("active");
-      dots[currentSlide].classList.add("active");
+      if(dots[currentSlide]) dots[currentSlide].classList.add("active");
     }
     function startSlider() { sliderInterval = setInterval(() => goToSlide(currentSlide + 1), 5500); }
     function resetSlider() { clearInterval(sliderInterval); startSlider(); }
     const nextBtn = document.getElementById("nextSlide");
     const prevBtn = document.getElementById("prevSlide");
-    if (nextBtn) nextBtn.addEventListener("click", () => { goToSlide(currentSlide + 1); resetSlider(); });
-    if (prevBtn) prevBtn.addEventListener("click", () => { goToSlide(currentSlide - 1); resetSlider(); });
+    if(nextBtn) nextBtn.addEventListener("click", () => { goToSlide(currentSlide + 1); resetSlider(); });
+    if(prevBtn) prevBtn.addEventListener("click", () => { goToSlide(currentSlide - 1); resetSlider(); });
+    clearInterval(sliderInterval);
     startSlider();
   }
+
+  function loadSlides() {
+    if (!window.RHS) { setTimeout(loadSlides, 600); return; }
+    RHS.getSlides().then(res => {
+      const sliderEl = document.getElementById("heroSlider");
+      const overlay  = sliderEl?.querySelector(".slider-overlay");
+      const prevBtn  = document.getElementById("prevSlide");
+      const nextBtn  = document.getElementById("nextSlide");
+      const dotsWrap = document.getElementById("sliderDots");
+      if (!sliderEl) return;
+
+      if (!res.slides || !res.slides.length) {
+        // Fallback — use hardcoded slides
+        const fallback = document.getElementById("fallbackSlide");
+        if (fallback) {
+          ["images/slide2.jpg","images/slide3.jpg","images/slide4.jpg"].forEach(src => {
+            const div = document.createElement("div");
+            div.className = "slide";
+            div.style.backgroundImage = `url('${src}')`;
+            sliderEl.insertBefore(div, overlay);
+          });
+        }
+        initSlider();
+        return;
+      }
+
+      // Remove fallback slide
+      const fallback = document.getElementById("fallbackSlide");
+      if (fallback) fallback.remove();
+
+      // Build slides from Firebase
+      res.slides.forEach((s, i) => {
+        const div = document.createElement("div");
+        div.className = "slide" + (i === 0 ? " active" : "");
+        div.style.backgroundImage = `url('${s.imageUrl}')`;
+
+        // Add heading + text overlay if present
+        if (s.heading || s.text) {
+          div.innerHTML = `<div class="slide-content" style="position:absolute;bottom:0;left:0;right:0;padding:32px 40px;background:linear-gradient(transparent,rgba(0,0,0,0.65));color:#fff;z-index:2">
+            ${s.heading ? `<h2 style="font-size:clamp(1.2rem,3vw,2rem);font-weight:700;margin:0 0 8px;text-shadow:0 2px 8px rgba(0,0,0,0.4)">${s.heading}</h2>` : ""}
+            ${s.text    ? `<p style="font-size:clamp(.85rem,2vw,1.05rem);margin:0;opacity:.9;text-shadow:0 1px 4px rgba(0,0,0,0.4);max-width:600px">${s.text}</p>` : ""}
+          </div>`;
+        }
+        sliderEl.insertBefore(div, overlay);
+      });
+
+      initSlider();
+    }).catch(() => {
+      // On error — use fallback
+      initSlider();
+    });
+  }
+
+  loadSlides();
 
   /* ===================== INPUT FORMATTERS ===================== */
 

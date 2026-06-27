@@ -620,10 +620,20 @@
       <div class="setup-section hidden" id="setup-slides">
         <div class="card" style="margin-top:16px">
           <h3 class="card-title"><i class="fa fa-images"></i> Home Page Slides</h3>
-          <p style="color:#8A9A96;font-size:.88rem;margin-bottom:16px">Add unlimited slides — these will show on the home page hero section.</p>
+          <p style="color:#8A9A96;font-size:.88rem;margin-bottom:16px">Slides add karo — image, heading aur text ke saath homepage hero section mein show honge.</p>
           <div class="charity-form-grid">
-            <div class="field"><label>Slide Title <small>(optional)</small></label><input type="text" id="slide-title" placeholder="e.g. Welcome to RHS"></div>
-            <div class="field"><label>Order No</label><input type="number" id="slide-order" placeholder="1" min="1" value="1"></div>
+            <div class="field">
+              <label>Slide Heading <span style="color:#D9483A">*</span></label>
+              <input type="text" id="slide-heading" placeholder="e.g. Serving Humanity with Compassion">
+            </div>
+            <div class="field">
+              <label>Order No</label>
+              <input type="number" id="slide-order" placeholder="1" min="1" value="1">
+            </div>
+            <div class="field" style="grid-column:1/-1">
+              <label>Slide Text / Material</label>
+              <textarea id="slide-text" rows="2" placeholder="e.g. Rising Hope Society works for the welfare of deserving families..."></textarea>
+            </div>
             <div class="field" style="grid-column:1/-1">
               <label>Slide Image <span style="color:#D9483A">*</span></label>
               <label for="slide-image" style="display:block;padding:16px;background:#F5F9F8;border:2px dashed #4CAF8A;border-radius:8px;cursor:pointer;text-align:center;position:relative">
@@ -640,7 +650,7 @@
         </div>
       </div>
 
-      <!-- NEWS FEED -->
+            <!-- NEWS FEED -->
       <div class="setup-section hidden" id="setup-news">
         <div class="card" style="margin-top:16px">
           <h3 class="card-title"><i class="fa fa-newspaper"></i> News Feed</h3>
