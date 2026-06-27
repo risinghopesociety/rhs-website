@@ -22,11 +22,45 @@ function loadNGOSettings() {
       address: res.ngoAddress || window.NGO.address,
       email:   res.ngoEmail   || window.NGO.email,
       bank:    res.bankAccount|| window.NGO.bank,
-      alert:   res.alertNumber|| res.ngoPhone || window.NGO.alert
+      alert:   res.alertNumber|| res.ngoPhone || window.NGO.alert,
+      logoUrl: res.logoUrl    || ""
     };
+    // Apply NGO name everywhere
     document.querySelectorAll(".ngo-name").forEach(el => el.textContent = window.NGO.name);
     document.querySelectorAll(".ngo-address").forEach(el => el.textContent = window.NGO.address);
+    // Apply logo to ALL logo elements in admin dashboard
+    applyLogoEverywhere(window.NGO.logoUrl);
+    // Fill setup form fields
+    const fields = {
+      "set-ngoName":     res.ngoName,
+      "set-ngoPhone":    res.ngoPhone,
+      "set-ngoEmail":    res.ngoEmail,
+      "set-alertNumber": res.alertNumber,
+      "set-ngoAddress":  res.ngoAddress,
+      "set-bankAccount": res.bankAccount,
+      "set-ourTeamTitle":res.ourTeamTitle,
+      "set-ourTeamMatter":res.ourTeamMatter
+    };
+    Object.entries(fields).forEach(([id,val])=>{
+      const el=document.getElementById(id); if(el&&val) el.value=val;
+    });
+    // Show current logo in settings preview
+    const preview=document.getElementById("currentLogoPreview");
+    if(preview && res.logoUrl) preview.src=res.logoUrl;
   }).catch(() => {});
+}
+
+function applyLogoEverywhere(logoUrl) {
+  if (!logoUrl) return;
+  const src = logoUrl;
+  // All known logo elements in admin
+  ["loginLogo","sidebarLogo","currentLogoPreview"].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.src=src;
+  });
+  // Any other img with class logo or data-logo
+  document.querySelectorAll("img.admin-logo, img[data-logo]").forEach(el=>el.src=src);
+  // Reports section logo
+  document.querySelectorAll(".report-logo").forEach(el=>el.src=src);
 }
 
 /* ===================== LOADING BUTTON ===================== */
@@ -224,24 +258,69 @@ function loadSetupData(){
 }
 
 // ====== SAVE ADMIN SETTINGS ======
-function saveAdminSettings(){
-  if(!window.RHS){return;}
-  const data={
-    ngoName:document.getElementById("set-ngoName")?.value||"",
-    ngoPhone:document.getElementById("set-ngoPhone")?.value||"",
-    ngoEmail:document.getElementById("set-ngoEmail")?.value||"",
-    alertNumber:document.getElementById("set-alertNumber")?.value||"",
-    ngoAddress:document.getElementById("set-ngoAddress")?.value||"",
-    bankAccount:document.getElementById("set-bankAccount")?.value||"",
-    ourTeamTitle:document.getElementById("set-ourTeamTitle")?.value||"",
-    ourTeamMatter:document.getElementById("set-ourTeamMatter")?.value||""
+function previewLogo(input){
+  const file=input.files?.[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const preview=document.getElementById("currentLogoPreview");
+    if(preview) preview.src=e.target.result;
   };
+  reader.readAsDataURL(file);
+}
+
+async function saveAdminSettings(){
+  if(!window.RHS){return;}
   const btn=document.querySelector('#setup-adminSettings .btn-primary');
   setLoading(btn,true,"Saving...");
-  RHS.saveNGOSettings(data).then(()=>{
+
+  // Upload logo if selected
+  let logoUrl = window.NGO.logoUrl || "";
+  const logoFile = document.getElementById("set-logoFile")?.files?.[0];
+  if(logoFile){
+    try{
+      setLoading(btn,true,"Uploading logo...");
+      const fd=new FormData();
+      fd.append("file",logoFile);
+      fd.append("upload_preset","rhs-upload");
+      fd.append("folder","rhs/logo");
+      const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
+      const data=await resp.json();
+      if(data.secure_url){ logoUrl=data.secure_url; }
+      else throw new Error(data.error?.message||"Upload failed");
+    }catch(err){
+      setLoading(btn,false);
+      showMsg("adminSettingsMsg","⚠️ Logo upload failed: "+err.message,"error");
+      return;
+    }
+  }
+
+  const saveData={
+    ngoName:      document.getElementById("set-ngoName")?.value||"",
+    ngoPhone:     document.getElementById("set-ngoPhone")?.value||"",
+    ngoEmail:     document.getElementById("set-ngoEmail")?.value||"",
+    alertNumber:  document.getElementById("set-alertNumber")?.value||"",
+    ngoAddress:   document.getElementById("set-ngoAddress")?.value||"",
+    bankAccount:  document.getElementById("set-bankAccount")?.value||"",
+    ourTeamTitle: document.getElementById("set-ourTeamTitle")?.value||"",
+    ourTeamMatter:document.getElementById("set-ourTeamMatter")?.value||"",
+    logoUrl:      logoUrl
+  };
+
+  RHS.saveNGOSettings(saveData).then(()=>{
     setLoading(btn,false);
     showMsg("adminSettingsMsg","✅ Settings saved!","success");
-    loadNGOSettings();
+    // Update NGO object immediately
+    window.NGO.logoUrl=logoUrl;
+    window.NGO.name=saveData.ngoName;
+    window.NGO.phone=saveData.ngoPhone;
+    window.NGO.email=saveData.ngoEmail;
+    window.NGO.address=saveData.ngoAddress;
+    window.NGO.alert=saveData.alertNumber;
+    // Apply logo everywhere instantly
+    if(logoUrl) applyLogoEverywhere(logoUrl);
+    // Apply name everywhere
+    document.querySelectorAll(".ngo-name").forEach(el=>el.textContent=saveData.ngoName);
+    document.querySelectorAll(".ngo-address").forEach(el=>el.textContent=saveData.ngoAddress);
   }).catch(()=>{setLoading(btn,false);showMsg("adminSettingsMsg","Failed to save.","error");});
 }
 
@@ -972,7 +1051,7 @@ function openThankYouLetter(member,entry,validUpto){
   document.getElementById("letterModalBody").innerHTML=`
     <div class="letter-wrap" id="letterContent">
       <div class="letter-header">
-        <img src="images/logo.png" alt="RHS Logo">
+        <img src="${window.NGO.logoUrl||'images/logo.png'}" alt="RHS Logo" class="admin-logo">
         <h2>${window.NGO.name}</h2>
         <p>${window.NGO.address.toUpperCase()}</p>
       </div>

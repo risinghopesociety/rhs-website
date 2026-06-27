@@ -15,7 +15,7 @@
 <div id="loginScreen" class="login-screen">
   <div class="login-box">
     <div class="login-logo">
-      <img id="loginLogo" src="images/logo.png" alt="RHS Logo">
+      <img id="loginLogo" src="images/logo.png" alt="RHS Logo" class="admin-logo">
       <h1 id="loginOrgName">Rising Hope <em>Society</em></h1>
       <small id="loginOrgAddr">Khairpur Tamewali · Bahawalpur</small>
     </div>
@@ -80,7 +80,7 @@
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-      <img id="sidebarLogo" src="images/logo.png" alt="RHS">
+      <img id="sidebarLogo" src="images/logo.png" alt="RHS" class="admin-logo">
       <div>
         <span id="sidebarOrgName">Rising Hope</span>
         <small>Society</small>
@@ -117,9 +117,14 @@
       <button class="nav-item" onclick="switchTab('setup')" id="nav-setup">
         <i class="fa fa-cog"></i><span>Setup</span>
       </button>
+      <button class="nav-item logout-nav-btn" onclick="doLogout()">
+        <i class="fa fa-sign-out-alt"></i><span>Logout</span>
+      </button>
     </nav>
-    <button class="logout-btn" onclick="doLogout()"><i class="fa fa-sign-out-alt"></i> Logout</button>
   </aside>
+
+  <!-- SIDEBAR OVERLAY (mobile — tap outside to close) -->
+  <div id="sidebarOverlay" onclick="closeSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:49;backdrop-filter:blur(2px)"></div>
 
   <!-- MAIN -->
   <main class="main-content">

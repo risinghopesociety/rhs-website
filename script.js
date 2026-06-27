@@ -66,6 +66,13 @@ function loadNGOSettings() {
     if (teamTitle) teamTitle.textContent = window.NGO.ourTeamTitle;
     const teamMatter = document.querySelector("#team .section-head p");
     if (teamMatter && window.NGO.ourTeamMatter) teamMatter.textContent = window.NGO.ourTeamMatter;
+    // Apply logo to ALL logo elements on public website
+    if (res.logoUrl) {
+      ["navbarLogo","heroLogo","footerLogo"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.src = res.logoUrl;
+      });
+    }
   }).catch(() => {});
 }
 
