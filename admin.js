@@ -61,14 +61,14 @@ function loadNGOSettings() {
 }
 
 function applyNGOEverywhere() {
-  // Apply logo
-  if (window.NGO.logoUrl) {
-    ["loginLogo","sidebarLogo","currentLogoPreview"].forEach(id => {
-      const el = document.getElementById(id); if(el) el.src = window.NGO.logoUrl;
-    });
-    document.querySelectorAll("img.admin-logo").forEach(el => el.src = window.NGO.logoUrl);
-  }
-  // Apply name
+  const logo = window.NGO.logoUrl || "images/logo.png";
+  // All logo elements in admin
+  ["loginLogo","sidebarLogo","currentLogoPreview"].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.src = logo;
+  });
+  document.querySelectorAll("img.admin-logo").forEach(el => el.src = logo);
+  // Apply name/address/contact everywhere
   document.querySelectorAll(".ngo-name").forEach(el => el.textContent = window.NGO.name);
   document.querySelectorAll(".ngo-address").forEach(el => el.textContent = window.NGO.address);
   document.querySelectorAll(".ngo-phone").forEach(el => el.textContent = window.NGO.phone);
@@ -94,6 +94,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("input, textarea, select, form").forEach(el => {
     el.setAttribute("autocomplete", "off");
   });
+  // Load NGO settings immediately so logo shows on login screen
+  loadNGOSettings();
 });
 
 // Dummy apiGet/apiPost for any remaining old calls

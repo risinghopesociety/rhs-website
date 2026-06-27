@@ -83,13 +83,12 @@ function loadNGOSettings() {
       if(copyrightEl) copyrightEl.textContent = "© " + new Date().getFullYear() + " " + window.NGO.copyright;
     }
 
-    // === Apply logo everywhere ===
-    if(window.NGO.logoUrl) {
-      ["navbarLogo","heroLogo","footerLogo"].forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.src = window.NGO.logoUrl;
-      });
-    }
+    // === Apply logo everywhere — always, with fallback ===
+    const logoSrcToApply = window.NGO.logoUrl || "images/logo.png";
+    ["navbarLogo","footerLogo","loaderLogo"].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.src = logoSrcToApply;
+    });
   }).catch(() => {});
 }
 
