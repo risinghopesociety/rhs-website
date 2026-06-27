@@ -463,6 +463,23 @@ async function submitGrant(data) {
   };
 }
 
+// Check if an active (non-closed) grant exists for a CNIC — no DOB needed
+async function checkGrantByCnic(cnic) {
+  await waitForFB();
+  const cnicF = generateCNIC(cnic);
+  const q = fs().query(
+    fs().collection(db(), "grantRequests"),
+    fs().where("cnic", "==", cnicF)
+  );
+  const snaps = await fs().getDocs(q);
+  if (snaps.empty) return { found: false };
+  const grants = [];
+  snaps.forEach(d => grants.push({ id: d.id, ...d.data() }));
+  const active = grants.filter(g => (g.status || "").toLowerCase() !== "closed");
+  if (!active.length) return { found: false };
+  return { found: true, grant: active[0] };
+}
+
 async function getGrantStatus(cnic, dob) {
   await waitForFB();
   const cnicF = generateCNIC(cnic);
@@ -708,7 +725,7 @@ window.RHS = {
   // Charity
   addCharityEntry, getCharityLedger, getAllCharity,
   // Grants
-  submitGrant, getGrantStatus, getGrants, updateGrant,
+  submitGrant, getGrantStatus, getGrants, updateGrant, checkGrantByCnic,
   // Case Expenses
   addCaseExpense, getCaseExpenses, getAllCaseExpenses,
   // Admin Expenses

@@ -415,7 +415,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const verifyBtn  = document.getElementById("verifyBtn");
 
   if (verifyForm) {
-    verifyForm.addEventListener("submit", (e) => { e.preventDefault(); doVerify(); });
+    verifyForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      // Hide charity report before showing certificate
+      const donResult = document.getElementById("donationResult");
+      if (donResult) donResult.innerHTML = "";
+      doVerify();
+    });
   }
 
   function doVerify() {
@@ -499,28 +505,100 @@ document.addEventListener("DOMContentLoaded", () => {
   window.printCertificate = function (member) {
     const pa = document.getElementById("printCert");
     if (!pa) return;
-    const logoSrc = window.NGO.logoUrl || "images/logo.png";
+    const logoSrc  = window.NGO.logoUrl || "images/logo.png";
+    const regNo    = member.registrationNo || "—";
+    const status   = (member.status || "Active").toUpperCase();
+    const isActive = status === "ACTIVE";
+    const isBanned = status === "BANNED";
+    const badgeColor = isActive ? "#2E9E5B" : isBanned ? "#D9483A" : "#E8A33D";
+    const badgeBg    = isActive ? "#EEF8F1"  : isBanned ? "#FEF2F2" : "#FEF9EC";
+    const issueDate  = new Date().toLocaleDateString("en-PK", { day:"2-digit", month:"long", year:"numeric" });
+    const verifyUrl  = `${location.origin}${location.pathname}#verify`;
+    const photoBlock = member.photo
+      ? `<img src="${member.photo}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:4px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.25)">`
+      : `<div style="width:100px;height:100px;border-radius:50%;background:#EEF8F1;border:4px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center"><svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' fill='#4CAF8A' viewBox='0 0 24 24'><path d='M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z'/></svg></div>`;
     pa.innerHTML = `
-      <style>@page{margin:12mm;size:A4;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}</style>
-      <div style="border:6px double #14534F;padding:40px;text-align:center;font-family:Georgia,serif;">
-        <img src="${logoSrc}" style="width:70px;height:70px;border-radius:50%;object-fit:contain;margin-bottom:10px">
-        <h1 style="color:#14534F;margin:0">${window.NGO.name}</h1>
-        <p style="letter-spacing:2px;color:#E8A33D;margin:4px 0">DIGITAL MEMBERSHIP CERTIFICATE</p>
-        ${member.photo ? `<img src="${member.photo}" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid #14534F;margin:16px auto;display:block">` : ""}
-        <h2 style="margin:12px 0">${member.fullName}</h2>
-        <p style="color:#555">is a verified <strong>${member.membershipType || "Member"}</strong> of <strong>${window.NGO.name}</strong></p>
-        <table style="margin:20px auto;text-align:left;border-collapse:collapse">
-          <tr><td style="padding:5px 14px;font-weight:bold;color:#14534F">Reg No:</td><td style="padding:5px 14px">${member.registrationNo}</td></tr>
-          <tr><td style="padding:5px 14px;font-weight:bold;color:#14534F">CNIC:</td><td style="padding:5px 14px">${member.cnic}</td></tr>
-          <tr><td style="padding:5px 14px;font-weight:bold;color:#14534F">Valid Upto:</td><td style="padding:5px 14px">${member.validUpto || "—"}</td></tr>
-          <tr><td style="padding:5px 14px;font-weight:bold;color:#14534F">Mobile:</td><td style="padding:5px 14px">${member.mobile}</td></tr>
-          <tr><td style="padding:5px 14px;font-weight:bold;color:#14534F">Address:</td><td style="padding:5px 14px">${member.address}</td></tr>
-        </table>
-        <p style="margin-top:30px;color:#888;font-size:12px">${window.NGO.address}</p>
-        <p style="color:#aaa;font-size:11px;margin-top:4px">⚠️ Computer-generated certificate. No physical signature required.</p>
+      <style>
+        @page{margin:10mm;size:A4;}
+        body{-webkit-print-color-adjust:exact;print-color-adjust:exact;margin:0}
+        .no-print{display:none!important}
+      </style>
+      <div style="border:5px double #14534F;border-radius:6px;font-family:Georgia,serif;max-width:680px;margin:0 auto;overflow:hidden">
+
+        <!-- DARK GREEN HEADER -->
+        <div style="background:#14534F;padding:22px 28px;display:flex;align-items:center;gap:18px">
+          <img src="${logoSrc}" style="width:70px;height:70px;border-radius:50%;object-fit:contain;background:#fff;padding:5px;border:3px solid rgba(255,255,255,.3);flex-shrink:0">
+          <div style="flex:1;color:#fff">
+            <div style="font-size:10px;letter-spacing:.25em;color:rgba(255,255,255,.6);font-family:sans-serif;margin-bottom:3px">MEMBERSHIP CERTIFICATE</div>
+            <div style="font-size:22px;font-weight:700;line-height:1.2">${window.NGO.name}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.65);font-family:sans-serif;margin-top:3px">${window.NGO.address}</div>
+          </div>
+          <div style="text-align:right;color:#fff;flex-shrink:0">
+            <div style="font-size:9px;color:rgba(255,255,255,.5);font-family:sans-serif">REG. NO.</div>
+            <div style="font-size:15px;font-weight:700;font-family:sans-serif">${regNo}</div>
+          </div>
+        </div>
+
+        <!-- GOLD ACCENT BAR -->
+        <div style="height:5px;background:linear-gradient(90deg,#E8A33D,#F5C76A,#E8A33D)"></div>
+
+        <!-- PHOTO + NAME ROW -->
+        <div style="background:#F5F9F8;padding:22px 28px;display:flex;align-items:center;gap:20px;border-bottom:1px solid #E7DFD2">
+          ${photoBlock}
+          <div style="flex:1">
+            <div style="font-size:21px;font-weight:700;color:#14534F">${member.fullName || "—"}</div>
+            <div style="font-size:13px;color:#8A9A96;font-family:sans-serif;margin-top:2px">${member.membershipType || "Member"}</div>
+            <div style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;background:${badgeBg};border:1.5px solid ${badgeColor}55;border-radius:20px;padding:4px 12px">
+              <div style="width:7px;height:7px;border-radius:50%;background:${badgeColor}"></div>
+              <span style="font-size:11px;font-weight:700;color:${badgeColor};font-family:sans-serif;letter-spacing:.05em">${status}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- DETAILS GRID -->
+        <div style="padding:20px 28px;display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid #E7DFD2">
+          ${[
+            ["CNIC",       member.cnic         || "—"],
+            ["Date of Birth", member.dob        || "—"],
+            ["Mobile",     member.mobile        || "—"],
+            ["Valid Upto", member.validUpto      || "—"],
+            ["Gender",     member.gender         || "—"],
+            ["Province",   member.province       || "—"],
+          ].map(([l,v]) => `
+            <div style="padding:10px 0;border-bottom:1px dashed #E7DFD2">
+              <div style="font-size:9px;letter-spacing:.1em;color:#8A9A96;font-family:sans-serif;text-transform:uppercase">${l}</div>
+              <div style="font-size:13px;font-weight:600;color:#1C2B29;font-family:sans-serif;margin-top:2px">${v}</div>
+            </div>`).join("")}
+          <div style="padding:10px 0;grid-column:1/-1;border-bottom:1px dashed #E7DFD2">
+            <div style="font-size:9px;letter-spacing:.1em;color:#8A9A96;font-family:sans-serif;text-transform:uppercase">Address</div>
+            <div style="font-size:13px;font-weight:600;color:#1C2B29;font-family:sans-serif;margin-top:2px">${member.address || "—"}</div>
+          </div>
+        </div>
+
+        <!-- SIGNATURE + ISSUE DATE -->
+        <div style="padding:20px 28px;display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid #E7DFD2;flex-wrap:wrap;gap:12px">
+          <div style="text-align:center;min-width:180px">
+            <div style="font-size:11px;color:#14534F;font-family:sans-serif;font-weight:700;margin-bottom:24px">President / Authorized Signatory</div>
+            <div style="border-top:1.5px solid #14534F;padding-top:5px;font-size:10px;color:#8A9A96;font-family:sans-serif">${window.NGO.name}</div>
+          </div>
+          <div style="text-align:right;font-family:sans-serif">
+            <div style="font-size:9px;color:#8A9A96;text-transform:uppercase;letter-spacing:.08em">Issue Date</div>
+            <div style="font-size:13px;font-weight:700;color:#14534F;margin-top:2px">${issueDate}</div>
+          </div>
+        </div>
+
+        <!-- VERIFY URL FOOTER -->
+        <div style="padding:11px 28px;background:#EEF8F1;text-align:center">
+          <div style="font-size:9.5px;color:#4A6B60;font-family:sans-serif">
+            ✅ Verify this certificate online: <strong>${verifyUrl}</strong>
+            &nbsp;&nbsp;|&nbsp;&nbsp; 📞 ${window.NGO.phone} &nbsp;|&nbsp; 📧 ${window.NGO.email}
+          </div>
+          <div style="font-size:9px;color:#8A9A96;font-family:sans-serif;margin-top:3px">Computer-generated digital certificate · ${window.NGO.name}</div>
+        </div>
+
       </div>`;
     window.print();
-    setTimeout(() => { pa.innerHTML = ""; }, 2000);
+    setTimeout(() => { pa.innerHTML = ""; }, 3000);
   };
 
   /* CLEAR VERIFY BTN */
@@ -565,6 +643,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
       if (verifyMsg) { verifyMsg.textContent = ""; verifyMsg.className = "form-msg"; }
+      // Hide certificate before showing charity report
       if (certResult) { certResult.hidden = true; certResult.innerHTML = ""; }
       if (donResult) donResult.innerHTML = "";
       setLoading(verifyDonationBtn, true, "Loading...");
@@ -834,6 +913,53 @@ document.addEventListener("DOMContentLoaded", () => {
   const grantResult     = document.getElementById("grantResult");
   const grantSubmitBtn  = document.getElementById("grantSubmitBtn");
 
+  /* ---- LIVE CNIC DUPLICATE CHECK for Grant Form ---- */
+  const grantCnicEl = document.getElementById("gCnic");
+  let grantCnicTimer = null;
+  if (grantCnicEl) {
+    grantCnicEl.addEventListener("blur", function () {
+      const val = this.value.trim();
+      if (!/^\d{5}-\d{7}-\d{1}$/.test(val)) return;
+      if (!window.RHS) return;
+      clearTimeout(grantCnicTimer);
+      grantCnicTimer = setTimeout(() => {
+        if (!window.RHS || !RHS.checkGrantByCnic) return;
+        RHS.checkGrantByCnic(val)
+          .then(res => {
+            if (!res.found) return;
+            const c = res.grant;
+            const nameVal = document.getElementById("gName")?.value.trim() || c.name || "Applicant";
+            if (grantForm) grantForm.style.display = "none";
+            if (grantResult) {
+              grantResult.hidden = false;
+              grantResult.innerHTML = `
+                <div class="status-msg status-yellow">
+                  <i class="fa-solid fa-circle-exclamation" style="font-size:2.2rem;color:#E8A33D;display:block;margin-bottom:12px"></i>
+                  <div class="status-title" style="color:#92620A">Case Already Submitted!</div>
+                  <p>Dear <strong>${c.name || nameVal}</strong>, Your case is already submitted as <strong>${c.crn}</strong>. Please check status of your case by using <strong>Check Request Status</strong>.</p>
+                  <p style="margin-top:8px;font-size:.88rem;color:#555">
+                    📞 <a href="tel:+92${window.NGO.alert.replace(/\D/g,'').slice(-10)}" style="color:var(--teal);font-weight:600">${window.NGO.alert}</a>
+                    &nbsp;|&nbsp;
+                    📧 <a href="mailto:${window.NGO.email}" style="color:var(--teal);font-weight:600">${window.NGO.email}</a>
+                  </p>
+                  <div class="reg-alert-btns">
+                    <button class="btn btn-primary" onclick="window.hideHelpSection();setTimeout(()=>window.showHelpSection('grantStatus'),100)">
+                      <i class="fa-solid fa-magnifying-glass"></i> Check Request Status
+                    </button>
+                    <button class="btn btn-ghost" onclick="if(grantResult){grantResult.hidden=true;grantResult.innerHTML='';} if(grantForm){grantForm.style.display='';document.getElementById('gCnic').value='';document.getElementById('gCnic').focus();}">
+                      <i class="fa-solid fa-rotate-left"></i> Try Different CNIC
+                    </button>
+                    <button class="btn btn-ghost" onclick="window.hideHelpSection()">
+                      <i class="fa-solid fa-arrow-left"></i> Back
+                    </button>
+                  </div>
+                </div>`;
+            }
+          }).catch(() => {});
+      }, 400);
+    });
+  }
+
   if (grantForm) {
     grantForm.addEventListener("submit", (e) => {
       e.preventDefault();
@@ -858,12 +984,40 @@ document.addEventListener("DOMContentLoaded", () => {
       RHS.submitGrant({ cnic, dob, name, fatherName: father, gender, email, mobile, helpType, amountRequired: Number(amount), address })
         .then(res => {
           setLoading(grantSubmitBtn, false);
-          if (res.success || res.code === "DUPLICATE_CASE") {
+          if (res.success) {
             if (grantForm) grantForm.style.display = "none";
             if (grantResult) {
               grantResult.hidden = false;
               const txt = document.getElementById("grantResultText");
               if (txt) txt.innerHTML = res.message || "";
+            }
+          } else if (res.code === "DUPLICATE_CASE") {
+            // Styled duplicate alert matching registration form
+            if (grantForm) grantForm.style.display = "none";
+            if (grantResult) {
+              grantResult.hidden = false;
+              grantResult.innerHTML = `
+                <div class="status-msg status-yellow">
+                  <i class="fa-solid fa-circle-exclamation" style="font-size:2.2rem;color:#E8A33D;display:block;margin-bottom:12px"></i>
+                  <div class="status-title" style="color:#92620A">Case Already Submitted!</div>
+                  <p>Dear <strong>${name}</strong>, Your case is already submitted as <strong>${res.crn || ""}</strong>. Please check status of your case by using <strong>Check Request Status</strong>.</p>
+                  <p style="margin-top:8px;font-size:.88rem;color:#555">
+                    📞 <a href="tel:+92${window.NGO.alert.replace(/\D/g,'').slice(-10)}" style="color:var(--teal);font-weight:600">${window.NGO.alert}</a>
+                    &nbsp;|&nbsp;
+                    📧 <a href="mailto:${window.NGO.email}" style="color:var(--teal);font-weight:600">${window.NGO.email}</a>
+                  </p>
+                  <div class="reg-alert-btns">
+                    <button class="btn btn-primary" onclick="window.hideHelpSection();setTimeout(()=>window.showHelpSection('grantStatus'),100)">
+                      <i class="fa-solid fa-magnifying-glass"></i> Check Request Status
+                    </button>
+                    <button class="btn btn-ghost" onclick="if(grantResult){grantResult.hidden=true;grantResult.innerHTML='';} if(grantForm){grantForm.style.display='';document.getElementById('gCnic').value='';document.getElementById('gCnic').focus();}">
+                      <i class="fa-solid fa-rotate-left"></i> Try Different CNIC
+                    </button>
+                    <button class="btn btn-ghost" onclick="window.hideHelpSection()">
+                      <i class="fa-solid fa-arrow-left"></i> Back
+                    </button>
+                  </div>
+                </div>`;
             }
           } else {
             if (grantMsg) { grantMsg.textContent = res.message || "Something went wrong."; grantMsg.classList.add("error"); }
