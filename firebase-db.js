@@ -753,6 +753,7 @@ async function getPublicStats() {
 
 
   // Settings
+window.RHS = {
   getNGOSettings, saveNGOSettings,
   getStatistics, getContent, saveContent,
   getContact, saveContact,
