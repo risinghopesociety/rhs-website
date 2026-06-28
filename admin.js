@@ -207,6 +207,7 @@ function showSetupSection(section, btn){
   if(section==="slides") loadSlidesList();
   if(section==="team") loadTeamList();
   if(section==="stories") loadStoriesList();
+  if(section==="news") loadNewsList();
   if(section==="messages") loadMessages();
 }
 
@@ -598,6 +599,119 @@ async function saveEditStory(id, existingImage){
       showMsg("storyMsg","✅ Story updated successfully!","success");
       loadStoriesList();
     }).catch(()=>{ setLoading(saveBtn,false); if(msgEl) msgEl.textContent="⚠️ Failed to save."; });
+}
+
+// ====== NEWS FEED — COMPLETE ======
+function previewNewsImage(input){
+  const file=input.files?.[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    document.getElementById("newsImagePreview").innerHTML=
+      `<img src="${e.target.result}" style="max-height:120px;border-radius:8px;object-fit:cover;margin-top:4px">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearNewsForm(){
+  ["news-title","news-category","news-date","news-body","news-imageURL"].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value="";
+  });
+  const imgInput=document.getElementById("news-imageFile");
+  if(imgInput) imgInput.value="";
+  const preview=document.getElementById("newsImagePreview");
+  if(preview) preview.innerHTML="";
+  showMsg("newsMsg","","");
+}
+
+async function addNewsItem(){
+  if(!window.RHS){showMsg("newsMsg","System loading...","error");return;}
+  const title    = document.getElementById("news-title")?.value.trim();
+  const category = document.getElementById("news-category")?.value.trim()||"";
+  const date     = document.getElementById("news-date")?.value.trim()||"";
+  const body     = document.getElementById("news-body")?.value.trim();
+  const imageURL = document.getElementById("news-imageURL")?.value.trim()||"";
+  const imgFile  = document.getElementById("news-imageFile")?.files?.[0];
+
+  if(!title){showMsg("newsMsg","\u26a0\ufe0f Title required.","error");return;}
+  if(!body) {showMsg("newsMsg","\u26a0\ufe0f Content required.","error");return;}
+
+  const btn = document.getElementById("addNewsBtn");
+
+  let finalImageURL = imageURL;
+  if(imgFile){
+    setLoading(btn, true, "Uploading image...");
+    try{
+      const fd=new FormData();
+      fd.append("file", imgFile);
+      fd.append("upload_preset", "rhs-upload");
+      fd.append("folder", "rhs/news");
+      const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
+      const data=await resp.json();
+      if(data.secure_url) finalImageURL=data.secure_url;
+      else throw new Error(data.error?.message||"Upload failed");
+    }catch(err){
+      setLoading(btn, false);
+      showMsg("newsMsg","\u26a0\ufe0f Image upload failed: "+err.message,"error");
+      return;
+    }
+  }
+
+  setLoading(btn, true, "Saving news...");
+  try{
+    await RHS.addNews({title, category, date, body, imageURL: finalImageURL});
+    setLoading(btn, false);
+    showMsg("newsMsg","\u2705 News added successfully!","success");
+    clearNewsForm();
+    loadNewsList();
+  }catch(err){
+    setLoading(btn, false);
+    showMsg("newsMsg","\u274c Failed to save news. Please try again.","error");
+  }
+}
+
+function loadNewsList(){
+  if(!window.RHS){setTimeout(loadNewsList,500);return;}
+  const wrap=document.getElementById("newsListWrap"); if(!wrap) return;
+  wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
+  RHS.getNews().then(res=>{
+    if(!res.news||!res.news.length){
+      wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:24px"><i class="fa fa-newspaper" style="font-size:2rem;display:block;margin-bottom:8px;opacity:.3"></i>No news yet. Add your first news above.</p>';
+      return;
+    }
+    let html='<div style="display:flex;flex-direction:column;gap:12px;margin-top:12px">';
+    res.news.forEach(n=>{
+      const img = n.imageURL||"";
+      html+=`
+      <div style="background:#F5F9F8;border:1.5px solid #D8E8E5;border-radius:14px;padding:14px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
+        ${img
+          ?`<img src="${img}" style="width:72px;height:72px;border-radius:10px;object-fit:cover;flex-shrink:0;border:2px solid #C8E6D9">`
+          :`<div style="width:72px;height:72px;background:#E7DFD2;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa fa-newspaper" style="color:#8A9A96;font-size:1.4rem"></i></div>`
+        }
+        <div style="flex:1;min-width:180px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+            <div>
+              <strong style="color:#14534F;font-size:.98rem">${escHtml(n.title||"")}</strong>
+              ${n.category?`<span style="margin-left:7px;background:#EEF8F1;color:#14534F;padding:2px 9px;border-radius:20px;font-size:.74rem;font-weight:600">${escHtml(n.category)}</span>`:""}
+              ${n.date?`<span style="margin-left:6px;color:#8A9A96;font-size:.78rem"><i class="fa fa-calendar"></i> ${escHtml(n.date)}</span>`:""}
+            </div>
+            <button class="btn btn-sm btn-reject" style="padding:6px 12px;border-radius:7px;flex-shrink:0" onclick="deleteNewsItem('${n.id}','${escHtml(n.title)}')">
+              <i class="fa fa-trash"></i>
+            </button>
+          </div>
+          <p style="color:#4A5C58;font-size:.85rem;margin:0;line-height:1.55">${escHtml((n.body||"").substring(0,120))}${(n.body||"").length>120?"...":""}</p>
+        </div>
+      </div>`;
+    });
+    html+='</div>';
+    wrap.innerHTML=html;
+  }).catch(()=>{wrap.innerHTML='<p style="color:#D9483A;text-align:center;padding:20px">Failed to load news.</p>';});
+}
+
+function deleteNewsItem(id, title){
+  if(!confirm(`"${title}" delete karni hai?`)) return;
+  if(!window.RHS) return;
+  RHS.deleteNews(id).then(()=>{ loadNewsList(); showMsg("newsMsg","\u2705 News deleted.","success"); })
+    .catch(()=>showMsg("newsMsg","\u274c Failed to delete.","error"));
 }
 
 // ====== SLIDES ======
