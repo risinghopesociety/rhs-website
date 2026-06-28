@@ -390,6 +390,18 @@ function previewStoryImage(input){
   reader.readAsDataURL(file);
 }
 
+// ====== CLEAR STORY FORM ======
+function clearStoryForm(){
+  ["story-name","story-category","story-location","story-text"].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value="";
+  });
+  const imgInput=document.getElementById("story-imageFile");
+  if(imgInput) imgInput.value="";
+  const preview=document.getElementById("storyImagePreview");
+  if(preview) preview.innerHTML=`<i class="fa fa-image" style="font-size:1.5rem;color:#4CAF8A;display:block;margin-bottom:6px"></i><span style="color:#14534F;font-size:.88rem">Tap to upload photo</span>`;
+  showMsg("storyMsg","","");
+}
+
 async function addStoryItem(){
   if(!window.RHS){showMsg("storyMsg","System loading...","error");return;}
   const name     = document.getElementById("story-name")?.value.trim();
@@ -404,38 +416,38 @@ async function addStoryItem(){
   if(!text)     {showMsg("storyMsg","⚠️ Story required.","error");return;}
   if(!imgFile)  {showMsg("storyMsg","⚠️ Photo required.","error");return;}
 
-  const btn=document.querySelector('#setup-stories .btn-primary');
-  setLoading(btn,true,"Uploading photo...");
+  const btn = document.getElementById("addStoryBtn");
 
-  let imageUrl="";
-  try{
-    const fd=new FormData();
-    fd.append("file",imgFile);
-    fd.append("upload_preset","rhs-upload");
-    fd.append("folder","rhs/stories");
-    const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
-    const data=await resp.json();
-    if(data.secure_url) imageUrl=data.secure_url;
-    else throw new Error(data.error?.message||"Upload failed");
-  }catch(err){
-    setLoading(btn,false);
-    showMsg("storyMsg","⚠️ Photo upload failed: "+err.message,"error");
+  // ✅ Upload image
+  setLoading(btn, true, "Uploading photo...");
+  let imageUrl = "";
+  try {
+    const fd = new FormData();
+    fd.append("file", imgFile);
+    fd.append("upload_preset", "rhs-upload");
+    fd.append("folder", "rhs/stories");
+    const resp = await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload", {method:"POST", body:fd});
+    const data = await resp.json();
+    if(data.secure_url) imageUrl = data.secure_url;
+    else throw new Error(data.error?.message || "Upload failed");
+  } catch(err) {
+    setLoading(btn, false); // ✅ Button hamesha release hoga
+    showMsg("storyMsg", "⚠️ Photo upload failed: " + err.message, "error");
     return;
   }
 
-  setLoading(btn,true,"Saving story...");
-  RHS.addStory({name,category,location,text,imageUrl}).then(()=>{
-    setLoading(btn,false);
-    showMsg("storyMsg","✅ Story added successfully!","success");
-    document.getElementById("story-name").value="";
-    document.getElementById("story-category").value="";
-    document.getElementById("story-location").value="";
-    document.getElementById("story-text").value="";
-    document.getElementById("story-imageFile").value="";
-    document.getElementById("storyImagePreview").innerHTML=
-      `<i class="fa fa-image" style="font-size:1.5rem;color:#4CAF8A;display:block;margin-bottom:6px"></i><span style="color:#14534F;font-size:.88rem">Tap to upload photo</span>`;
+  // ✅ Save to Firebase
+  setLoading(btn, true, "Saving story...");
+  try {
+    await RHS.addStory({name, category, location, text, imageUrl});
+    setLoading(btn, false); // ✅ Button release on success
+    showMsg("storyMsg", "✅ Story added successfully!", "success");
+    clearStoryForm();
     loadStoriesList();
-  }).catch(()=>{setLoading(btn,false);showMsg("storyMsg","❌ Failed to save story.","error");});
+  } catch(err) {
+    setLoading(btn, false); // ✅ Button release on error
+    showMsg("storyMsg", "❌ Failed to save story. Please try again.", "error");
+  }
 }
 
 function loadStoriesList(){
