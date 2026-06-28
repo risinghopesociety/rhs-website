@@ -1,12 +1,10 @@
 // ============================================================
 // RHS Firebase Database Layer
-// Replaces all Google Sheets / Apps Script calls
 // ============================================================
 
 const CLOUDINARY_CLOUD = "dt9yspaw7";
 const CLOUDINARY_PRESET = "rhs-upload";
 
-// Wait for Firebase to be ready
 function waitForFB() {
   return new Promise(resolve => {
     if (window.__fbReady) return resolve();
@@ -145,7 +143,7 @@ async function getContactMessages() {
 }
 
 // ============================================================
-// CONTENT (Sliders, About etc)
+// CONTENT
 // ============================================================
 async function getContent() {
   await waitForFB();
@@ -205,8 +203,6 @@ async function generateRegNo() {
 async function registerMember(data) {
   await waitForFB();
   const cnic = generateCNIC(data.cnic);
-
-  // Check duplicate CNIC
   const q = fs().query(fs().collection(db(), "members"), fs().where("cnic", "==", cnic));
   const existing = await fs().getDocs(q);
   if (!existing.empty) {
@@ -218,10 +214,8 @@ async function registerMember(data) {
       message: `Dear ${data.fullName}, You are already registered as ${m.registrationNo}. Contact: ${settings.alertNumber} | ${settings.ngoEmail}`
     };
   }
-
   const regNo = await generateRegNo();
   const now = today();
-
   const memberData = {
     cnic,
     dob: data.dob || "",
@@ -243,10 +237,8 @@ async function registerMember(data) {
     validUpto: "",
     createdAt: fs().serverTimestamp()
   };
-
   const ref = await fs().addDoc(fs().collection(db(), "members"), memberData);
   const settings = await getNGOSettings();
-
   return {
     success: true,
     registrationNo: regNo,
@@ -325,15 +317,11 @@ async function addCharityEntry(data) {
     ...data,
     createdAt: fs().serverTimestamp()
   });
-
-  // Update member validUpto
   if (data.memberId) {
     const validUpto = addMonthToDate(data.date || today());
     await fs().updateDoc(fs().doc(db(), "members", data.memberId), { validUpto });
     data.validUpto = validUpto;
   }
-
-  // Add to cashbook
   await addCashEntry({
     type: "Inflow",
     date: data.date || today(),
@@ -341,7 +329,6 @@ async function addCharityEntry(data) {
     amount: Number(data.amount) || 0,
     note: data.paymentMethod || ""
   });
-
   return { success: true, id: ref.id, validUpto: data.validUpto || "" };
 }
 
@@ -356,16 +343,14 @@ async function getCharityLedger(cnic, dob) {
   const memberSnaps = await fs().getDocs(memberQ);
   if (memberSnaps.empty) return { success: false, message: "No member found with these credentials." };
   const member = { id: memberSnaps.docs[0].id, ...memberSnaps.docs[0].data() };
-  // No orderBy — avoids composite index error
   const donQ = fs().query(fs().collection(db(), "charityDonations"), fs().where("cnic", "==", cnicF));
   const donSnaps = await fs().getDocs(donQ);
   const donations = [];
   donSnaps.forEach(d => donations.push({ id: d.id, ...d.data() }));
-  // Sort by date in JS (dd-mm-yyyy)
-  const parseDate = s => { if(!s) return 0; const p=s.split("-"); return p.length===3 ? new Date(+p[2],+p[1]-1,+p[0]).getTime() : 0; };
-  donations.sort((a,b) => parseDate(a.date) - parseDate(b.date));
+  const parseDate = s => { if (!s) return 0; const p = s.split("-"); return p.length === 3 ? new Date(+p[2], +p[1] - 1, +p[0]).getTime() : 0; };
+  donations.sort((a, b) => parseDate(a.date) - parseDate(b.date));
   let total = 0;
-  const donationsWithTotal = donations.map(d => { total += Number(d.amount)||0; return { ...d, runningTotal: total }; });
+  const donationsWithTotal = donations.map(d => { total += Number(d.amount) || 0; return { ...d, runningTotal: total }; });
   return { success: true, member, donations: donationsWithTotal, total };
 }
 
@@ -410,19 +395,13 @@ async function generateCRN() {
 async function submitGrant(data) {
   await waitForFB();
   const cnic = generateCNIC(data.cnic);
-
-  // Check duplicate active case
-  const q = fs().query(
-    fs().collection(db(), "grantRequests"),
-    fs().where("cnic", "==", cnic)
-  );
+  const q = fs().query(fs().collection(db(), "grantRequests"), fs().where("cnic", "==", cnic));
   const existing = await fs().getDocs(q);
   let activeCase = null;
   existing.forEach(d => {
     const dd = d.data();
     if ((dd.status || "").toLowerCase() !== "closed") activeCase = dd;
   });
-
   if (activeCase) {
     const s = await getNGOSettings();
     return {
@@ -432,11 +411,9 @@ async function submitGrant(data) {
       message: `Dear ${data.name}, Your Case is already registered as ${activeCase.crn}. Contact: ${s.alertNumber} | ${s.ngoEmail}`
     };
   }
-
   const crn = await generateCRN();
   const ref = await fs().addDoc(fs().collection(db(), "grantRequests"), {
-    crn,
-    cnic,
+    crn, cnic,
     dob: data.dob || "",
     name: data.name || "",
     fatherName: data.fatherName || "",
@@ -456,21 +433,16 @@ async function submitGrant(data) {
     updatedAt: today(),
     createdAt: fs().serverTimestamp()
   });
-
   return {
     success: true, crn,
     message: `Dear ${data.name}, Your Charity Request No ${crn} has been received. Our team will contact you soon.`
   };
 }
 
-// Check if an active (non-closed) grant exists for a CNIC — no DOB needed
 async function checkGrantByCnic(cnic) {
   await waitForFB();
   const cnicF = generateCNIC(cnic);
-  const q = fs().query(
-    fs().collection(db(), "grantRequests"),
-    fs().where("cnic", "==", cnicF)
-  );
+  const q = fs().query(fs().collection(db(), "grantRequests"), fs().where("cnic", "==", cnicF));
   const snaps = await fs().getDocs(q);
   if (snaps.empty) return { found: false };
   const grants = [];
@@ -492,8 +464,6 @@ async function getGrantStatus(cnic, dob) {
   if (snaps.empty) return { success: false, message: "No grant request found." };
   const grants = [];
   snaps.forEach(d => grants.push({ id: d.id, ...d.data() }));
-
-  // Show active case first, closed last
   const active = grants.filter(g => (g.status || "").toLowerCase() !== "closed");
   const closed = grants.filter(g => (g.status || "").toLowerCase() === "closed");
   return { success: true, grants: active.length ? active : closed };
@@ -510,7 +480,6 @@ async function getGrants(filter = "all") {
   else if (filter === "rejected") q = fs().query(col, fs().where("decision", "==", "Rejected"));
   else if (filter === "closed") q = fs().query(col, fs().where("status", "==", "Closed"));
   else q = fs().query(col, fs().orderBy("createdAt", "desc"));
-
   const snaps = await fs().getDocs(q);
   const grants = [];
   snaps.forEach(d => grants.push({ id: d.id, ...d.data() }));
@@ -519,10 +488,7 @@ async function getGrants(filter = "all") {
 
 async function updateGrant(id, updates) {
   await waitForFB();
-  await fs().updateDoc(fs().doc(db(), "grantRequests", id), {
-    ...updates,
-    updatedAt: today()
-  });
+  await fs().updateDoc(fs().doc(db(), "grantRequests", id), { ...updates, updatedAt: today() });
   return { success: true };
 }
 
@@ -535,8 +501,6 @@ async function addCaseExpense(data) {
     ...data,
     createdAt: fs().serverTimestamp()
   });
-
-  // Debit cashbook
   await addCashEntry({
     type: "Outflow",
     date: data.date || today(),
@@ -544,7 +508,6 @@ async function addCaseExpense(data) {
     amount: Number(data.amount) || 0,
     note: `Case Expense — ${data.helpType || ""}`
   });
-
   return { success: true, id: ref.id };
 }
 
@@ -559,9 +522,8 @@ async function getCaseExpenses(crn) {
     total += Number(dd.amount) || 0;
     expenses.push({ id: d.id, ...dd });
   });
-  // Sort by date in JS
-  const p = s => { if(!s) return 0; const x=s.split("-"); return x.length===3?new Date(+x[2],+x[1]-1,+x[0]).getTime():0; };
-  expenses.sort((a,b) => p(a.date) - p(b.date));
+  const p = s => { if (!s) return 0; const x = s.split("-"); return x.length === 3 ? new Date(+x[2], +x[1] - 1, +x[0]).getTime() : 0; };
+  expenses.sort((a, b) => p(a.date) - p(b.date));
   return { success: true, expenses, total };
 }
 
@@ -587,7 +549,6 @@ async function addAdminExpense(data) {
     ...data,
     createdAt: fs().serverTimestamp()
   });
-
   await addCashEntry({
     type: "Outflow",
     date: data.date || today(),
@@ -595,7 +556,6 @@ async function addAdminExpense(data) {
     amount: Number(data.amount) || 0,
     note: `Paid to: ${data.payto || ""}`
   });
-
   return { success: true };
 }
 
@@ -658,7 +618,6 @@ async function getNetWorth() {
 // ============================================================
 async function getAdminStats() {
   await waitForFB();
-
   const [members, grants, charity, adminExp, caseExp] = await Promise.all([
     fs().getDocs(fs().collection(db(), "members")),
     fs().getDocs(fs().collection(db(), "grantRequests")),
@@ -666,7 +625,6 @@ async function getAdminStats() {
     fs().getDocs(fs().collection(db(), "adminExpenses")),
     fs().getDocs(fs().collection(db(), "caseExpenses"))
   ]);
-
   let pending = 0, active = 0, expired = 0, banned = 0;
   members.forEach(d => {
     const s = (d.data().status || "").toLowerCase();
@@ -675,7 +633,6 @@ async function getAdminStats() {
     else if (s === "expired") expired++;
     else if (s === "banned") banned++;
   });
-
   let newG = 0, completed = 0, approved = 0, rejected = 0, closed = 0;
   grants.forEach(d => {
     const s = (d.data().status || "").toLowerCase();
@@ -686,18 +643,13 @@ async function getAdminStats() {
     if (dec === "rejected" && s !== "closed") rejected++;
     if (s === "closed") closed++;
   });
-
   let totalCharity = 0;
   charity.forEach(d => { totalCharity += Number(d.data().amount) || 0; });
-
   let totalAdminExp = 0;
   adminExp.forEach(d => { totalAdminExp += Number(d.data().amount) || 0; });
-
   let totalCaseCost = 0;
   caseExp.forEach(d => { totalCaseCost += Number(d.data().amount) || 0; });
-
   const nw = await getNetWorth();
-
   return {
     success: true,
     pendingMembers: pending, activeMembers: active,
@@ -709,9 +661,6 @@ async function getAdminStats() {
   };
 }
 
-// ============================================================
-// EXPORT ALL FUNCTIONS
-// ============================================================
 async function getPublicStats() {
   await waitForFB();
   try {
@@ -719,7 +668,6 @@ async function getPublicStats() {
       fs().getDocs(fs().collection(db(), "members")),
       fs().getDocs(fs().collection(db(), "grantRequests"))
     ]);
-
     let pending = 0, active = 0, expired = 0, banned = 0;
     members.forEach(d => {
       const s = (d.data().status || "").toLowerCase();
@@ -728,7 +676,6 @@ async function getPublicStats() {
       else if (s === "expired") expired++;
       else if (s === "banned") banned++;
     });
-
     let completed = 0, approved = 0, rejected = 0, closed = 0;
     grants.forEach(d => {
       const s = (d.data().status || "").toLowerCase();
@@ -738,7 +685,6 @@ async function getPublicStats() {
       if (dec === "rejected" && s !== "closed") rejected++;
       if (s === "closed") closed++;
     });
-
     return {
       success: true,
       pendingMembers: pending, activeMembers: active,
@@ -746,14 +692,129 @@ async function getPublicStats() {
       completedCases: completed, approvedCases: approved,
       rejectedCases: rejected, closedCases: closed
     };
-  } catch(e) {
+  } catch (e) {
     return { success: false };
   }
 }
 
+// ============================================================
+// NEWS
+// ============================================================
+async function getNews() {
+  await waitForFB();
+  try {
+    const q = fs().query(fs().collection(db(), "news"), fs().orderBy("date", "desc"));
+    const snaps = await fs().getDocs(q);
+    const news = [];
+    snaps.forEach(d => news.push({ id: d.id, ...d.data() }));
+    return { success: true, news };
+  } catch (e) {
+    return { success: true, news: [] };
+  }
+}
 
-  // Settings
+async function addNews(data) {
+  await waitForFB();
+  const ref = await fs().addDoc(fs().collection(db(), "news"), { ...data, createdAt: fs().serverTimestamp() });
+  return { success: true, id: ref.id };
+}
+
+async function deleteNews(id) {
+  await waitForFB();
+  await fs().deleteDoc(fs().doc(db(), "news", id));
+  return { success: true };
+}
+
+// ============================================================
+// STORIES — COMPLETE CRUD
+// ============================================================
+async function getStories() {
+  await waitForFB();
+  try {
+    const q = fs().query(fs().collection(db(), "stories"), fs().orderBy("createdAt", "desc"));
+    const snaps = await fs().getDocs(q);
+    const stories = [];
+    snaps.forEach(d => stories.push({ id: d.id, ...d.data() }));
+    return { success: true, stories };
+  } catch (e) {
+    return { success: true, stories: [] };
+  }
+}
+
+async function addStory(data) {
+  await waitForFB();
+  const ref = await fs().addDoc(fs().collection(db(), "stories"), {
+    ...data,
+    createdAt: fs().serverTimestamp()
+  });
+  return { success: true, id: ref.id };
+}
+
+async function updateStory(id, data) {
+  await waitForFB();
+  await fs().updateDoc(fs().doc(db(), "stories", id), data);
+  return { success: true };
+}
+
+async function deleteStory(id) {
+  await waitForFB();
+  await fs().deleteDoc(fs().doc(db(), "stories", id));
+  return { success: true };
+}
+
+// ============================================================
+// SLIDES
+// ============================================================
+async function getSlides() {
+  await waitForFB();
+  try {
+    const q = fs().query(fs().collection(db(), "slides"), fs().orderBy("order", "asc"));
+    const snaps = await fs().getDocs(q);
+    const slides = [];
+    snaps.forEach(d => slides.push({ id: d.id, ...d.data() }));
+    return { success: true, slides };
+  } catch (e) {
+    try {
+      const snaps = await fs().getDocs(fs().collection(db(), "slides"));
+      const slides = [];
+      snaps.forEach(d => slides.push({ id: d.id, ...d.data() }));
+      return { success: true, slides };
+    } catch (e2) { return { success: true, slides: [] }; }
+  }
+}
+
+async function addSlide(data) {
+  await waitForFB();
+  const ref = await fs().addDoc(fs().collection(db(), "slides"), { ...data, createdAt: fs().serverTimestamp() });
+  return { success: true, id: ref.id };
+}
+
+async function updateSlide(id, data) {
+  await waitForFB();
+  await fs().updateDoc(fs().doc(db(), "slides", id), data);
+  return { success: true };
+}
+
+async function deleteSlide(id) {
+  await waitForFB();
+  await fs().deleteDoc(fs().doc(db(), "slides", id));
+  return { success: true };
+}
+
+// ============================================================
+// DELETE CONTACT MESSAGE
+// ============================================================
+async function deleteContactMessage(id) {
+  await waitForFB();
+  await fs().deleteDoc(fs().doc(db(), "contactMessages", id));
+  return { success: true };
+}
+
+// ============================================================
+// EXPORT ALL FUNCTIONS
+// ============================================================
 window.RHS = {
+  // Settings
   getNGOSettings, saveNGOSettings,
   getStatistics, getContent, saveContent,
   getContact, saveContact,
@@ -775,7 +836,13 @@ window.RHS = {
   // Stats
   getAdminStats, getPublicStats,
   // Messages
-  submitContactMessage, getContactMessages,
+  submitContactMessage, getContactMessages, deleteContactMessage,
+  // News
+  getNews, addNews, deleteNews,
+  // Stories — COMPLETE CRUD
+  getStories, addStory, updateStory, deleteStory,
+  // Slides
+  getSlides, addSlide, updateSlide, deleteSlide,
   // Image
   uploadImage, imgUrl,
   // Utils
@@ -783,117 +850,3 @@ window.RHS = {
 };
 
 console.log("✅ RHS Firebase DB Layer Ready!");
-
-// ============================================================
-// NEWS & STORIES (Firestore se)
-// ============================================================
-async function getNews() {
-  await waitForFB();
-  try {
-    const q = fs().query(fs().collection(db(), "news"), fs().orderBy("date", "desc"));
-    const snaps = await fs().getDocs(q);
-    const news = [];
-    snaps.forEach(d => news.push({ id: d.id, ...d.data() }));
-    return { success: true, news };
-  } catch(e) {
-    return { success: true, news: [] };
-  }
-}
-
-async function getStories() {
-  await waitForFB();
-  try {
-    const q = fs().query(fs().collection(db(), "stories"), fs().orderBy("createdAt", "desc"));
-    const snaps = await fs().getDocs(q);
-    const stories = [];
-    snaps.forEach(d => stories.push({ id: d.id, ...d.data() }));
-    return { success: true, stories };
-  } catch(e) {
-    return { success: true, stories: [] };
-  }
-}
-
-// Add to RHS exports
-window.RHS.getNews = getNews;
-window.RHS.getStories = getStories;
-
-// ============================================================
-// NEW FUNCTIONS — Slides, News CRUD, Stories CRUD, Delete Message
-// ============================================================
-
-// NEWS CRUD
-async function addNews(data) {
-  await waitForFB();
-  const ref = await fs().addDoc(fs().collection(db(), "news"), { ...data, createdAt: fs().serverTimestamp() });
-  return { success: true, id: ref.id };
-}
-async function deleteNews(id) {
-  await waitForFB();
-  await fs().deleteDoc(fs().doc(db(), "news", id));
-  return { success: true };
-}
-
-// STORIES CRUD
-async function addStory(data) {
-  await waitForFB();
-  const ref = await fs().addDoc(fs().collection(db(), "stories"), { ...data, createdAt: fs().serverTimestamp() });
-  return { success: true, id: ref.id };
-}
-async function deleteStory(id) {
-  await waitForFB();
-  await fs().deleteDoc(fs().doc(db(), "stories", id));
-  return { success: true };
-}
-
-// SLIDES
-async function getSlides() {
-  await waitForFB();
-  try {
-    const q = fs().query(fs().collection(db(), "slides"), fs().orderBy("order", "asc"));
-    const snaps = await fs().getDocs(q);
-    const slides = [];
-    snaps.forEach(d => slides.push({ id: d.id, ...d.data() }));
-    return { success: true, slides };
-  } catch(e) {
-    try {
-      const snaps = await fs().getDocs(fs().collection(db(), "slides"));
-      const slides = [];
-      snaps.forEach(d => slides.push({ id: d.id, ...d.data() }));
-      return { success: true, slides };
-    } catch(e2) { return { success: true, slides: [] }; }
-  }
-}
-async function addSlide(data) {
-  await waitForFB();
-  const ref = await fs().addDoc(fs().collection(db(), "slides"), { ...data, createdAt: fs().serverTimestamp() });
-  return { success: true, id: ref.id };
-}
-async function updateSlide(id, data) {
-  await waitForFB();
-  await fs().updateDoc(fs().doc(db(), "slides", id), data);
-  return { success: true };
-}
-async function deleteSlide(id) {
-  await waitForFB();
-  await fs().deleteDoc(fs().doc(db(), "slides", id));
-  return { success: true };
-}
-// DELETE CONTACT MESSAGE
-async function deleteContactMessage(id) {
-  await waitForFB();
-  await fs().deleteDoc(fs().doc(db(), "contactMessages", id));
-  return { success: true };
-}
-
-// Add all new functions to RHS exports
-window.RHS.addNews               = addNews;
-window.RHS.deleteNews            = deleteNews;
-window.RHS.addStory              = addStory;
-window.RHS.deleteStory           = deleteStory;
-window.RHS.getSlides             = getSlides;
-window.RHS.addSlide              = addSlide;
-window.RHS.updateSlide           = updateSlide;
-window.RHS.deleteSlide           = deleteSlide;
-window.RHS.deleteContactMessage  = deleteContactMessage;
-
-console.log("✅ All RHS functions ready!");
