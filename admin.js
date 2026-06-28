@@ -437,17 +437,17 @@ async function addStoryItem(){
     return;
   }
 
-  // ✅ Save to Firebase
+  // Save to Firebase — finally hamesha button release karega
   setLoading(btn, true, "Saving story...");
   try {
     await RHS.addStory({name, category, location, text, imageUrl});
-    setLoading(btn, false); // ✅ Button release on success
     showMsg("storyMsg", "✅ Story added successfully!", "success");
     clearStoryForm();
     loadStoriesList();
   } catch(err) {
-    setLoading(btn, false); // ✅ Button release on error
     showMsg("storyMsg", "❌ Failed to save story. Please try again.", "error");
+  } finally {
+    setLoading(btn, false); // ✅ SUCCESS ya ERROR dono mein button release
   }
 }
 
@@ -636,8 +636,9 @@ async function addNewsItem(){
   if(!body) {showMsg("newsMsg","\u26a0\ufe0f Content required.","error");return;}
 
   const btn = document.getElementById("addNewsBtn");
-
   let finalImageURL = imageURL;
+
+  // Step 1: Upload image if selected
   if(imgFile){
     setLoading(btn, true, "Uploading image...");
     try{
@@ -656,16 +657,17 @@ async function addNewsItem(){
     }
   }
 
+  // Step 2: Save to Firebase — finally hamesha button release karega
   setLoading(btn, true, "Saving news...");
   try{
     await RHS.addNews({title, category, date, body, imageURL: finalImageURL});
-    setLoading(btn, false);
     showMsg("newsMsg","\u2705 News added successfully!","success");
     clearNewsForm();
     loadNewsList();
   }catch(err){
-    setLoading(btn, false);
     showMsg("newsMsg","\u274c Failed to save news. Please try again.","error");
+  }finally{
+    setLoading(btn, false);
   }
 }
 
