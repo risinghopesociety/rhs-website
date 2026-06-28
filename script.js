@@ -1048,27 +1048,8 @@ document.addEventListener("DOMContentLoaded", () => {
             if (grantForm) grantForm.style.display = "none";
             if (grantResult) {
               grantResult.hidden = false;
-              grantResult.innerHTML = `
-                <div class="status-msg status-green">
-                  <i class="fa-solid fa-circle-check" style="font-size:2.2rem;color:#2E9E5B;display:block;margin-bottom:12px"></i>
-                  <div class="status-title" style="color:#1a6b3a">Application Submitted Successfully!</div>
-                  <p>Dear <strong>${name}</strong>, Your Charity Help Application has been Successfully Received by <strong>${window.NGO.name}</strong>.</p>
-                  <p style="margin-top:8px">Your Case Reference Number is: <strong style="color:#14534F;font-size:1.05rem">${res.crn || ""}</strong></p>
-                  <p style="margin-top:8px">Our team will review your application and contact you soon. Please keep your <strong>CNIC</strong> and <strong>Reference Number</strong> safe for future status checks.</p>
-                  <p style="margin-top:12px;font-size:.88rem;color:#555">
-                    📞 <a href="tel:+92${window.NGO.alert.replace(/\D/g,'').slice(-10)}" style="color:var(--teal);font-weight:600">${window.NGO.alert}</a>
-                    &nbsp;|&nbsp;
-                    📧 <a href="mailto:${window.NGO.email}" style="color:var(--teal);font-weight:600">${window.NGO.email}</a>
-                  </p>
-                  <div class="reg-alert-btns" style="margin-top:16px">
-                    <button class="btn btn-primary" onclick="window.hideHelpSection();setTimeout(()=>window.showHelpSection('grantStatus'),100)">
-                      <i class="fa-solid fa-magnifying-glass"></i> Check Application Status
-                    </button>
-                    <button class="btn btn-ghost" onclick="window.hideHelpSection()">
-                      <i class="fa-solid fa-arrow-left"></i> Back
-                    </button>
-                  </div>
-                </div>`;
+              const txt = document.getElementById("grantResultText");
+              if (txt) txt.innerHTML = res.message || "";
             }
           } else if (res.code === "DUPLICATE_CASE") {
             // Styled duplicate alert matching registration form
@@ -1411,14 +1392,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         grid.innerHTML = res.stories.map(s => `
           <article class="story-card">
-            <span class="story-badge">${s.helpType || "Community"}</span>
+            <span class="story-badge">${s.category || s.helpType || "Community"}</span>
             ${s.imageUrl || s.photoURL
               ? `<img src="${s.imageUrl || s.photoURL}" alt="${s.name}" class="story-card-img" loading="lazy">`
               : `<div class="story-card-img" style="background:#EEF8F1;display:flex;align-items:center;justify-content:center;font-size:2.5rem">🤲</div>`}
             <div class="story-card-body">
               <div class="story-card-name">${s.name || ""}</div>
               <div class="story-card-location"><i class="fa-solid fa-location-dot"></i> ${s.location || "Khairpur Tamewali"}</div>
-              <p class="story-card-text">${s.story || ""}</p>
+              <p class="story-card-text">${s.text || s.story || ""}</p>
             </div>
           </article>`).join("");
       })

@@ -2,6 +2,7 @@
    RISING HOPE SOCIETY — ADMIN.JS — Firebase Mode
    ============================================================ */
 
+// NGO Settings defaults
 window.NGO = {
   name: "Rising Hope Society",
   phone: "0346-4800064",
@@ -16,56 +17,16 @@ function loadNGOSettings() {
   RHS.getNGOSettings().then(res => {
     if (!res) return;
     window.NGO = {
-      name:      res.ngoName      || window.NGO.name,
-      phone:     res.ngoPhone     || window.NGO.phone,
-      address:   res.ngoAddress   || window.NGO.address,
-      email:     res.ngoEmail     || window.NGO.email,
-      bank:      res.bankAccount  || window.NGO.bank,
-      alert:     res.alertNumber  || res.ngoPhone || window.NGO.alert,
-      logoUrl:   res.logoUrl      || "",
-      copyright: res.copyrightText|| ""
+      name:    res.ngoName    || window.NGO.name,
+      phone:   res.ngoPhone   || window.NGO.phone,
+      address: res.ngoAddress || window.NGO.address,
+      email:   res.ngoEmail   || window.NGO.email,
+      bank:    res.bankAccount|| window.NGO.bank,
+      alert:   res.alertNumber|| res.ngoPhone || window.NGO.alert
     };
     document.querySelectorAll(".ngo-name").forEach(el => el.textContent = window.NGO.name);
     document.querySelectorAll(".ngo-address").forEach(el => el.textContent = window.NGO.address);
-    document.querySelectorAll(".ngo-phone").forEach(el => el.textContent = window.NGO.phone);
-    document.querySelectorAll(".ngo-email").forEach(el => el.textContent = window.NGO.email);
-    if (window.NGO.logoUrl) {
-      ["loginLogo","sidebarLogo","currentLogoPreview"].forEach(id => {
-        const el = document.getElementById(id); if(el) el.src = window.NGO.logoUrl;
-      });
-    }
-    const fields = {
-      "set-ngoName":      res.ngoName,
-      "set-ngoPhone":     res.ngoPhone,
-      "set-ngoEmail":     res.ngoEmail,
-      "set-alertNumber":  res.alertNumber,
-      "set-ngoAddress":   res.ngoAddress,
-      "set-bankAccount":  res.bankAccount,
-      "set-ourTeamTitle": res.ourTeamTitle,
-      "set-ourTeamMatter":res.ourTeamMatter,
-      "set-copyrightText":res.copyrightText
-    };
-    Object.entries(fields).forEach(([id,val]) => {
-      const el = document.getElementById(id); if(el && val) el.value = val;
-    });
-    if (res.logoUrl) {
-      const prev = document.getElementById("currentLogoPreview");
-      if(prev) prev.src = res.logoUrl;
-    }
   }).catch(() => {});
-}
-
-function applyNGOEverywhere() {
-  const logo = window.NGO.logoUrl || "images/logo.png";
-  ["loginLogo","sidebarLogo","currentLogoPreview"].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.src = logo;
-  });
-  document.querySelectorAll("img.admin-logo").forEach(el => el.src = logo);
-  document.querySelectorAll(".ngo-name").forEach(el => el.textContent = window.NGO.name);
-  document.querySelectorAll(".ngo-address").forEach(el => el.textContent = window.NGO.address);
-  document.querySelectorAll(".ngo-phone").forEach(el => el.textContent = window.NGO.phone);
-  document.querySelectorAll(".ngo-email").forEach(el => el.textContent = window.NGO.email);
 }
 
 /* ===================== LOADING BUTTON ===================== */
@@ -87,9 +48,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("input, textarea, select, form").forEach(el => {
     el.setAttribute("autocomplete", "off");
   });
-  loadNGOSettings();
 });
 
+// Dummy apiGet/apiPost for any remaining old calls
 function apiGet(params){ return Promise.resolve({success:false}); }
 function apiPost(data){ return Promise.resolve({success:false}); }
 
@@ -102,7 +63,11 @@ function doLogin(){
   if (msg) { msg.textContent=""; }
   const loginBtn = document.getElementById("loginSubmitBtn");
   if (loginBtn) { loginBtn.disabled=true; loginBtn.innerHTML='<i class="fa fa-spinner fa-spin"></i> Logging in...'; }
-  if (!window.__fauth || !window.__auth) { setTimeout(doLogin, 800); return; }
+
+  if (!window.__fauth || !window.__auth) {
+    setTimeout(doLogin, 800); return;
+  }
+
   window.__fauth.signInWithEmailAndPassword(window.__auth, email, pass)
     .then(() => {
       if (loginBtn) { loginBtn.disabled=false; loginBtn.innerHTML='<i class="fa fa-sign-in-alt"></i> Login to Dashboard'; }
@@ -122,14 +87,19 @@ function doLogin(){
     });
 }
 
+/* ===================== FORGOT PASSWORD ===================== */
 function doForgotPassword(){
   const email = document.getElementById("loginEmail")?.value.trim();
   const msg   = document.getElementById("loginMsg");
   if (!email) { if(msg){msg.textContent="Enter your email first."; msg.style.color="#D9483A";} return; }
   if (!window.__fauth || !window.__auth) { setTimeout(()=>doForgotPassword(), 800); return; }
   window.__fauth.sendPasswordResetEmail(window.__auth, email)
-    .then(() => { if(msg){ msg.textContent="✅ Password reset email sent! Check your inbox."; msg.style.color="#2E9E5B"; } })
-    .catch(err => { if(msg){ msg.textContent="Failed: "+err.message; msg.style.color="#D9483A"; } });
+    .then(() => {
+      if(msg){ msg.textContent="✅ Password reset email sent! Check your inbox."; msg.style.color="#2E9E5B"; }
+    })
+    .catch(err => {
+      if(msg){ msg.textContent="Failed: "+err.message; msg.style.color="#D9483A"; }
+    });
 }
 
 function hideForgotPassword(){
@@ -137,13 +107,17 @@ function hideForgotPassword(){
   if(fb) fb.style.display="none";
 }
 
+/* ===================== LOGOUT ===================== */
 function doLogout(){
-  if(window.__fauth && window.__auth){ window.__fauth.signOut(window.__auth).catch(()=>{}); }
+  if(window.__fauth && window.__auth){
+    window.__fauth.signOut(window.__auth).catch(()=>{});
+  }
   document.getElementById("loginScreen")?.classList.remove("hidden");
   document.getElementById("dashboard")?.classList.add("hidden");
   document.getElementById("loginEmail").value="";
   document.getElementById("loginPass").value="";
 }
+
 
 // ====== HELPERS ======
 function Rs(n){return"Rs. "+(Number(n)||0).toLocaleString("en-PK");}
@@ -153,12 +127,14 @@ function showMsg(id,msg,type){const el=document.getElementById(id);if(!el)return
 
 let selectedMember=null;
 
+// ====== LOGIN ======
 function togglePass(){
   const inp=document.getElementById("loginPass");
   const btn=document.getElementById("passToggle");
   if(inp.type==="password"){inp.type="text";btn.innerHTML='<i class="fa fa-eye-slash"></i>';}
   else{inp.type="password";btn.innerHTML='<i class="fa fa-eye"></i>';}
 }
+
 
 // ====== SIDEBAR ======
 function closeSidebar(){
@@ -182,7 +158,11 @@ function switchTab(name){
   document.querySelectorAll(".tab-content").forEach(t=>t.classList.add("hidden"));
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
   const tabEl = document.getElementById("tab-"+name);
-  if(tabEl){ tabEl.classList.remove("hidden"); window.scrollTo(0,0); document.querySelector(".main-content")?.scrollTo(0,0); }
+  if(tabEl){
+    tabEl.classList.remove("hidden");
+    window.scrollTo(0,0);
+    document.querySelector(".main-content")?.scrollTo(0,0);
+  }
   const navEl = document.getElementById("nav-"+name);
   if(navEl) navEl.classList.add("active");
   const titles={home:"Dashboard",members:"Members Management",charity:"Charity Entry",grants:"Grant Cases (CRN)",cashbook:"Cash Book",adminexp:"Admin Expenses",reports:"Reports",messages:"Messages",setup:"Setup"};
@@ -204,16 +184,12 @@ function showSetupSection(section, btn){
   const el = document.getElementById("setup-"+section);
   if(el) el.classList.remove("hidden");
   if(btn) btn.classList.add("active");
-  if(section==="slides") loadSlidesList();
-  if(section==="team") loadTeamList();
-  if(section==="stories") loadStoriesList();
-  if(section==="news") loadNewsList();
-  if(section==="messages") loadMessages();
 }
 
 // ====== LOAD ALL SETUP DATA ======
 function loadSetupData(){
   if(!window.RHS){setTimeout(loadSetupData,500);return;}
+  // Load NGO Settings
   RHS.getNGOSettings().then(res=>{
     if(!res) return;
     const fields = {
@@ -222,75 +198,54 @@ function loadSetupData(){
       "set-ngoAddress":res.ngoAddress||"","set-bankAccount":res.bankAccount||"",
       "set-ourTeamTitle":res.ourTeamTitle||"","set-ourTeamMatter":res.ourTeamMatter||""
     };
-    Object.entries(fields).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.value=val; });
+    Object.entries(fields).forEach(([id,val])=>{
+      const el=document.getElementById(id);
+      if(el) el.value=val;
+    });
   }).catch(()=>{});
+  // Load Statistics
   RHS.getStatistics().then(res=>{
     if(!res) return;
-    ["members","families","projects","volunteers"].forEach(k=>{ const el=document.getElementById("set-"+k); if(el) el.value=res[k]||0; });
+    ["members","families","projects","volunteers"].forEach(k=>{
+      const el=document.getElementById("set-"+k);
+      if(el) el.value=res[k]||0;
+    });
   }).catch(()=>{});
+  // Load Contact
   RHS.getContact().then(res=>{
     if(!res) return;
-    ["facebook","instagram","whatsapp","youtube"].forEach(k=>{ const el=document.getElementById("set-"+k); if(el) el.value=res[k]||""; });
+    ["facebook","instagram","whatsapp","youtube"].forEach(k=>{
+      const el=document.getElementById("set-"+k);
+      if(el) el.value=res[k]||"";
+    });
   }).catch(()=>{});
+  // Load Team list
   loadTeamList();
 }
 
 // ====== SAVE ADMIN SETTINGS ======
-function previewLogo(input){
-  const file = input.files?.[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => { const prev = document.getElementById("currentLogoPreview"); if(prev) prev.src = e.target.result; };
-  reader.readAsDataURL(file);
-}
-
-async function saveAdminSettings(){
-  if(!window.RHS){ return; }
-  const btn = document.querySelector('#setup-adminSettings .btn-primary');
-  setLoading(btn, true, "Saving...");
-  let logoUrl = window.NGO.logoUrl || "";
-  const logoFile = document.getElementById("set-logoFile")?.files?.[0];
-  if(logoFile){
-    try{
-      setLoading(btn, true, "Uploading logo...");
-      const fd = new FormData();
-      fd.append("file", logoFile);
-      fd.append("upload_preset", "rhs-upload");
-      fd.append("folder", "rhs/logo");
-      const resp = await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
-      const data = await resp.json();
-      if(data.secure_url) logoUrl = data.secure_url;
-      else throw new Error(data.error?.message || "Upload failed");
-    } catch(err){
-      setLoading(btn, false);
-      showMsg("adminSettingsMsg", "⚠️ Logo upload failed: "+err.message, "error");
-      return;
-    }
-  }
-  const saveData = {
-    ngoName:       document.getElementById("set-ngoName")?.value      || "",
-    ngoPhone:      document.getElementById("set-ngoPhone")?.value     || "",
-    ngoEmail:      document.getElementById("set-ngoEmail")?.value     || "",
-    alertNumber:   document.getElementById("set-alertNumber")?.value  || "",
-    ngoAddress:    document.getElementById("set-ngoAddress")?.value   || "",
-    bankAccount:   document.getElementById("set-bankAccount")?.value  || "",
-    ourTeamTitle:  document.getElementById("set-ourTeamTitle")?.value || "",
-    ourTeamMatter: document.getElementById("set-ourTeamMatter")?.value|| "",
-    copyrightText: document.getElementById("set-copyrightText")?.value|| "",
-    logoUrl:       logoUrl
+function saveAdminSettings(){
+  if(!window.RHS){return;}
+  const data={
+    ngoName:document.getElementById("set-ngoName")?.value||"",
+    ngoPhone:document.getElementById("set-ngoPhone")?.value||"",
+    ngoEmail:document.getElementById("set-ngoEmail")?.value||"",
+    alertNumber:document.getElementById("set-alertNumber")?.value||"",
+    ngoAddress:document.getElementById("set-ngoAddress")?.value||"",
+    bankAccount:document.getElementById("set-bankAccount")?.value||"",
+    ourTeamTitle:document.getElementById("set-ourTeamTitle")?.value||"",
+    ourTeamMatter:document.getElementById("set-ourTeamMatter")?.value||""
   };
-  RHS.saveNGOSettings(saveData)
-    .then(() => {
-      setLoading(btn, false);
-      showMsg("adminSettingsMsg", "✅ Settings saved successfully!", "success");
-      window.NGO.name=saveData.ngoName; window.NGO.phone=saveData.ngoPhone;
-      window.NGO.email=saveData.ngoEmail; window.NGO.alert=saveData.alertNumber;
-      window.NGO.address=saveData.ngoAddress; window.NGO.bank=saveData.bankAccount;
-      window.NGO.logoUrl=logoUrl; window.NGO.copyright=saveData.copyrightText;
-      applyNGOEverywhere();
-    })
-    .catch(() => { setLoading(btn, false); showMsg("adminSettingsMsg", "❌ Failed to save. Please try again.", "error"); });
+  const btn=document.querySelector('#setup-adminSettings .btn-primary');
+  setLoading(btn,true,"Saving...");
+  RHS.saveNGOSettings(data).then(()=>{
+    setLoading(btn,false);
+    showMsg("adminSettingsMsg","✅ Settings saved!","success");
+    loadNGOSettings();
+  }).catch(()=>{setLoading(btn,false);showMsg("adminSettingsMsg","Failed to save.","error");});
 }
 
+// ====== SAVE STATISTICS ======
 function saveStatistics(){
   if(!window.RHS){return;}
   const data={
@@ -306,6 +261,7 @@ function saveStatistics(){
     .catch(()=>{setLoading(btn,false);showMsg("statisticsMsg","Failed.","error");});
 }
 
+// ====== SAVE CONTACT ======
 function saveContactSettings(){
   if(!window.RHS){return;}
   const data={
@@ -316,14 +272,18 @@ function saveContactSettings(){
   };
   const btn=document.querySelector('#setup-contact .btn-primary');
   setLoading(btn,true,"Saving...");
-  RHS.saveContact(data).then(()=>{ setLoading(btn,false); showMsg("contactSettingsMsg","✅ Contact saved!","success"); })
-    .catch(()=>{setLoading(btn,false);showMsg("contactSettingsMsg","Failed.","error");});
+  RHS.saveContact(data).then(()=>{
+    setLoading(btn,false);
+    showMsg("contactSettingsMsg","✅ Contact saved!","success");
+  }).catch(()=>{setLoading(btn,false);showMsg("contactSettingsMsg","Failed.","error");});
 }
 
-// ====== TEAM ======
+// ====== TEAM MANAGEMENT ======
 function previewTeamPhoto(input){
-  const file=input.files?.[0]; if(!file) return;
-  const preview=document.getElementById("team-photo-preview"); if(!preview) return;
+  const file=input.files?.[0];
+  if(!file) return;
+  const preview=document.getElementById("team-photo-preview");
+  if(!preview) return;
   const reader=new FileReader();
   reader.onload=e=>{preview.innerHTML=`<img src="${e.target.result}" alt="Preview">`;};
   reader.readAsDataURL(file);
@@ -340,7 +300,9 @@ async function addTeamMember(){
   setLoading(btn,true,"Adding...");
   let photoUrl="";
   const photoFile=document.getElementById("team-photo")?.files?.[0];
-  if(photoFile){ try{photoUrl=await RHS.uploadImage(photoFile,"rhs/team");}catch(e){} }
+  if(photoFile){
+    try{photoUrl=await RHS.uploadImage(photoFile,"rhs/team");}catch(e){}
+  }
   RHS.addTeamMember({name,designation:desig,order,bio,photo:photoUrl}).then(()=>{
     setLoading(btn,false);
     showMsg("teamMsg","✅ Team member added!","success");
@@ -355,7 +317,8 @@ async function addTeamMember(){
 
 function loadTeamList(){
   if(!window.RHS){setTimeout(loadTeamList,500);return;}
-  const wrap=document.getElementById("teamListWrap"); if(!wrap) return;
+  const wrap=document.getElementById("teamListWrap");
+  if(!wrap) return;
   wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i></div>';
   RHS.getTeam().then(res=>{
     if(!res.team||!res.team.length){wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:20px">No team members yet.</p>';return;}
@@ -376,637 +339,17 @@ function loadTeamList(){
 
 function deleteTeamMember(id,name){
   if(!confirm(`Delete "${name}" from team?`)) return;
-  RHS.deleteTeamMember(id).then(()=>{ loadTeamList(); showMsg("teamMsg","✅ Member deleted.","success"); })
-    .catch(()=>showMsg("teamMsg","Failed to delete.","error"));
-}
-
-// ====== IMPACT STORIES — COMPLETE ======
-function previewStoryImage(input){
-  const file=input.files?.[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    document.getElementById("storyImagePreview").innerHTML=
-      `<img src="${e.target.result}" style="width:100%;max-height:140px;object-fit:cover;border-radius:8px;margin-top:8px">`;
-  };
-  reader.readAsDataURL(file);
-}
-
-// ====== CLEAR STORY FORM ======
-function clearStoryForm(){
-  ["story-name","story-category","story-location","story-text"].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.value="";
-  });
-  const imgInput=document.getElementById("story-imageFile");
-  if(imgInput) imgInput.value="";
-  const preview=document.getElementById("storyImagePreview");
-  if(preview) preview.innerHTML=`<i class="fa fa-image" style="font-size:1.5rem;color:#4CAF8A;display:block;margin-bottom:6px"></i><span style="color:#14534F;font-size:.88rem">Tap to upload photo</span>`;
-  showMsg("storyMsg","","");
-}
-
-async function addStoryItem(){
-  if(!window.RHS){showMsg("storyMsg","System loading...","error");return;}
-  const name     = document.getElementById("story-name")?.value.trim();
-  const category = document.getElementById("story-category")?.value.trim();
-  const location = document.getElementById("story-location")?.value.trim();
-  const text     = document.getElementById("story-text")?.value.trim();
-  const imgFile  = document.getElementById("story-imageFile")?.files?.[0];
-
-  if(!name)     {showMsg("storyMsg","⚠️ Person Name required.","error");return;}
-  if(!category) {showMsg("storyMsg","⚠️ Category required.","error");return;}
-  if(!location) {showMsg("storyMsg","⚠️ Location required.","error");return;}
-  if(!text)     {showMsg("storyMsg","⚠️ Story required.","error");return;}
-  if(!imgFile)  {showMsg("storyMsg","⚠️ Photo required.","error");return;}
-
-  const btn = document.getElementById("addStoryBtn");
-
-  // ✅ Upload image
-  setLoading(btn, true, "Uploading photo...");
-  let imageUrl = "";
-  try {
-    const fd = new FormData();
-    fd.append("file", imgFile);
-    fd.append("upload_preset", "rhs-upload");
-    fd.append("folder", "rhs/stories");
-    const resp = await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload", {method:"POST", body:fd});
-    const data = await resp.json();
-    if(data.secure_url) imageUrl = data.secure_url;
-    else throw new Error(data.error?.message || "Upload failed");
-  } catch(err) {
-    setLoading(btn, false); // ✅ Button hamesha release hoga
-    showMsg("storyMsg", "⚠️ Photo upload failed: " + err.message, "error");
-    return;
-  }
-
-  // Save to Firebase — finally hamesha button release karega
-  setLoading(btn, true, "Saving story...");
-  try {
-    await RHS.addStory({name, category, location, text, imageUrl});
-    showMsg("storyMsg", "✅ Story added successfully!", "success");
-    clearStoryForm();
-    loadStoriesList();
-  } catch(err) {
-    showMsg("storyMsg", "❌ Failed to save story. Please try again.", "error");
-  } finally {
-    setLoading(btn, false); // ✅ SUCCESS ya ERROR dono mein button release
-  }
-}
-
-function loadStoriesList(){
-  if(!window.RHS){setTimeout(loadStoriesList,500);return;}
-  const wrap=document.getElementById("storiesListWrap"); if(!wrap) return;
-  wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading stories...</div>';
-  RHS.getStories().then(res=>{
-    if(!res.stories||!res.stories.length){
-      wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:24px"><i class="fa fa-heart" style="font-size:2rem;display:block;margin-bottom:8px;opacity:.3"></i>No stories yet. Add your first story above.</p>';
-      return;
-    }
-    let html='<div style="display:flex;flex-direction:column;gap:12px;margin-top:12px">';
-    res.stories.forEach(s=>{
-      html+=`
-      <div style="background:#F5F9F8;border:1.5px solid #D8E8E5;border-radius:14px;padding:14px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
-        ${s.imageUrl
-          ?`<img src="${s.imageUrl}" style="width:72px;height:72px;border-radius:10px;object-fit:cover;flex-shrink:0;border:2px solid #C8E6D9">`
-          :`<div style="width:72px;height:72px;background:#E7DFD2;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa fa-image" style="color:#8A9A96;font-size:1.4rem"></i></div>`
-        }
-        <div style="flex:1;min-width:180px">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-bottom:6px">
-            <div>
-              <strong style="color:#14534F;font-size:.98rem">${escHtml(s.name)}</strong>
-              ${s.category?`<span style="margin-left:7px;background:#EEF8F1;color:#14534F;padding:2px 9px;border-radius:20px;font-size:.74rem;font-weight:600">${escHtml(s.category)}</span>`:""}
-              ${s.location?`<span style="display:inline-block;margin-left:6px;color:#8A9A96;font-size:.78rem"><i class="fa fa-map-marker-alt"></i> ${escHtml(s.location)}</span>`:""}
-            </div>
-            <div style="display:flex;gap:6px;flex-shrink:0">
-              <button class="btn btn-sm" style="background:#14534F;color:#fff;border:none;padding:6px 12px;border-radius:7px" onclick="openEditStory('${s.id}')">
-                <i class="fa fa-edit"></i> Edit
-              </button>
-              <button class="btn btn-sm btn-reject" style="padding:6px 12px;border-radius:7px" onclick="deleteStoryItem('${s.id}','${escHtml(s.name)}')">
-                <i class="fa fa-trash"></i>
-              </button>
-            </div>
-          </div>
-          <p style="color:#4A5C58;font-size:.85rem;margin:0;line-height:1.55">${escHtml((s.text||"").substring(0,130))}${(s.text||"").length>130?"...":""}</p>
-        </div>
-      </div>`;
-    });
-    html+='</div>';
-    wrap.innerHTML=html;
-  }).catch(()=>{wrap.innerHTML='<p style="color:#D9483A;text-align:center;padding:20px">Failed to load stories.</p>';});
-}
-
-function deleteStoryItem(id,name){
-  if(!confirm(`"${name}" ki story delete karni hai?`)) return;
-  if(!window.RHS) return;
-  RHS.deleteStory(id).then(()=>{ loadStoriesList(); showMsg("storyMsg","✅ Story deleted.","success"); })
-    .catch(()=>showMsg("storyMsg","❌ Failed to delete.","error"));
-}
-
-function openEditStory(id){
-  if(!window.RHS) return;
-  RHS.getStories().then(res=>{
-    const s=res.stories?.find(x=>x.id===id);
-    if(!s){alert("Story not found.");return;}
-    const old=document.getElementById("storyEditModal"); if(old) old.remove();
-    const modal=document.createElement("div");
-    modal.id="storyEditModal";
-    modal.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box;overflow-y:auto";
-    modal.innerHTML=`
-      <div style="background:#fff;border-radius:16px;padding:22px;width:100%;max-width:500px;max-height:95vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,0.25);margin:auto">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
-          <h3 style="color:#14534F;margin:0;font-size:1.1rem"><i class="fa fa-edit"></i> Edit Story</h3>
-          <button onclick="document.getElementById('storyEditModal').remove()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#8A9A96;line-height:1">✕</button>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:14px">
-          <div>
-            <label style="font-size:.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:5px">Person Name <span style="color:#D9483A">*</span></label>
-            <input id="es-name" value="${escHtml(s.name||"")}" placeholder="Full name" style="width:100%;padding:11px 13px;border:1.5px solid #C8D5D3;border-radius:9px;font-size:.95rem;box-sizing:border-box;font-family:inherit">
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div>
-              <label style="font-size:.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:5px">Category <span style="color:#D9483A">*</span></label>
-              <input id="es-category" value="${escHtml(s.category||"")}" placeholder="e.g. Medical Help" style="width:100%;padding:11px 13px;border:1.5px solid #C8D5D3;border-radius:9px;font-size:.95rem;box-sizing:border-box;font-family:inherit">
-            </div>
-            <div>
-              <label style="font-size:.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:5px">Location <span style="color:#D9483A">*</span></label>
-              <input id="es-location" value="${escHtml(s.location||"")}" placeholder="e.g. Khairpur Tamewali" style="width:100%;padding:11px 13px;border:1.5px solid #C8D5D3;border-radius:9px;font-size:.95rem;box-sizing:border-box;font-family:inherit">
-            </div>
-          </div>
-          <div>
-            <label style="font-size:.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:5px">Story <span style="color:#D9483A">*</span></label>
-            <textarea id="es-text" rows="5" placeholder="Tell their story..." style="width:100%;padding:11px 13px;border:1.5px solid #C8D5D3;border-radius:9px;font-size:.95rem;box-sizing:border-box;resize:vertical;font-family:inherit;line-height:1.55">${escHtml(s.text||"")}</textarea>
-          </div>
-          <div>
-            <label style="font-size:.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:6px">Photo (change optional)</label>
-            ${s.imageUrl?`<img src="${s.imageUrl}" style="width:100%;height:90px;object-fit:cover;border-radius:9px;margin-bottom:8px;border:1.5px solid #D8E8E5">`:""}
-            <input type="file" id="es-image" accept="image/*" style="display:block;width:100%;padding:10px;border:2px dashed #4CAF8A;border-radius:9px;background:#F5F9F8;cursor:pointer;box-sizing:border-box;font-size:.88rem">
-            <div id="es-preview" style="margin-top:6px"></div>
-          </div>
-          <p id="editStoryMsg" style="margin:0;font-size:.85rem;color:#D9483A;min-height:18px"></p>
-          <div style="display:flex;gap:10px">
-            <button id="editStorySaveBtn" class="btn btn-primary" style="flex:1;padding:12px" onclick="saveEditStory('${id}','${escHtml(s.imageUrl||"")}')">
-              <i class="fa fa-save"></i> Save Changes
-            </button>
-            <button class="btn btn-ghost" style="padding:12px 16px" onclick="document.getElementById('storyEditModal').remove()">Cancel</button>
-          </div>
-        </div>
-      </div>`;
-    document.body.appendChild(modal);
-    document.getElementById("es-image").addEventListener("change",function(){
-      const file=this.files[0]; if(!file) return;
-      const reader=new FileReader();
-      reader.onload=e=>{document.getElementById("es-preview").innerHTML=`<img src="${e.target.result}" style="width:100%;height:80px;object-fit:cover;border-radius:8px">`;};
-      reader.readAsDataURL(file);
-    });
-  }).catch(()=>alert("Failed to load story."));
-}
-
-async function saveEditStory(id, existingImage){
-  const name     = document.getElementById("es-name")?.value.trim();
-  const category = document.getElementById("es-category")?.value.trim();
-  const location = document.getElementById("es-location")?.value.trim();
-  const text     = document.getElementById("es-text")?.value.trim();
-  const imgFile  = document.getElementById("es-image")?.files?.[0];
-  const msgEl    = document.getElementById("editStoryMsg");
-  const saveBtn  = document.getElementById("editStorySaveBtn");
-
-  if(!name||!category||!location||!text){
-    if(msgEl) msgEl.textContent="⚠️ Sab fields required hain."; return;
-  }
-  setLoading(saveBtn,true,"Saving...");
-  if(msgEl) msgEl.textContent="";
-
-  let imageUrl=existingImage;
-  if(imgFile){
-    try{
-      const fd=new FormData();
-      fd.append("file",imgFile);
-      fd.append("upload_preset","rhs-upload");
-      fd.append("folder","rhs/stories");
-      const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
-      const data=await resp.json();
-      if(data.secure_url) imageUrl=data.secure_url;
-      else throw new Error(data.error?.message||"Upload failed");
-    }catch(err){
-      setLoading(saveBtn,false);
-      if(msgEl) msgEl.textContent="⚠️ Photo upload failed: "+err.message;
-      return;
-    }
-  }
-
-  RHS.updateStory(id,{name,category,location,text,imageUrl})
-    .then(()=>{
-      setLoading(saveBtn,false);
-      document.getElementById("storyEditModal")?.remove();
-      showMsg("storyMsg","✅ Story updated successfully!","success");
-      loadStoriesList();
-    }).catch(()=>{ setLoading(saveBtn,false); if(msgEl) msgEl.textContent="⚠️ Failed to save."; });
-}
-
-// ====== NEWS FEED — COMPLETE ======
-function previewNewsImage(input){
-  const file=input.files?.[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    document.getElementById("newsImagePreview").innerHTML=
-      `<img src="${e.target.result}" style="max-height:120px;border-radius:8px;object-fit:cover;margin-top:4px">`;
-  };
-  reader.readAsDataURL(file);
-}
-
-function clearNewsForm(){
-  ["news-title","news-category","news-date","news-body","news-imageURL"].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.value="";
-  });
-  const imgInput=document.getElementById("news-imageFile");
-  if(imgInput) imgInput.value="";
-  const preview=document.getElementById("newsImagePreview");
-  if(preview) preview.innerHTML="";
-  showMsg("newsMsg","","");
-}
-
-async function addNewsItem(){
-  if(!window.RHS){showMsg("newsMsg","System loading...","error");return;}
-  const title    = document.getElementById("news-title")?.value.trim();
-  const category = document.getElementById("news-category")?.value.trim()||"";
-  const date     = document.getElementById("news-date")?.value.trim()||"";
-  const body     = document.getElementById("news-body")?.value.trim();
-  const imageURL = document.getElementById("news-imageURL")?.value.trim()||"";
-  const imgFile  = document.getElementById("news-imageFile")?.files?.[0];
-
-  if(!title){showMsg("newsMsg","\u26a0\ufe0f Title required.","error");return;}
-  if(!body) {showMsg("newsMsg","\u26a0\ufe0f Content required.","error");return;}
-
-  const btn = document.getElementById("addNewsBtn");
-  let finalImageURL = imageURL;
-
-  // Step 1: Upload image if selected
-  if(imgFile){
-    setLoading(btn, true, "Uploading image...");
-    try{
-      const fd=new FormData();
-      fd.append("file", imgFile);
-      fd.append("upload_preset", "rhs-upload");
-      fd.append("folder", "rhs/news");
-      const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
-      const data=await resp.json();
-      if(data.secure_url) finalImageURL=data.secure_url;
-      else throw new Error(data.error?.message||"Upload failed");
-    }catch(err){
-      setLoading(btn, false);
-      showMsg("newsMsg","\u26a0\ufe0f Image upload failed: "+err.message,"error");
-      return;
-    }
-  }
-
-  // Step 2: Save to Firebase — finally hamesha button release karega
-  setLoading(btn, true, "Saving news...");
-  try{
-    await RHS.addNews({title, category, date, body, imageURL: finalImageURL});
-    showMsg("newsMsg","\u2705 News added successfully!","success");
-    clearNewsForm();
-    loadNewsList();
-  }catch(err){
-    showMsg("newsMsg","\u274c Failed to save news. Please try again.","error");
-  }finally{
-    setLoading(btn, false);
-  }
-}
-
-function loadNewsList(){
-  if(!window.RHS){setTimeout(loadNewsList,500);return;}
-  const wrap=document.getElementById("newsListWrap"); if(!wrap) return;
-  wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
-  RHS.getNews().then(res=>{
-    if(!res.news||!res.news.length){
-      wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:24px"><i class="fa fa-newspaper" style="font-size:2rem;display:block;margin-bottom:8px;opacity:.3"></i>No news yet. Add your first news above.</p>';
-      return;
-    }
-    let html='<div style="display:flex;flex-direction:column;gap:12px;margin-top:12px">';
-    res.news.forEach(n=>{
-      const img = n.imageURL||"";
-      html+=`
-      <div style="background:#F5F9F8;border:1.5px solid #D8E8E5;border-radius:14px;padding:14px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
-        ${img
-          ?`<img src="${img}" style="width:72px;height:72px;border-radius:10px;object-fit:cover;flex-shrink:0;border:2px solid #C8E6D9">`
-          :`<div style="width:72px;height:72px;background:#E7DFD2;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa fa-newspaper" style="color:#8A9A96;font-size:1.4rem"></i></div>`
-        }
-        <div style="flex:1;min-width:180px">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-bottom:6px">
-            <div style="flex:1;min-width:0">
-              <strong style="color:#14534F;font-size:.98rem">${escHtml(n.title||"")}</strong>
-              ${n.category?`<span style="margin-left:7px;background:#EEF8F1;color:#14534F;padding:2px 9px;border-radius:20px;font-size:.74rem;font-weight:600">${escHtml(n.category)}</span>`:""}
-              ${n.date?`<span style="display:block;color:#8A9A96;font-size:.78rem;margin-top:3px"><i class="fa fa-calendar"></i> ${escHtml(n.date)}</span>`:""}
-            </div>
-            <div style="display:flex;gap:6px;flex-shrink:0">
-              <button class="btn btn-sm" style="background:#14534F;color:#fff;border:none;padding:6px 12px;border-radius:7px" onclick="openEditNews('${n.id}')">
-                <i class="fa fa-edit"></i> Edit
-              </button>
-              <button class="btn btn-sm btn-reject" style="padding:6px 12px;border-radius:7px" onclick="deleteNewsItem('${n.id}','${escHtml(n.title)}')">
-                <i class="fa fa-trash"></i>
-              </button>
-            </div>
-          </div>
-          <p style="color:#4A5C58;font-size:.85rem;margin:0;line-height:1.55">${escHtml((n.body||"").substring(0,120))}${(n.body||"").length>120?"...":""}</p>
-        </div>
-      </div>`;
-    });
-    html+='</div>';
-    wrap.innerHTML=html;
-  }).catch(()=>{wrap.innerHTML='<p style="color:#D9483A;text-align:center;padding:20px">Failed to load news.</p>';});
-}
-
-function deleteNewsItem(id, title){
-  if(!confirm(`"${title}" delete karni hai?`)) return;
-  if(!window.RHS) return;
-  RHS.deleteNews(id).then(()=>{ loadNewsList(); showMsg("newsMsg","\u2705 News deleted.","success"); })
-    .catch(()=>showMsg("newsMsg","\u274c Failed to delete.","error"));
-}
-
-function openEditNews(id){
-  if(!window.RHS) return;
-  RHS.getNews().then(res=>{
-    const n=res.news?.find(x=>x.id===id);
-    if(!n){alert("News not found.");return;}
-    const old=document.getElementById("newsEditModal"); if(old) old.remove();
-    const modal=document.createElement("div");
-    modal.id="newsEditModal";
-    modal.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box;overflow-y:auto";
-    modal.innerHTML=`
-      <div style="background:#fff;border-radius:16px;padding:22px;width:100%;max-width:520px;max-height:95vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,0.25);margin:auto">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
-          <h3 style="color:#14534F;margin:0;font-size:1.1rem"><i class="fa fa-edit"></i> Edit News</h3>
-          <button onclick="document.getElementById('newsEditModal').remove()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#8A9A96;line-height:1">✕</button>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:14px">
-          <div>
-            <label style="font-size:.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:5px">Title <span style="color:#D9483A">*</span></label>
-            <input id="en-title" value="${escHtml(n.title||"")}" placeholder="News title" style="width:100%;padding:11px 13px;border:1.5px solid #C8D5D3;border-radius:9px;font-size:.95rem;box-sizing:border-box;font-family:inherit">
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div>
-              <label style="font-size:.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:5px">Category</label>
-              <input id="en-category" value="${escHtml(n.category||"")}" placeholder="e.g. Announcement" style="width:100%;padding:11px 13px;border:1.5px solid #C8D5D3;border-radius:9px;font-size:.95rem;box-sizing:border-box;font-family:inherit">
-            </div>
-            <div>
-              <label style="font-size:.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:5px">Date</label>
-              <input id="en-date" value="${escHtml(n.date||"")}" placeholder="dd-mm-yyyy" style="width:100%;padding:11px 13px;border:1.5px solid #C8D5D3;border-radius:9px;font-size:.95rem;box-sizing:border-box;font-family:inherit">
-            </div>
-          </div>
-          <div>
-            <label style="font-size:.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:5px">Content <span style="color:#D9483A">*</span></label>
-            <textarea id="en-body" rows="5" placeholder="News content..." style="width:100%;padding:11px 13px;border:1.5px solid #C8D5D3;border-radius:9px;font-size:.95rem;box-sizing:border-box;resize:vertical;font-family:inherit;line-height:1.55">${escHtml(n.body||"")}</textarea>
-          </div>
-          <div>
-            <label style="font-size:.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:5px">Image (change optional)</label>
-            ${n.imageURL?`<img src="${n.imageURL}" style="width:100%;height:90px;object-fit:cover;border-radius:9px;margin-bottom:8px;border:1.5px solid #D8E8E5">`:""}
-            <input type="url" id="en-imageURL" value="${escHtml(n.imageURL||"")}" placeholder="https://... image URL" style="width:100%;padding:10px 13px;border:1.5px solid #C8D5D3;border-radius:9px;font-size:.9rem;box-sizing:border-box;margin-bottom:6px;font-family:inherit">
-            <input type="file" id="en-imageFile" accept="image/*" style="display:block;width:100%;padding:10px;border:2px dashed #4CAF8A;border-radius:9px;background:#F5F9F8;cursor:pointer;box-sizing:border-box;font-size:.88rem">
-            <div id="en-preview" style="margin-top:6px"></div>
-          </div>
-          <p id="editNewsMsg" style="margin:0;font-size:.85rem;color:#D9483A;min-height:18px"></p>
-          <div style="display:flex;gap:10px">
-            <button id="editNewsSaveBtn" class="btn btn-primary" style="flex:1;padding:12px" onclick="saveEditNews('${id}','${escHtml(n.imageURL||"")}')">
-              <i class="fa fa-save"></i> Save Changes
-            </button>
-            <button class="btn btn-ghost" style="padding:12px 16px" onclick="document.getElementById('newsEditModal').remove()">Cancel</button>
-          </div>
-        </div>
-      </div>`;
-    document.body.appendChild(modal);
-    document.getElementById("en-imageFile").addEventListener("change",function(){
-      const file=this.files[0]; if(!file) return;
-      const reader=new FileReader();
-      reader.onload=e=>{document.getElementById("en-preview").innerHTML=`<img src="${e.target.result}" style="width:100%;height:80px;object-fit:cover;border-radius:8px">`;};
-      reader.readAsDataURL(file);
-    });
-  }).catch(()=>alert("Failed to load news."));
-}
-
-async function saveEditNews(id, existingImage){
-  const title    = document.getElementById("en-title")?.value.trim();
-  const category = document.getElementById("en-category")?.value.trim()||"";
-  const date     = document.getElementById("en-date")?.value.trim()||"";
-  const body     = document.getElementById("en-body")?.value.trim();
-  const imageURL = document.getElementById("en-imageURL")?.value.trim()||"";
-  const imgFile  = document.getElementById("en-imageFile")?.files?.[0];
-  const msgEl    = document.getElementById("editNewsMsg");
-  const saveBtn  = document.getElementById("editNewsSaveBtn");
-
-  if(!title||!body){
-    if(msgEl) msgEl.textContent="\u26a0\ufe0f Title aur Content required hain."; return;
-  }
-  setLoading(saveBtn, true, "Saving...");
-  if(msgEl) msgEl.textContent="";
-
-  let finalImageURL = imageURL || existingImage;
-  if(imgFile){
-    try{
-      const fd=new FormData();
-      fd.append("file",imgFile);
-      fd.append("upload_preset","rhs-upload");
-      fd.append("folder","rhs/news");
-      const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
-      const data=await resp.json();
-      if(data.secure_url) finalImageURL=data.secure_url;
-      else throw new Error(data.error?.message||"Upload failed");
-    }catch(err){
-      setLoading(saveBtn,false);
-      if(msgEl) msgEl.textContent="\u26a0\ufe0f Image upload failed: "+err.message;
-      return;
-    }
-  }
-
-  const {__db,__fs}=window;
-  try{
-    await __fs.updateDoc(__fs.doc(__db,"news",id),{title,category,date,body,imageURL:finalImageURL});
-    setLoading(saveBtn,false);
-    document.getElementById("newsEditModal")?.remove();
-    showMsg("newsMsg","\u2705 News updated successfully!","success");
-    loadNewsList();
-  }catch(err){
-    setLoading(saveBtn,false);
-    if(msgEl) msgEl.textContent="\u26a0\ufe0f Failed to save.";
-  }
-}
-
-// ====== SLIDES ======
-function previewSlideImage(input){
-  const file=input.files?.[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    document.getElementById("slideImagePreview").innerHTML=
-      `<img src="${e.target.result}" style="max-height:120px;border-radius:8px;object-fit:cover">`;
-  };
-  reader.readAsDataURL(file);
-}
-
-async function addSlide(){
-  if(!window.RHS) return;
-  const heading = document.getElementById("slide-heading")?.value.trim();
-  const text    = document.getElementById("slide-text")?.value.trim()||"";
-  const order   = Number(document.getElementById("slide-order")?.value)||1;
-  const imgFile = document.getElementById("slide-image")?.files?.[0];
-  const btn     = document.querySelector('#setup-slides .btn-primary');
-  if(!heading){ showMsg("slideMsg","⚠️ Slide Heading required.","error"); return; }
-  if(!imgFile){ showMsg("slideMsg","⚠️ Slide Image required.","error"); return; }
-  setLoading(btn,true,"Uploading image...");
-  let imageUrl="";
-  try{
-    const fd=new FormData();
-    fd.append("file",imgFile);
-    fd.append("upload_preset","rhs-upload");
-    fd.append("folder","rhs/slides");
-    const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
-    const data=await resp.json();
-    if(data.secure_url) imageUrl=data.secure_url;
-    else throw new Error(data.error?.message||"Upload failed");
-  }catch(err){
-    setLoading(btn,false);
-    showMsg("slideMsg","⚠️ Image upload failed: "+err.message,"error");
-    return;
-  }
-  setLoading(btn,true,"Adding slide...");
-  RHS.addSlide({heading,text,imageUrl,order}).then(()=>{
-    setLoading(btn,false);
-    showMsg("slideMsg","✅ Slide added!","success");
-    document.getElementById("slide-heading").value="";
-    document.getElementById("slide-text").value="";
-    document.getElementById("slide-order").value="1";
-    document.getElementById("slideImagePreview").innerHTML=
-      `<i class="fa fa-image" style="font-size:2rem;color:#4CAF8A;display:block;margin-bottom:8px"></i><span style="color:#14534F;font-size:.9rem">Tap to select slide image</span>`;
-    document.getElementById("slide-image").value="";
-    loadSlidesList();
-  }).catch(()=>{ setLoading(btn,false); showMsg("slideMsg","❌ Failed to add slide.","error"); });
-}
-
-function loadSlidesList(){
-  if(!window.RHS) return;
-  const wrap=document.getElementById("slidesListWrap"); if(!wrap) return;
-  wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
-  RHS.getSlides().then(res=>{
-    if(!res.slides||!res.slides.length){
-      wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:20px">No slides yet. Add your first slide above.</p>';
-      return;
-    }
-    let html=`<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;border:1px solid #E7DFD2">
-      <table class="data-table" style="min-width:560px;width:100%">
-        <thead><tr><th>Image</th><th>Heading</th><th>Text</th><th>Order</th><th>Actions</th></tr></thead><tbody>`;
-    res.slides.forEach(s=>{
-      html+=`<tr>
-        <td><img src="${s.imageUrl||''}" style="width:60px;height:40px;object-fit:cover;border-radius:4px;border:1px solid #E7DFD2"></td>
-        <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><strong>${escHtml(s.heading||"—")}</strong></td>
-        <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#666;font-size:.85rem">${escHtml(s.text||"—")}</td>
-        <td style="text-align:center">${s.order||1}</td>
-        <td>
-          <div style="display:flex;gap:6px">
-            <button class="btn btn-sm" style="background:#14534F;color:#fff;border:none"
-              onclick="openEditSlide('${s.id}','${escHtml(s.heading||"")}','${escHtml(s.text||"").replace(/'/g,"&#39;")}','${s.order||1}','${s.imageUrl||""}')">
-              <i class="fa fa-edit"></i>
-            </button>
-            <button class="btn btn-sm btn-reject" onclick="deleteSlideItem('${s.id}')">
-              <i class="fa fa-trash"></i>
-            </button>
-          </div>
-        </td>
-      </tr>`;
-    });
-    html+='</tbody></table></div>';
-    wrap.innerHTML=html;
-  }).catch(()=>{ wrap.innerHTML='<p style="color:#D9483A">Failed to load slides.</p>'; });
-}
-
-function openEditSlide(id, heading, text, order, imageUrl){
-  const old=document.getElementById("slideEditModal"); if(old) old.remove();
-  const modal=document.createElement("div");
-  modal.id="slideEditModal";
-  modal.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box";
-  modal.innerHTML=`
-    <div style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-        <h3 style="color:#14534F;margin:0"><i class="fa fa-edit"></i> Edit Slide</h3>
-        <button onclick="document.getElementById('slideEditModal').remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#8A9A96">✕</button>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <div>
-          <label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Heading *</label>
-          <input id="edit-slide-heading" value="${heading}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;font-size:.95rem;box-sizing:border-box">
-        </div>
-        <div>
-          <label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Text / Material</label>
-          <textarea id="edit-slide-text" rows="3" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;font-size:.95rem;box-sizing:border-box;resize:vertical">${text}</textarea>
-        </div>
-        <div>
-          <label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Order No</label>
-          <input id="edit-slide-order" type="number" value="${order}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;font-size:.95rem;box-sizing:border-box">
-        </div>
-        <div>
-          <label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:6px">Image (change optional)</label>
-          ${imageUrl?`<img src="${imageUrl}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;margin-bottom:8px">`:""}
-          <input type="file" id="edit-slide-image" accept="image/*" style="display:block;width:100%;padding:10px;border:2px dashed #4CAF8A;border-radius:8px;background:#F5F9F8;cursor:pointer;box-sizing:border-box">
-          <div id="edit-slide-preview" style="margin-top:6px"></div>
-        </div>
-        <p id="editSlideMsg" style="margin:0;font-size:.85rem;color:#D9483A"></p>
-        <div style="display:flex;gap:10px">
-          <button id="editSlideSaveBtn" class="btn btn-primary" style="flex:1" onclick="saveEditSlide('${id}','${imageUrl}')">
-            <i class="fa fa-save"></i> Save Changes
-          </button>
-          <button class="btn btn-ghost" onclick="document.getElementById('slideEditModal').remove()">Cancel</button>
-        </div>
-      </div>
-    </div>`;
-  document.body.appendChild(modal);
-  document.getElementById("edit-slide-image").addEventListener("change",function(){
-    const file=this.files[0]; if(!file) return;
-    const reader=new FileReader();
-    reader.onload=e=>{ document.getElementById("edit-slide-preview").innerHTML=`<img src="${e.target.result}" style="width:100%;height:80px;object-fit:cover;border-radius:8px">`; };
-    reader.readAsDataURL(file);
-  });
-}
-
-async function saveEditSlide(id, existingImage){
-  const heading = document.getElementById("edit-slide-heading")?.value.trim();
-  const text    = document.getElementById("edit-slide-text")?.value.trim()||"";
-  const order   = Number(document.getElementById("edit-slide-order")?.value)||1;
-  const imgFile = document.getElementById("edit-slide-image")?.files?.[0];
-  const msgEl   = document.getElementById("editSlideMsg");
-  const saveBtn = document.getElementById("editSlideSaveBtn");
-  if(!heading){ if(msgEl) msgEl.textContent="⚠️ Heading required."; return; }
-  setLoading(saveBtn,true,"Saving...");
-  if(msgEl) msgEl.textContent="";
-  let imageUrl=existingImage;
-  if(imgFile){
-    try{
-      const fd=new FormData();
-      fd.append("file",imgFile);
-      fd.append("upload_preset","rhs-upload");
-      fd.append("folder","rhs/slides");
-      const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
-      const data=await resp.json();
-      if(data.secure_url) imageUrl=data.secure_url;
-      else throw new Error(data.error?.message||"Upload failed");
-    }catch(err){
-      setLoading(saveBtn,false);
-      if(msgEl) msgEl.textContent="⚠️ Image upload failed: "+err.message;
-      return;
-    }
-  }
-  RHS.updateSlide(id,{heading,text,imageUrl,order}).then(()=>{
-    setLoading(saveBtn,false);
-    document.getElementById("slideEditModal")?.remove();
-    showMsg("slideMsg","✅ Slide updated!","success");
-    loadSlidesList();
-  }).catch(()=>{ setLoading(saveBtn,false); if(msgEl) msgEl.textContent="⚠️ Failed to save."; });
-}
-
-function deleteSlideItem(id){
-  if(!confirm("Delete this slide?")) return;
-  RHS.deleteSlide(id).then(()=>{ showMsg("slideMsg","✅ Slide deleted.","success"); loadSlidesList(); })
-    .catch(()=>showMsg("slideMsg","❌ Failed to delete.","error"));
+  RHS.deleteTeamMember(id).then(()=>{
+    loadTeamList();
+    showMsg("teamMsg","✅ Member deleted.","success");
+  }).catch(()=>showMsg("teamMsg","Failed to delete.","error"));
 }
 
 // ====== MESSAGES ======
 function loadMessages(){
   if(!window.RHS){setTimeout(loadMessages,500);return;}
-  const wrap=document.getElementById("messagesWrap"); if(!wrap) return;
+  const wrap=document.getElementById("messagesWrap");
+  if(!wrap) return;
   wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
   RHS.getContactMessages().then(res=>{
     if(!res.messages||!res.messages.length){
@@ -1036,33 +379,42 @@ function setDefaultDates(){
 
 // ====== ADMIN STATS ======
 function loadAdminStats(){
-  if(!window.RHS){setTimeout(loadAdminStats,500);return;}
   RHS.getAdminStats().then(res=>{
     if(!res.success)return;
+    // Row 1 - Members
     document.getElementById("st-pending").textContent=res.pendingMembers||0;
     document.getElementById("st-active").textContent=res.activeMembers||0;
     document.getElementById("st-expired").textContent=res.expiredMembers||0;
     document.getElementById("st-banned").textContent=res.bannedMembers||0;
+    // Row 2 - Financials
     document.getElementById("st-charity").textContent=Rs(res.totalCharity||0);
     document.getElementById("st-adminexp").textContent=Rs(res.totalAdminExp||0);
     document.getElementById("st-casecost").textContent=Rs(res.totalCaseCost||0);
     document.getElementById("st-networth").textContent=Rs(res.netWorth||0);
+    // Row 3 - Cases
     document.getElementById("st-completed").textContent=res.completedCases||0;
     document.getElementById("st-approved").textContent=res.approvedCases||0;
     document.getElementById("st-rejected").textContent=res.rejectedCases||0;
     document.getElementById("st-closed").textContent=res.closedCases||0;
+    // Badges
     document.getElementById("pendingBadge").textContent=res.pendingMembers||0;
     document.getElementById("grantBadge").textContent=res.newGrants||0;
+    // Sync to reports tab if visible
     ["pending","active","expired","banned"].forEach(k=>{
       const el=document.getElementById("rp-"+k);
-      if(el) el.textContent=res[k+"Members"]||0;
+      if(el) el.textContent=res[k+"Members"]||res[k]||0;
     });
-    const rpCharity=document.getElementById("rp-charity"); if(rpCharity) rpCharity.textContent=Rs(res.totalCharity||0);
-    const rpAdminexp=document.getElementById("rp-adminexp"); if(rpAdminexp) rpAdminexp.textContent=Rs(res.totalAdminExp||0);
-    const rpCasecost=document.getElementById("rp-casecost"); if(rpCasecost) rpCasecost.textContent=Rs(res.totalCaseCost||0);
-    const rpNetworth=document.getElementById("rp-networth"); if(rpNetworth) rpNetworth.textContent=Rs(res.netWorth||0);
+    const rpCharity=document.getElementById("rp-charity");
+    if(rpCharity) rpCharity.textContent=Rs(res.totalCharity||0);
+    const rpAdminexp=document.getElementById("rp-adminexp");
+    if(rpAdminexp) rpAdminexp.textContent=Rs(res.totalAdminExp||0);
+    const rpCasecost=document.getElementById("rp-casecost");
+    if(rpCasecost) rpCasecost.textContent=Rs(res.totalCaseCost||0);
+    const rpNetworth=document.getElementById("rp-networth");
+    if(rpNetworth) rpNetworth.textContent=Rs(res.netWorth||0);
     ["completed","approved","rejected","closed"].forEach(k=>{
-      const el=document.getElementById("rp-"+k); if(el) el.textContent=res[k+"Cases"]||0;
+      const el=document.getElementById("rp-"+k);
+      if(el) el.textContent=res[k+"Cases"]||0;
     });
   }).catch(()=>{});
 }
@@ -1077,7 +429,8 @@ function loadMembers(filter,btn){
   RHS.getMembers(currentMemberFilter).then(res=>{
     if(!res.success||!res.members.length){
       document.getElementById("membersTableWrap").innerHTML='<div class="empty-state"><i class="fa fa-users"></i><p>No members found.</p></div>';
-      allMembersData=[]; return;
+      allMembersData=[];
+      return;
     }
     allMembersData=res.members;
     const searchBox=document.getElementById("memberSearchBox");
@@ -1086,6 +439,7 @@ function loadMembers(filter,btn){
   }).catch(()=>{document.getElementById("membersTableWrap").innerHTML='<div class="empty-state"><i class="fa fa-exclamation-circle"></i><p>Failed to load. Please try again.</p></div>';});
 }
 
+// Quick status change from table row buttons
 function quickStatus(id, status, name){
   if(!confirm(`Change ${name} status to "${status}"?`)) return;
   if(!window.RHS) return;
@@ -1132,7 +486,7 @@ function viewMember(m){
     </div>
     <div class="modal-actions">
       <div class="field"><label class="lbl" style="margin-bottom:4px">Membership Type</label>
-        <select class="modal-input" id="mMemType">
+        <select class="modal-input" id="mMemType" onchange="">
           <option value="">— Select —</option>
           <option value="Executive Body Member" ${m.membershipType==="Executive Body Member"?"selected":""}>Executive Body Member</option>
           <option value="General Body Member" ${m.membershipType==="General Body Member"?"selected":""}>General Body Member</option>
@@ -1176,17 +530,29 @@ function changeMemberStatus(id, status){
   showMsg("memberActionMsg","Updating...","");
   if(!window.RHS){showMsg("memberActionMsg","System loading...","error");return;}
   RHS.updateMemberStatus(id, status).then(res=>{
-    if(res.success){ showMsg("memberActionMsg","✅ Status updated to: "+status,"success"); loadMembers(currentMemberFilter); loadAdminStats(); }
-    else showMsg("memberActionMsg",res.message||"Failed.","error");
+    if(res.success){
+      showMsg("memberActionMsg","✅ Status updated to: "+status,"success");
+      loadMembers(currentMemberFilter);
+      loadAdminStats();
+    } else {
+      showMsg("memberActionMsg",res.message||"Failed.","error");
+    }
   }).catch(()=>showMsg("memberActionMsg","Network error. Please check connection.","error"));
 }
 
+// ====== TABLE SEARCH — MEMBERS ======
 let allMembersData = [];
 
 function searchMembersTable(q) {
   q = (q || "").toLowerCase().trim();
+  const wrap = document.getElementById("membersTableWrap");
   if (!allMembersData.length) return;
-  if (!q) { renderMembersTable(allMembersData); return; }
+
+  if (!q) {
+    renderMembersTable(allMembersData);
+    return;
+  }
+
   const filtered = allMembersData.filter(m =>
     (m.fullName || "").toLowerCase().includes(q) ||
     (m.cnic || "").toLowerCase().includes(q) ||
@@ -1195,8 +561,9 @@ function searchMembersTable(q) {
     (m.email || "").toLowerCase().includes(q) ||
     (m.status || "").toLowerCase().includes(q)
   );
+
   if (!filtered.length) {
-    document.getElementById("membersTableWrap").innerHTML = `<div class="no-search-result"><i class="fa fa-search" style="font-size:1.5rem;margin-bottom:8px;display:block;color:#8A9A96"></i>No results for "<strong>${escHtml(q)}</strong>"</div>`;
+    wrap.innerHTML = `<div class="no-search-result"><i class="fa fa-search" style="font-size:1.5rem;margin-bottom:8px;display:block;color:#8A9A96"></i>No results found for "<strong>${escHtml(q)}</strong>"</div>`;
     return;
   }
   renderMembersTable(filtered, q);
@@ -1215,7 +582,10 @@ function highlight(text, q) {
 
 function renderMembersTable(members, q = "") {
   const wrap = document.getElementById("membersTableWrap");
-  if (!members.length) { wrap.innerHTML = '<div class="empty-state"><i class="fa fa-users"></i><p>No members found.</p></div>'; return; }
+  if (!members.length) {
+    wrap.innerHTML = '<div class="empty-state"><i class="fa fa-users"></i><p>No members found.</p></div>';
+    return;
+  }
   let html = '<table class="data-table"><thead><tr><th>#</th><th>Reg No</th><th>Name</th><th>CNIC</th><th>Gender</th><th>Mobile</th><th>Status</th><th>Valid Upto</th><th>Actions</th></tr></thead><tbody>';
   members.forEach((m, i) => {
     const sb = statusBadge(m.status);
@@ -1261,22 +631,31 @@ function renderMembersTable(members, q = "") {
   wrap.innerHTML = html;
 }
 
+// ====== TABLE SEARCH — GRANTS ======
 let allGrantsData = [];
 
 function searchGrantsTable(q) {
   q = (q || "").toLowerCase().trim();
+  const wrap = document.getElementById("grantsTableWrap");
   if (!allGrantsData.length) return;
-  if (!q) { renderGrantsTable(allGrantsData); return; }
+
+  if (!q) {
+    renderGrantsTable(allGrantsData);
+    return;
+  }
+
   const filtered = allGrantsData.filter(g =>
     (g.crn || "").toLowerCase().includes(q) ||
     (g.name || "").toLowerCase().includes(q) ||
     (g.cnic || "").toLowerCase().includes(q) ||
     (g.mobile || "").toLowerCase().includes(q) ||
     (g.helpType || "").toLowerCase().includes(q) ||
-    (g.status || "").toLowerCase().includes(q)
+    (g.status || "").toLowerCase().includes(q) ||
+    (g.assignedTo || "").toLowerCase().includes(q)
   );
+
   if (!filtered.length) {
-    document.getElementById("grantsTableWrap").innerHTML = `<div class="no-search-result"><i class="fa fa-search" style="font-size:1.5rem;margin-bottom:8px;display:block;color:#8A9A96"></i>No results for "<strong>${escHtml(q)}</strong>"</div>`;
+    wrap.innerHTML = `<div class="no-search-result"><i class="fa fa-search" style="font-size:1.5rem;margin-bottom:8px;display:block;color:#8A9A96"></i>No results found for "<strong>${escHtml(q)}</strong>"</div>`;
     return;
   }
   renderGrantsTable(filtered, q);
@@ -1289,7 +668,10 @@ function clearGrantSearch() {
 
 function renderGrantsTable(grants, q = "") {
   const wrap = document.getElementById("grantsTableWrap");
-  if (!grants.length) { wrap.innerHTML = '<div class="empty-state"><i class="fa fa-file-alt"></i><p>No cases found.</p></div>'; return; }
+  if (!grants.length) {
+    wrap.innerHTML = '<div class="empty-state"><i class="fa fa-file-alt"></i><p>No cases found.</p></div>';
+    return;
+  }
   let html = '<table class="data-table"><thead><tr><th>CRN</th><th>Name</th><th>Help Type</th><th>Amount</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody>';
   grants.forEach(g => {
     html += `<tr>
@@ -1307,7 +689,6 @@ function renderGrantsTable(grants, q = "") {
   html += "</tbody></table>";
   wrap.innerHTML = html;
 }
-
 let searchTimer=null;
 function liveSearchMember(q){
   const res=document.getElementById("charitySearchResults");
@@ -1379,7 +760,8 @@ function submitCharity(){
   }).then(res=>{
     setLoading(charityBtn, false);
     if(res.success){
-      showMsg("charityMsg","✅ Charity entry saved! Valid Upto: "+(res.validUpto||"—"),"success");
+      let msg="✅ Charity entry saved! Valid Upto: "+(res.validUpto||"—");
+      showMsg("charityMsg",msg,"success");
       if(sendWA&&selectedMember.mobile){
         const mob=selectedMember.mobile.replace(/\D/g,"");
         const waNum="92"+mob.slice(1);
@@ -1404,6 +786,8 @@ function formatDateForServer(ymd){
 }
 
 function clearCharityForm(){
+  const form = document.querySelector('#tab-charity');
+  if(form) form.querySelectorAll('input,textarea,select').forEach(el=>{ if(el.type!=='submit'&&el.type!=='button'&&el.type!=='checkbox') el.value=''; });
   clearCharityMember();
   ["paymentMethod","charityAmount","charitySlip","charityNote"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
   document.getElementById("charityDate").value=today();
@@ -1432,7 +816,7 @@ function openThankYouLetter(member,entry,validUpto){
   document.getElementById("letterModalBody").innerHTML=`
     <div class="letter-wrap" id="letterContent">
       <div class="letter-header">
-        <img src="${window.NGO.logoUrl||'images/logo.png'}" alt="RHS Logo" class="admin-logo">
+        <img src="images/logo.png" alt="RHS Logo">
         <h2>${window.NGO.name}</h2>
         <p>${window.NGO.address.toUpperCase()}</p>
       </div>
@@ -1479,7 +863,8 @@ function loadGrants(filter,btn){
   RHS.getGrants(currentGrantFilter).then(res=>{
     if(!res.grants||!res.grants.length){
       wrap.innerHTML='<div class="empty-state"><i class="fa fa-file-alt"></i><p>No cases found.</p></div>';
-      allGrantsData=[]; return;
+      allGrantsData=[];
+      return;
     }
     allGrantsData=res.grants;
     const searchBox=document.getElementById("grantSearchBox");
@@ -1511,8 +896,10 @@ function viewGrant(g){
       <div class="detail-item"><span class="lbl">Verification</span><span class="val">${escHtml(g.verificationStatus)||"—"}</span></div>
       <div class="detail-item"><span class="lbl">Decision</span><span class="val">${escHtml(g.decision)||"—"}</span></div>
     </div>
+
     ${stLower!=="closed"&&stLower!=="rejected"?`
     <div class="modal-actions" style="display:block">
+
       ${stLower==="new"||stLower==="assigned"?`
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
         <div class="field"><label class="lbl" style="margin-bottom:4px">Assign To (Name)</label>
@@ -1522,76 +909,115 @@ function viewGrant(g){
           <input class="modal-input" id="gAssignContact" value="${escHtml(g.assignedContact||"")}" placeholder="0300-0000000">
         </div>
       </div>
-      <button class="btn btn-assign btn-sm" onclick="doAssignGrant('${g.id}')"><i class="fa fa-user-tag"></i> Assign Case</button>
+      <button class="btn btn-assign btn-sm" onclick="doAssignGrant('${g.id}')"  ><i class="fa fa-user-tag"></i> Assign Case</button>
       `:""}
+
       ${stLower==="assigned"||stLower==="completed"?`
       <div style="margin-top:14px">
         <label style="font-size:0.82rem;font-weight:600;color:#8A9A96;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:6px">
-          <i class="fa fa-comment-alt"></i> Verification Notes
+          <i class="fa fa-comment-alt"></i> Verification Notes / Comments
         </label>
-        <textarea id="verifyComment" rows="3" class="modal-input" style="width:100%;resize:vertical;font-family:'Inter',sans-serif;font-size:0.9rem"
-          placeholder="Verification notes...">${g.decisionNote&&g.decisionNote.startsWith("Verification Notes:")?g.decisionNote.replace("Verification Notes:","").trim():""}</textarea>
+        <textarea id="verifyComment" rows="3" class="modal-input" style="width:100%;resize:vertical;font-family:'Inter',sans-serif;font-size:0.9rem" 
+          placeholder="Write your verification notes here... e.g. Physically visited, documents checked, beneficiary confirmed...">${g.decisionNote&&g.decisionNote.startsWith("Verification Notes:")?g.decisionNote.replace("Verification Notes:","").trim():""}</textarea>
       </div>
-      ${stLower==="assigned"?`<button class="btn btn-sm" style="background:#F0EBFF;color:#6D28D9;border:1px solid #C4B5FD;margin-top:10px" onclick="doVerificationComplete('${g.id}')">
+      ${stLower==="assigned"?`<button class="btn btn-sm" style="background:#F0EBFF;color:#6D28D9;border:1px solid #C4B5FD;margin-top:10px" onclick="doVerificationComplete('${g.id}')"  >
         <i class="fa fa-clipboard-check"></i> Mark Verification Complete → Case Completed
       </button>`:""}
       `:""}
+
       ${stLower==="completed"?`
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
         <button class="btn btn-approve btn-sm" onclick="doDecision('${g.id}','Approved','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-check-circle"></i> ✅ Case Approved</button>
         <button class="btn btn-reject btn-sm" onclick="doDecision('${g.id}','Rejected','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-times-circle"></i> ❌ Case Rejected</button>
       </div>`:""}
+
+      ${g.verificationStatus==="Completed"&&decLower!==""&&decLower!=="approved"&&decLower!=="rejected"?`
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+        <button class="btn btn-approve btn-sm" onclick="doDecision('${g.id}','Approved','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-check-circle"></i> Approve</button>
+        <button class="btn btn-reject btn-sm" onclick="doDecision('${g.id}','Rejected','${escHtml(g.name)}','${escHtml(g.crn)}')"><i class="fa fa-times-circle"></i> Reject</button>
+      </div>`:""}
+
       ${decLower==="approved"&&stLower!=="closed"?`
-      <button class="btn btn-sm" style="background:#1F2E2B;color:#fff;margin-top:10px" onclick="doCloseGrant('${g.id}')">
+      <button class="btn btn-sm" style="background:#1F2E2B;color:#fff;margin-top:10px" onclick="doCloseGrant('${g.id}')"  >
         <i class="fa fa-lock"></i> Close — Successfully Granted
       </button>`:""}
     </div>`:""}
+
     ${stLower==="rejected"?`
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
-      <button class="btn btn-sm" style="background:#1F2E2B;color:#fff" onclick="doCloseGrant('${g.id}')"><i class="fa fa-lock"></i> Close Case</button>
-      <button class="btn btn-assign btn-sm" onclick="doSendBackToCompleted('${g.id}')"><i class="fa fa-undo"></i> Send Back to Completed</button>
+      <button class="btn btn-sm" style="background:#1F2E2B;color:#fff" onclick="doCloseGrant('${g.id}')"  >
+        <i class="fa fa-lock"></i> Close Case
+      </button>
+      <button class="btn btn-assign btn-sm" onclick="doSendBackToCompleted('${g.id}')"  >
+        <i class="fa fa-undo"></i> Send Back to Completed
+      </button>
     </div>`:""}
+
     ${stLower==="closed"?`
     <div style="margin-top:16px">
-      ${decLower==="rejected"?`<button class="btn btn-approve btn-sm" onclick="doReopenGrant('${g.id}')"><i class="fa fa-redo"></i> Reopen → Case Completed</button>`
-      :`<p style="color:#8A9A96;font-size:0.88rem;font-style:italic"><i class="fa fa-lock"></i> This case was Successfully Granted and cannot be reopened.</p>`}
+      ${decLower==="rejected"?`
+      <button class="btn btn-approve btn-sm" onclick="doReopenGrant('${g.id}')"  >
+        <i class="fa fa-redo"></i> Reopen → Case Completed
+      </button>`:`
+      <p style="color:#8A9A96;font-size:0.88rem;font-style:italic">
+        <i class="fa fa-lock"></i> This case was Successfully Granted and cannot be reopened.
+      </p>`}
     </div>`:""}
+
     <p class="form-msg" id="grantActionMsg"></p>
+
+    <!-- CASE EXPENSES SECTION — visible when Approved or Closed -->
     ${(decLower==="approved"||stLower==="closed")?`
     <div style="margin-top:20px;border-top:2px solid var(--line);padding-top:16px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-        <h4 style="font-family:'Fraunces',serif;color:var(--teal);margin:0"><i class="fa fa-receipt"></i> Case Expenses Ledger</h4>
+        <h4 style="font-family:'Fraunces',serif;color:var(--teal);margin:0;display:flex;align-items:center;gap:8px">
+          <i class="fa fa-receipt"></i> Case Expenses Ledger
+        </h4>
         <div style="display:flex;gap:8px">
-          <button class="btn btn-sm btn-ghost" onclick="window.print()"><i class="fa fa-print"></i> Print</button>
-          <button class="btn btn-sm btn-primary" onclick="downloadCaseReport('${escHtml(g.crn)}')"><i class="fa fa-file-pdf"></i> Download PDF</button>
+          <button class="btn btn-sm btn-ghost" onclick="window.print()" title="Print">
+            <i class="fa fa-print"></i> Print
+          </button>
+          <button class="btn btn-sm btn-primary" onclick="downloadCaseReport('${escHtml(g.crn)}')">
+            <i class="fa fa-file-pdf"></i> Download PDF
+          </button>
         </div>
       </div>
+
+      <!-- Add Expense Form — only when Approved (not closed) -->
       ${stLower!=="closed"?`
       <div style="background:#F5F9F8;border-radius:14px;padding:20px;margin-bottom:18px;border:1.5px solid #D8E8E5">
+        <p style="font-size:0.82rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px;display:flex;align-items:center;gap:7px">
+          <i class="fa fa-plus-circle"></i> Add New Expense
+        </p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
           <div>
-            <label style="font-size:0.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:6px">📅 Date *</label>
+            <label style="font-size:0.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:6px">📅 Date <span style='color:#D9483A'>*</span></label>
             <input type="date" id="expDate" style="width:100%;padding:11px 13px;border:1.5px solid #C8D5D3;border-radius:10px;font-size:0.95rem;box-sizing:border-box;background:#fff" value="${new Date().toISOString().split('T')[0]}">
           </div>
           <div>
-            <label style="font-size:0.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:6px">💰 Amount (Rs.) *</label>
+            <label style="font-size:0.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:6px">💰 Amount (Rs.) <span style='color:#D9483A'>*</span></label>
             <input type="number" id="expAmount" style="width:100%;padding:11px 13px;border:1.5px solid #C8D5D3;border-radius:10px;font-size:0.95rem;box-sizing:border-box;background:#fff" placeholder="e.g. 5000" min="1">
           </div>
         </div>
         <div style="margin-bottom:14px">
-          <label style="font-size:0.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:6px">📝 Expense Detail *</label>
-          <textarea id="expDetail" rows="3" style="width:100%;padding:11px 13px;border:1.5px solid #C8D5D3;border-radius:10px;font-size:0.95rem;box-sizing:border-box;background:#fff;resize:vertical;font-family:inherit;line-height:1.5" placeholder="e.g. Cement, Labour, Material..."></textarea>
+          <label style="font-size:0.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:6px">📝 Expense Detail <span style='color:#D9483A'>*</span></label>
+          <textarea id="expDetail" rows="3" style="width:100%;padding:11px 13px;border:1.5px solid #C8D5D3;border-radius:10px;font-size:0.95rem;box-sizing:border-box;background:#fff;resize:vertical;font-family:inherit;line-height:1.5" placeholder="e.g. Cement 10 bags, Labour charges, Material transport, Plumbing work..."></textarea>
         </div>
-        <button class="btn btn-primary" style="width:100%;padding:13px" onclick="addCaseExpense('${escHtml(g.crn)}','${escHtml(g.cnic)}','${escHtml(g.dob)}','${escHtml(g.name)}','${escHtml(g.fatherName)}','${escHtml(g.gender)}','${escHtml(g.email)}','${escHtml(g.mobile)}','${escHtml(g.address)}','${escHtml(g.helpType)}')">
+        <button class="btn btn-primary" style="width:100%;padding:13px;font-size:1rem" onclick="addCaseExpense('${escHtml(g.crn)}','${escHtml(g.cnic)}','${escHtml(g.dob)}','${escHtml(g.name)}','${escHtml(g.fatherName)}','${escHtml(g.gender)}','${escHtml(g.email)}','${escHtml(g.mobile)}','${escHtml(g.address)}','${escHtml(g.helpType)}')">
           <i class="fa fa-plus"></i> Add Expense & Debit Cash Book
         </button>
-        <p class="form-msg" id="expMsg" style="margin-top:10px"></p>
+        <p class="form-msg" id="expMsg" style="margin-top:10px;font-size:0.9rem"></p>
       </div>`:""}
+
+      <!-- Expenses List -->
       <div id="expensesList"></div>
     </div>`:""}
   `;
   document.getElementById("grantModal").classList.remove("hidden");
-  if(decLower==="approved"||stLower==="closed"){ setTimeout(()=>loadCaseExpenses(g.crn), 100); }
+  // Auto load expenses if case is Approved or Closed
+  if(decLower==="approved"||stLower==="closed"){
+    setTimeout(()=>loadCaseExpenses(g.crn), 100);
+  }
 }
 
 function doAssignGrant(id){
@@ -1599,60 +1025,77 @@ function doAssignGrant(id){
   const contact=document.getElementById("gAssignContact")?.value.trim()||"";
   if(!name||!contact){showMsg("grantActionMsg","Please enter name and contact.","error");return;}
   showMsg("grantActionMsg","Assigning...","");
+  if(!window.RHS){showMsg("grantActionMsg","System loading...","error");return;}
   RHS.updateGrant(id,{status:"Assigned",assignedTo:name,assignedContact:contact}).then(res=>{
     if(res.success){showMsg("grantActionMsg","✅ Case assigned to "+name,"success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
-  }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
+  }).catch(()=>showMsg("grantActionMsg","Network error. Please check connection.","error"));
 }
 
 function doVerificationComplete(id){
   const comment = document.getElementById("verifyComment")?.value?.trim() || "";
   const btn = document.querySelector(`button[onclick="doVerificationComplete('${id}')"]`);
   setLoading(btn, true, "Saving...");
-  RHS.updateGrant(id,{verificationStatus:"Completed",status:"Completed",decisionNote:comment?"Verification Notes: "+comment:""}).then(res=>{
+  showMsg("grantActionMsg","Updating...","");
+  if(!window.RHS){setLoading(btn,false);showMsg("grantActionMsg","System loading...","error");return;}
+  RHS.updateGrant(id,{
+    verificationStatus:"Completed",
+    status:"Completed",
+    decisionNote: comment ? "Verification Notes: "+comment : ""
+  }).then(res=>{
     setLoading(btn, false);
-    if(res.success){showMsg("grantActionMsg","✅ Case moved to Case Completed tab.","success");loadGrants(currentGrantFilter);loadAdminStats();}
-    else showMsg("grantActionMsg",res.message||"Failed.","error");
-  }).catch(()=>{setLoading(btn, false);showMsg("grantActionMsg","Network error.","error");});
+    if(res.success){
+      showMsg("grantActionMsg","✅ Case moved to Case Completed tab"+(comment?" with notes.":"."), "success");
+      loadGrants(currentGrantFilter); loadAdminStats();
+    } else showMsg("grantActionMsg",res.message||"Failed.","error");
+  }).catch(()=>{setLoading(btn, false);showMsg("grantActionMsg","Network error. Please check connection.","error");});
 }
 
 function doDecision(id,decision,name,crn){
   showMsg("grantActionMsg","Processing...","");
+  if(!window.RHS){showMsg("grantActionMsg","System loading...","error");return;}
   const ph=window.NGO.alert||window.NGO.phone;
   const em=window.NGO.email;
   const note=decision==="Approved"
-    ?`Dear ${name}, Congratulations! 🎉 Your Charity Case ${crn} has been Successfully Approved. Our team will contact you. Jazak Allah Khair!\n\n📞 ${ph} | 📧 ${em}`
-    :`Dear ${name}, Unfortunately your Case ${crn} does not qualify. Your case has been Rejected.\n\nTo appeal, please contact us with Case No: ${crn}.\n\n📞 ${ph} | 📧 ${em}`;
+    ?`Dear ${name}, Congratulations! 🎉 Your Charity Case ${crn} has been Successfully Approved. Our team will contact you at your doorstep. Jazak Allah Khair!\n\n📞 ${ph} | 📧 ${em}`
+    :`Dear ${name}, Unfortunately your Case ${crn} does not qualify under our current criteria. Your case has been Rejected.\n\nTo appeal, please physically meet our President with Case No: ${crn}.\n\n📞 ${ph} | 📧 ${em}`;
   RHS.updateGrant(id,{decision:decision,decisionNote:note}).then(res=>{
     if(res.success){showMsg("grantActionMsg","✅ Decision recorded: "+decision,"success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
-  }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
+  }).catch(()=>showMsg("grantActionMsg","Network error. Please check connection.","error"));
 }
 
 function doCloseGrant(id){
+  showMsg("grantActionMsg","Closing case...","");
+  if(!window.RHS){showMsg("grantActionMsg","System loading...","error");return;}
   RHS.updateGrant(id,{status:"Closed",decisionNote:"Successfully Granted & Closed"}).then(res=>{
-    if(res.success){showMsg("grantActionMsg","✅ Case closed.","success");loadGrants(currentGrantFilter);loadAdminStats();}
+    if(res.success){showMsg("grantActionMsg","✅ Case closed — Successfully Granted.","success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
-  }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
+  }).catch(()=>showMsg("grantActionMsg","Network error. Please check connection.","error"));
 }
 
 function doSendBackToCompleted(id){
+  showMsg("grantActionMsg","Sending back...","");
+  if(!window.RHS){showMsg("grantActionMsg","System loading...","error");return;}
   RHS.updateGrant(id,{status:"Completed",decision:"",decisionNote:""}).then(res=>{
-    if(res.success){showMsg("grantActionMsg","✅ Case sent back.","success");loadGrants(currentGrantFilter);loadAdminStats();}
+    if(res.success){showMsg("grantActionMsg","✅ Case sent back to Case Completed tab.","success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
-  }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
+  }).catch(()=>showMsg("grantActionMsg","Network error. Please check connection.","error"));
 }
 
 function doReopenGrant(id){
+  showMsg("grantActionMsg","Reopening...","");
+  if(!window.RHS){showMsg("grantActionMsg","System loading...","error");return;}
   RHS.updateGrant(id,{status:"Completed",decision:"",decisionNote:""}).then(res=>{
-    if(res.success){showMsg("grantActionMsg","✅ Case reopened.","success");loadGrants(currentGrantFilter);loadAdminStats();}
+    if(res.success){showMsg("grantActionMsg","✅ Case reopened → Case Completed tab.","success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
-  }).catch(()=>showMsg("grantActionMsg","Network error.","error"));
+  }).catch(()=>showMsg("grantActionMsg","Network error. Please check connection.","error"));
 }
 
 // ====== CASE EXPENSES ======
 function loadCaseExpenses(crn){
-  const wrap = document.getElementById("expensesList"); if(!wrap) return;
+  const wrap = document.getElementById("expensesList");
+  if(!wrap) return;
   RHS.getCaseExpenses(crn).then(res=>{
     if(!res.expenses||!res.expenses.length){
       wrap.innerHTML='<div style="text-align:center;color:#8A9A96;font-size:0.88rem;padding:10px;font-style:italic">No expenses recorded yet.</div>';
@@ -1682,7 +1125,9 @@ function loadCaseExpenses(crn){
       <td colspan="2" style="padding:10px 8px;text-align:right;font-weight:700;color:#C5432B;font-size:1rem">${Rs(res.total)}</td>
     </tr></tbody></table>`;
     wrap.innerHTML=html;
-  }).catch(()=>{wrap.innerHTML='<div style="text-align:center;color:#D9483A;font-size:0.88rem">Failed to load expenses.</div>';});
+  }).catch(()=>{
+    wrap.innerHTML='<div style="text-align:center;color:#D9483A;font-size:0.88rem">Failed to load expenses.</div>';
+  });
 }
 
 function addCaseExpense(crn,cnic,dob,name,fatherName,gender,email,mobile,address,helpType){
@@ -1697,25 +1142,37 @@ function addCaseExpense(crn,cnic,dob,name,fatherName,gender,email,mobile,address
   const btn = document.querySelector('[onclick^="addCaseExpense"]');
   setLoading(btn, true, "Saving...");
   if(msg) msg.textContent="";
-  RHS.addCaseExpense({date:formatDateForServer(date),crn,cnic,dob,name,fatherName,gender,email,mobile,address,helpType,detail,amount:Number(amount)})
-    .then(res=>{
-      setLoading(btn, false);
-      if(res.success){
-        if(msg){msg.textContent="✅ Expense added!";msg.className="form-msg success";}
-        document.getElementById("expDetail").value="";
-        document.getElementById("expAmount").value="";
-        loadCaseExpenses(crn);
-      } else {
-        if(msg){msg.textContent="❌ "+(res.message||"Failed");msg.className="form-msg error";}
-      }
-    }).catch(()=>{setLoading(btn, false);if(msg){msg.textContent="❌ Network error.";msg.className="form-msg error";}});
+  if(!window.RHS){setLoading(btn,false);return;}
+  RHS.addCaseExpense({
+    date: formatDateForServer(date),
+    crn, cnic, dob, name, fatherName, gender, email, mobile, address, helpType,
+    detail, amount: Number(amount)
+  }).then(res=>{
+    setLoading(btn, false);
+    if(res.success){
+      if(msg){msg.textContent="✅ Expense added & debited from Cash Book!";msg.className="form-msg success";}
+      document.getElementById("expDetail").value="";
+      document.getElementById("expAmount").value="";
+      loadCaseExpenses(crn);
+    } else {
+      if(msg){msg.textContent="❌ "+(res.message||"Failed");msg.className="form-msg error";}
+    }
+  }).catch(err=>{
+    setLoading(btn, false);
+    if(msg){msg.textContent="❌ Network error.";msg.className="form-msg error";}
+  });
 }
 
-// ====== CASE REPORT PDF ======
+// ====== CASE FULL REPORT PDF ======
 function downloadCaseReport(crn){
   const btn = event?.target;
   if(btn) setLoading(btn, true, "Generating...");
-  Promise.all([RHS.getGrants("all"),RHS.getCaseExpenses(crn)]).then(([grantsRes,expRes])=>{
+  if(!window.RHS){if(btn)setLoading(btn,false);alert("System loading...");return;}
+  // Get grant data + expenses from RHS
+  Promise.all([
+    RHS.getGrants("all"),
+    RHS.getCaseExpenses(crn)
+  ]).then(([grantsRes, expRes])=>{
     if(btn) setLoading(btn, false);
     const g = grantsRes.grants?.find(x=>x.crn===crn);
     if(!g){alert("Case not found.");return;}
@@ -1745,14 +1202,16 @@ function downloadCaseReport(crn){
         <p style="color:#E8A33D;letter-spacing:.1em;font-size:.8rem;margin:0">CASE REPORT — ${g.crn}</p>
         <p style="color:#8A9A96;font-size:.72rem;margin:4px 0">${window.NGO.address} | ${window.NGO.phone}</p>
       </div>
+      <h3 style="color:#14534F;font-size:1rem;margin-bottom:10px;border-left:4px solid #E8A33D;padding-left:10px">Case Information</h3>
       <table style="width:100%;border-collapse:collapse;font-size:.88rem;margin-bottom:20px">
         <tr><td style="padding:6px 10px;background:#F5F9F8;font-weight:700;width:30%">CRN</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.crn}</td><td style="padding:6px 10px;background:#F5F9F8;font-weight:700;width:30%">Status</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.status}</td></tr>
         <tr><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Name</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.name}</td><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Father/Husband</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.fatherName||"—"}</td></tr>
         <tr><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">CNIC</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.cnic}</td><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Mobile</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.mobile}</td></tr>
-        <tr><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Help Type</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.helpType}</td><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Amount</td><td style="padding:6px 10px;border-bottom:1px solid #eee">Rs. ${Number(g.amountRequired||g.amount||0).toLocaleString()}</td></tr>
+        <tr><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Help Type</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.helpType}</td><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Amount Requested</td><td style="padding:6px 10px;border-bottom:1px solid #eee">Rs. ${Number(g.amountRequired||g.amount||0).toLocaleString()}</td></tr>
         <tr><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Address</td><td colspan="3" style="padding:6px 10px;border-bottom:1px solid #eee">${g.address}</td></tr>
         <tr><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Assigned To</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.assignedTo||"—"} ${g.assignedContact||""}</td><td style="padding:6px 10px;background:#F5F9F8;font-weight:700">Decision</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${g.decision||"—"}</td></tr>
       </table>
+      <h3 style="color:#14534F;font-size:1rem;margin-bottom:10px;border-left:4px solid #D9483A;padding-left:10px">Cost / Expense Ledger</h3>
       <table style="width:100%;border-collapse:collapse;font-size:.88rem;margin-bottom:20px">
         <thead><tr style="background:#14534F;color:#fff">
           <th style="padding:8px 10px;text-align:left">#</th><th style="padding:8px 10px;text-align:left">Date</th>
@@ -1765,7 +1224,7 @@ function downloadCaseReport(crn){
           <td colspan="2" style="padding:10px;text-align:right;font-weight:700;color:#C5432B;font-size:1rem">Rs. ${totalExp.toLocaleString()}</td>
         </tr></tfoot>
       </table>
-      <div style="text-align:center;border-top:1px solid #E7DFD2;padding-top:12px">
+      <div style="text-align:center;border-top:1px solid #E7DFD2;padding-top:12px;margin-top:8px">
         <p style="color:#8A9A96;font-size:.72rem;font-style:italic">⚠️ Computer-generated case report | ${window.NGO.name} | ${new Date().toLocaleDateString("en-PK")}</p>
       </div>
     </div>`;
@@ -1777,20 +1236,28 @@ function downloadCaseReport(crn){
 let adminExpData=[];
 
 function loadAdminExpenses(from="",to=""){
-  const wrap=document.getElementById("adminExpWrap"); if(!wrap) return;
+  const wrap=document.getElementById("adminExpWrap");
+  if(!wrap) return;
   wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
   RHS.getAdminExpenses(from, to).then(res=>{
     document.getElementById("ae-total").textContent=Rs(res.total||0);
     adminExpData=res.expenses||[];
-    if(!adminExpData.length){wrap.innerHTML='<div class="empty-state"><i class="fa fa-receipt"></i><p>No admin expenses found.</p></div>';return;}
+    if(!adminExpData.length){
+      wrap.innerHTML='<div class="empty-state"><i class="fa fa-receipt"></i><p>No admin expenses found.</p></div>';
+      return;
+    }
     let running=0;
     let html='<table class="data-table"><thead><tr><th>#</th><th>Date</th><th>Detail</th><th>Amount</th><th>Pay To</th><th>Cumulative</th></tr></thead><tbody>';
     adminExpData.forEach((e,i)=>{
       running+=Number(e.amount)||0;
-      html+=`<tr><td>${i+1}</td><td>${escHtml(e.date)}</td><td>${escHtml(e.detail)}</td>
+      html+=`<tr>
+        <td>${i+1}</td>
+        <td>${escHtml(e.date)}</td>
+        <td>${escHtml(e.detail)}</td>
         <td style="color:#D9483A;font-weight:600">${Rs(e.amount)}</td>
         <td>${escHtml(e.payto)||"—"}</td>
-        <td style="font-weight:600">${Rs(running)}</td></tr>`;
+        <td style="font-weight:600">${Rs(running)}</td>
+      </tr>`;
     });
     html+='</tbody></table>';
     wrap.innerHTML=html;
@@ -1805,6 +1272,7 @@ function submitAdminExpense(){
   if(!date||!detail||!amount){showMsg("aeMsg","⚠️ Date, Detail and Amount required.","error");return;}
   const btn=document.querySelector('#tab-adminexp .btn-primary');
   setLoading(btn,true,"Saving...");
+  if(!window.RHS){setLoading(btn,false);showMsg("aeMsg","System loading...","error");return;}
   RHS.addAdminExpense({date:formatDateForServer(date),detail,amount:Number(amount),payto}).then(res=>{
     setLoading(btn,false);
     if(res.success){
@@ -1814,7 +1282,9 @@ function submitAdminExpense(){
       document.getElementById("aePayto").value="";
       loadAdminExpenses();
       loadAdminStats();
-    } else showMsg("aeMsg",res.message||"Failed.","error");
+    } else {
+      showMsg("aeMsg",res.message||"Failed.","error");
+    }
   }).catch(()=>{setLoading(btn,false);showMsg("aeMsg","Network error.","error");});
 }
 
@@ -1847,7 +1317,8 @@ function printAdminExpReport(){
       <td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right;font-weight:600">Rs. ${running.toLocaleString()}</td>
     </tr>`;
   });
-  const html=`<style>@page{margin:12mm;size:A4;}body{-webkit-print-color-adjust:exact;}</style>
+  const html=`
+  <style>@page{margin:12mm;size:A4;}body{-webkit-print-color-adjust:exact;}</style>
   <div style="font-family:Georgia,serif;max-width:720px;margin:0 auto">
     <div style="text-align:center;border-bottom:3px double #14534F;padding-bottom:14px;margin-bottom:18px">
       <h2 style="color:#14534F;margin:0">${window.NGO.name}</h2>
@@ -1859,14 +1330,15 @@ function printAdminExpReport(){
         <th style="padding:8px">#</th><th style="padding:8px">Date</th>
         <th style="padding:8px">Detail</th><th style="padding:8px;text-align:right">Amount</th>
         <th style="padding:8px">Pay To</th><th style="padding:8px;text-align:right">Cumulative</th>
-      </tr></thead><tbody>${rows}</tbody>
+      </tr></thead>
+      <tbody>${rows}</tbody>
       <tfoot><tr style="background:#FCEFEC">
         <td colspan="3" style="padding:10px;font-weight:700;color:#C5432B">Total Admin Expenses</td>
         <td colspan="3" style="padding:10px;text-align:right;font-weight:700;color:#C5432B;font-size:1rem">Rs. ${running.toLocaleString()}</td>
       </tr></tfoot>
     </table>
     <div style="text-align:center;border-top:1px solid #eee;padding-top:12px;margin-top:16px">
-      <p style="color:#8A9A96;font-size:.72rem;font-style:italic">⚠️ Computer Generated — ${window.NGO.name} | ${new Date().toLocaleDateString("en-PK")}</p>
+      <p style="color:#8A9A96;font-size:.72rem;font-style:italic">⚠️ Computer Generated Report — ${window.NGO.name} | ${new Date().toLocaleDateString("en-PK")}</p>
     </div>
   </div>`;
   doPrint(html);
@@ -1881,6 +1353,7 @@ function submitCashEntry(){
   if(!date||!source||!amount){showMsg("cashMsg","Please fill all required fields.","error");return;}
   const cashBtn = document.querySelector('#tab-cashbook .btn-primary:not([onclick*="print"])');
   setLoading(cashBtn, true, 'Saving...');
+  if(!window.RHS){setLoading(cashBtn,false);showMsg("cashMsg","System loading...","error");return;}
   RHS.addCashEntry({type,date,source,amount:Number(amount),note:document.getElementById("cbNote").value||""}).then(res=>{
     setLoading(cashBtn, false);
     if(res.success){showMsg("cashMsg","✅ Entry added.","success");clearCashForm();loadCashBook();}
@@ -1904,6 +1377,12 @@ function loadCashBook(){
     if(!res.entries||!res.entries.length){wrap.innerHTML='<div class="empty-state"><i class="fa fa-book"></i><p>No cash entries yet.</p></div>';return;}
     const list=[...res.entries].reverse();
     let html='<table class="data-table"><thead><tr><th>Date</th><th>Type</th><th>Source / Purpose</th><th>Amount</th><th>Note</th></tr></thead><tbody>';
+    let running=0;
+    [...res.entries].forEach(e=>{
+      const amt=Number(e.amount)||0;
+      running+=(e.type==="Inflow"?amt:-amt);
+    });
+    let runBal=running;
     list.forEach(e=>{
       const amt=Number(e.amount)||0;
       const typeColor=e.type==="Inflow"?"color:var(--green)":"color:var(--red)";
@@ -1921,14 +1400,18 @@ function loadCashBook(){
 }
 
 // ====== REPORTS ======
+// ====== REPORT BUSY HANDLER ======
 function reportBusy(btn, fnName, param){
   setLoading(btn, true, "Generating...");
   setTimeout(()=>{
-    try{ window[fnName](param); }catch(e){console.error(e);}
+    try{
+      window[fnName](param);
+    }catch(e){console.error(e);}
     setTimeout(()=>setLoading(btn, false), 2500);
   }, 100);
 }
 
+// ====== MEMBER REPORTS BY STATUS ======
 function printMemberReport(filter){
   RHS.getMembers(currentMemberFilter).then(res=>{
     const filterLabel={all:"All",pending:"Underprocess",active:"Active",expired:"Expired",banned:"Banned"};
@@ -1966,6 +1449,7 @@ function printMemberReport(filter){
   });
 }
 
+// ====== CASE COST REPORT ======
 function printCaseCostReport(){
   RHS.getAllCaseExpenses().then(res=>{
     let total=0;
@@ -1986,6 +1470,7 @@ function printCaseCostReport(){
       <div style="text-align:center;border-bottom:3px double #14534F;padding-bottom:14px;margin-bottom:18px">
         <h2 style="color:#14534F;margin:0">${window.NGO.name}</h2>
         <p style="color:#E8A33D;letter-spacing:.1em;font-size:.8rem;margin:4px 0">CASE COST / EXPENSES REPORT</p>
+        <p style="color:#8A9A96;font-size:.72rem;margin:0">Generated: ${new Date().toLocaleDateString("en-PK")}</p>
       </div>
       <table style="width:100%;border-collapse:collapse;font-size:.85rem">
         <thead><tr style="background:#14534F;color:#fff">
@@ -2005,6 +1490,7 @@ function printCaseCostReport(){
   }).catch(()=>alert("Failed to load case costs."));
 }
 
+// ====== CASH BOOK FILTERED REPORT ======
 function printCashReportFiltered(){
   const from=formatDateForServer(document.getElementById("cbRptFrom")?.value||"");
   const to=formatDateForServer(document.getElementById("cbRptTo")?.value||"");
@@ -2098,6 +1584,7 @@ function printAdminExpFiltered(){
   });
 }
 
+// ====== NET WORTH CERTIFICATE ======
 function generateNetWorthCertificate(){
   RHS.getNetWorth().then(res=>{
     const now=new Date();
@@ -2114,14 +1601,19 @@ function generateNetWorthCertificate(){
       </div>
       <div style="border:1px solid #E7DFD2;border-radius:8px;padding:24px;margin:24px 0;background:#F5F9F8">
         <p style="margin:0 0 16px;font-size:1rem;line-height:1.8;color:#1F2E2B">
-          This is to certify that as of <strong>${dateStr}</strong> at <strong>${timeStr}</strong>,
-          the financial balance of <strong>${window.NGO.name}</strong>, Khairpur Tamewali, Bahawalpur is as follows:
+          This is to certify that as of <strong>${dateStr}</strong> at <strong>${timeStr}</strong>, 
+          the financial balance of <strong>${window.NGO.name}</strong>, Khairpur Tamewali, Bahawalpur 
+          is as follows:
         </p>
         <div style="text-align:center;padding:20px;background:#fff;border-radius:8px;border:2px solid #14534F;margin:16px 0">
           <p style="color:#8A9A96;font-size:.82rem;margin:0 0 6px;text-transform:uppercase;letter-spacing:.1em">Net Available Balance</p>
           <p style="color:#14534F;font-size:2rem;font-weight:700;margin:0">Rs. ${netWorth.toLocaleString()}</p>
           <p style="color:#8A9A96;font-size:.78rem;margin:6px 0 0">Rupees ${numberToWords(netWorth)} Only</p>
         </div>
+        <p style="margin:16px 0 0;font-size:.9rem;line-height:1.8;color:#4A5C58">
+          This balance represents the net financial position of ${window.NGO.name} after accounting 
+          for all inflows (charity received) and outflows (admin expenses, case costs, and other expenditures).
+        </p>
       </div>
       <div style="display:flex;justify-content:space-between;margin-top:40px;padding-top:20px;border-top:1px solid #E7DFD2">
         <div style="text-align:center">
@@ -2135,7 +1627,9 @@ function generateNetWorthCertificate(){
         </div>
       </div>
       <div style="text-align:center;margin-top:20px;padding:10px;background:#FEF8E9;border-radius:6px">
-        <p style="color:#8A6A1F;font-size:.75rem;margin:0;font-style:italic">⚠️ Computer-generated certificate. No physical signature required. | ${window.NGO.name}</p>
+        <p style="color:#8A6A1F;font-size:.75rem;margin:0;font-style:italic">
+          ⚠️ This is a computer-generated certificate. No physical signature required. | ${window.NGO.name}
+        </p>
       </div>
     </div>`;
     doPrint(html);
@@ -2152,6 +1646,37 @@ function numberToWords(n){
   if(n<100000) return numberToWords(Math.floor(n/1000))+" Thousand"+(n%1000?" "+numberToWords(n%1000):"");
   if(n<10000000) return numberToWords(Math.floor(n/100000))+" Lakh"+(n%100000?" "+numberToWords(n%100000):"");
   return numberToWords(Math.floor(n/10000000))+" Crore"+(n%10000000?" "+numberToWords(n%10000000):"");
+}
+
+function printMemberList(){
+  RHS.getMembers(currentMemberFilter).then(res=>{
+    let html=`<div style="font-family:sans-serif;padding:20px">
+      <div style="text-align:center;margin-bottom:20px">
+        <h2 style="color:#14534F">${window.NGO.name}</h2>
+        <p style="color:#E8A33D;letter-spacing:.1em">MEMBER LIST REPORT</p>
+        <p style="color:#8A9A96;font-size:.8rem">Generated: ${new Date().toLocaleDateString("en-PK")}</p>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:.85rem">
+        <thead><tr style="background:#14534F;color:#fff">
+          <th style="padding:8px">#</th><th style="padding:8px">Reg No</th><th style="padding:8px">Name</th>
+          <th style="padding:8px">CNIC</th><th style="padding:8px">Gender</th><th style="padding:8px">Mobile</th>
+          <th style="padding:8px">Status</th><th style="padding:8px">Valid Upto</th>
+        </tr></thead><tbody>`;
+    (res.members||[]).forEach((m,i)=>{
+      html+=`<tr style="background:${i%2?"#f9f9f9":"#fff"}">
+        <td style="padding:7px;border-bottom:1px solid #eee;text-align:center">${i+1}</td>
+        <td style="padding:7px;border-bottom:1px solid #eee">${m.registrationNo}</td>
+        <td style="padding:7px;border-bottom:1px solid #eee"><strong>${m.fullName}</strong></td>
+        <td style="padding:7px;border-bottom:1px solid #eee">${m.cnic}</td>
+        <td style="padding:7px;border-bottom:1px solid #eee">${m.gender}</td>
+        <td style="padding:7px;border-bottom:1px solid #eee">${m.mobile}</td>
+        <td style="padding:7px;border-bottom:1px solid #eee">${m.status}</td>
+        <td style="padding:7px;border-bottom:1px solid #eee">${m.validUpto||"—"}</td>
+      </tr>`;
+    });
+    html+=`</tbody></table><p style="text-align:center;margin-top:20px;color:#8A9A96;font-size:.75rem">⚠️ Computer Generated Report — ${window.NGO.name}</p></div>`;
+    doPrint(html);
+  });
 }
 
 function printCharityReport(){
@@ -2180,6 +1705,46 @@ function printCharityReport(){
     });
     html+=`<tr style="background:#EEF8F1"><td colspan="4" style="padding:10px;font-weight:700">Total Charity Received</td>
       <td style="padding:10px;font-weight:700;color:#14534F;font-size:1rem">Rs. ${total.toLocaleString()}</td></tr>`;
+    html+=`</tbody></table><p style="text-align:center;margin-top:20px;color:#8A9A96;font-size:.75rem">⚠️ Computer Generated Report — ${window.NGO.name}</p></div>`;
+    doPrint(html);
+  });
+}
+
+function printCashReport(){
+  RHS.getCashBook().then(res=>{
+    let html=`<div style="font-family:sans-serif;padding:20px">
+      <div style="text-align:center;margin-bottom:20px">
+        <h2 style="color:#14534F">${window.NGO.name}</h2>
+        <p style="color:#E8A33D;letter-spacing:.1em">CASH BOOK REPORT</p>
+        <p style="color:#8A9A96;font-size:.8rem">Generated: ${new Date().toLocaleDateString("en-PK")}</p>
+      </div>
+      <div style="display:flex;gap:20px;margin-bottom:20px;justify-content:center">
+        <div style="text-align:center;padding:12px 20px;background:#EEF8F1;border-radius:8px">
+          <div style="color:#2E9E5B;font-weight:700;font-size:1.2rem">Rs. ${(res.inflow||0).toLocaleString()}</div>
+          <div style="color:#8A9A96;font-size:.8rem">Total Inflow</div>
+        </div>
+        <div style="text-align:center;padding:12px 20px;background:#FCEFEC;border-radius:8px">
+          <div style="color:#D9483A;font-weight:700;font-size:1.2rem">Rs. ${(res.outflow||0).toLocaleString()}</div>
+          <div style="color:#8A9A96;font-size:.8rem">Total Outflow</div>
+        </div>
+        <div style="text-align:center;padding:12px 20px;background:#EEF3FF;border-radius:8px">
+          <div style="color:#14534F;font-weight:700;font-size:1.2rem">Rs. ${(res.netWorth||0).toLocaleString()}</div>
+          <div style="color:#8A9A96;font-size:.8rem">Net Worth</div>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:.85rem">
+        <thead><tr style="background:#14534F;color:#fff">
+          <th style="padding:8px">Date</th><th style="padding:8px">Type</th>
+          <th style="padding:8px">Source / Purpose</th><th style="padding:8px">Amount</th>
+        </tr></thead><tbody>`;
+    (res.entries||[]).forEach((e,i)=>{
+      html+=`<tr style="background:${i%2?"#f9f9f9":"#fff"}">
+        <td style="padding:7px;border-bottom:1px solid #eee">${e.date}</td>
+        <td style="padding:7px;border-bottom:1px solid #eee;font-weight:700;color:${e.type==="Inflow"?"#2E9E5B":"#D9483A"}">${e.type}</td>
+        <td style="padding:7px;border-bottom:1px solid #eee">${e.source}</td>
+        <td style="padding:7px;border-bottom:1px solid #eee;font-weight:700;color:${e.type==="Inflow"?"#2E9E5B":"#D9483A"}">${e.type==="Inflow"?"+":"-"}Rs. ${Number(e.amount||0).toLocaleString()}</td>
+      </tr>`;
+    });
     html+=`</tbody></table><p style="text-align:center;margin-top:20px;color:#8A9A96;font-size:.75rem">⚠️ Computer Generated Report — ${window.NGO.name}</p></div>`;
     doPrint(html);
   });
