@@ -752,6 +752,7 @@ async function getPublicStats() {
 }
 
 
+window.RHS = {
   // Settings
   getNGOSettings, saveNGOSettings,
   getStatistics, getContent, saveContent,
@@ -826,11 +827,6 @@ async function addNews(data) {
   const ref = await fs().addDoc(fs().collection(db(), "news"), { ...data, createdAt: fs().serverTimestamp() });
   return { success: true, id: ref.id };
 }
-async function updateNews(id, data) {
-  await waitForFB();
-  await fs().updateDoc(fs().doc(db(), "news", id), data);
-  return { success: true };
-}
 async function deleteNews(id) {
   await waitForFB();
   await fs().deleteDoc(fs().doc(db(), "news", id));
@@ -842,11 +838,6 @@ async function addStory(data) {
   await waitForFB();
   const ref = await fs().addDoc(fs().collection(db(), "stories"), { ...data, createdAt: fs().serverTimestamp() });
   return { success: true, id: ref.id };
-}
-async function updateStory(id, data) {
-  await waitForFB();
-  await fs().updateDoc(fs().doc(db(), "stories", id), data);
-  return { success: true };
 }
 async function deleteStory(id) {
   await waitForFB();
@@ -877,6 +868,11 @@ async function addSlide(data) {
   const ref = await fs().addDoc(fs().collection(db(), "slides"), { ...data, createdAt: fs().serverTimestamp() });
   return { success: true, id: ref.id };
 }
+async function updateSlide(id, data) {
+  await waitForFB();
+  await fs().updateDoc(fs().doc(db(), "slides", id), data);
+  return { success: true };
+}
 async function deleteSlide(id) {
   await waitForFB();
   await fs().deleteDoc(fs().doc(db(), "slides", id));
@@ -892,13 +888,12 @@ async function deleteContactMessage(id) {
 
 // Add all new functions to RHS exports
 window.RHS.addNews               = addNews;
-window.RHS.updateNews            = updateNews;
 window.RHS.deleteNews            = deleteNews;
 window.RHS.addStory              = addStory;
-window.RHS.updateStory           = updateStory;
 window.RHS.deleteStory           = deleteStory;
 window.RHS.getSlides             = getSlides;
 window.RHS.addSlide              = addSlide;
+window.RHS.updateSlide           = updateSlide;
 window.RHS.deleteSlide           = deleteSlide;
 window.RHS.deleteContactMessage  = deleteContactMessage;
 
