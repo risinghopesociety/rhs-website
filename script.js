@@ -1393,8 +1393,8 @@ document.addEventListener("DOMContentLoaded", () => {
         grid.innerHTML = res.stories.map(s => `
           <article class="story-card">
             <span class="story-badge">${s.helpType || "Community"}</span>
-            ${s.photoURL
-              ? `<img src="${s.photoURL}" alt="${s.name}" class="story-card-img" loading="lazy">`
+            ${s.imageUrl || s.photoURL
+              ? `<img src="${s.imageUrl || s.photoURL}" alt="${s.name}" class="story-card-img" loading="lazy">`
               : `<div class="story-card-img" style="background:#EEF8F1;display:flex;align-items:center;justify-content:center;font-size:2.5rem">🤲</div>`}
             <div class="story-card-body">
               <div class="story-card-name">${s.name || ""}</div>
