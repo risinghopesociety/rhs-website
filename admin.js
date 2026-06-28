@@ -689,14 +689,19 @@ function loadNewsList(){
         }
         <div style="flex:1;min-width:180px">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-bottom:6px">
-            <div>
+            <div style="flex:1;min-width:0">
               <strong style="color:#14534F;font-size:.98rem">${escHtml(n.title||"")}</strong>
               ${n.category?`<span style="margin-left:7px;background:#EEF8F1;color:#14534F;padding:2px 9px;border-radius:20px;font-size:.74rem;font-weight:600">${escHtml(n.category)}</span>`:""}
-              ${n.date?`<span style="margin-left:6px;color:#8A9A96;font-size:.78rem"><i class="fa fa-calendar"></i> ${escHtml(n.date)}</span>`:""}
+              ${n.date?`<span style="display:block;color:#8A9A96;font-size:.78rem;margin-top:3px"><i class="fa fa-calendar"></i> ${escHtml(n.date)}</span>`:""}
             </div>
-            <button class="btn btn-sm btn-reject" style="padding:6px 12px;border-radius:7px;flex-shrink:0" onclick="deleteNewsItem('${n.id}','${escHtml(n.title)}')">
-              <i class="fa fa-trash"></i>
-            </button>
+            <div style="display:flex;gap:6px;flex-shrink:0">
+              <button class="btn btn-sm" style="background:#14534F;color:#fff;border:none;padding:6px 12px;border-radius:7px" onclick="openEditNews('${n.id}')">
+                <i class="fa fa-edit"></i> Edit
+              </button>
+              <button class="btn btn-sm btn-reject" style="padding:6px 12px;border-radius:7px" onclick="deleteNewsItem('${n.id}','${escHtml(n.title)}')">
+                <i class="fa fa-trash"></i>
+              </button>
+            </div>
           </div>
           <p style="color:#4A5C58;font-size:.85rem;margin:0;line-height:1.55">${escHtml((n.body||"").substring(0,120))}${(n.body||"").length>120?"...":""}</p>
         </div>
@@ -712,6 +717,113 @@ function deleteNewsItem(id, title){
   if(!window.RHS) return;
   RHS.deleteNews(id).then(()=>{ loadNewsList(); showMsg("newsMsg","\u2705 News deleted.","success"); })
     .catch(()=>showMsg("newsMsg","\u274c Failed to delete.","error"));
+}
+
+function openEditNews(id){
+  if(!window.RHS) return;
+  RHS.getNews().then(res=>{
+    const n=res.news?.find(x=>x.id===id);
+    if(!n){alert("News not found.");return;}
+    const old=document.getElementById("newsEditModal"); if(old) old.remove();
+    const modal=document.createElement("div");
+    modal.id="newsEditModal";
+    modal.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box;overflow-y:auto";
+    modal.innerHTML=`
+      <div style="background:#fff;border-radius:16px;padding:22px;width:100%;max-width:520px;max-height:95vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,0.25);margin:auto">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+          <h3 style="color:#14534F;margin:0;font-size:1.1rem"><i class="fa fa-edit"></i> Edit News</h3>
+          <button onclick="document.getElementById('newsEditModal').remove()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#8A9A96;line-height:1">✕</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div>
+            <label style="font-size:.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:5px">Title <span style="color:#D9483A">*</span></label>
+            <input id="en-title" value="${escHtml(n.title||"")}" placeholder="News title" style="width:100%;padding:11px 13px;border:1.5px solid #C8D5D3;border-radius:9px;font-size:.95rem;box-sizing:border-box;font-family:inherit">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div>
+              <label style="font-size:.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:5px">Category</label>
+              <input id="en-category" value="${escHtml(n.category||"")}" placeholder="e.g. Announcement" style="width:100%;padding:11px 13px;border:1.5px solid #C8D5D3;border-radius:9px;font-size:.95rem;box-sizing:border-box;font-family:inherit">
+            </div>
+            <div>
+              <label style="font-size:.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:5px">Date</label>
+              <input id="en-date" value="${escHtml(n.date||"")}" placeholder="dd-mm-yyyy" style="width:100%;padding:11px 13px;border:1.5px solid #C8D5D3;border-radius:9px;font-size:.95rem;box-sizing:border-box;font-family:inherit">
+            </div>
+          </div>
+          <div>
+            <label style="font-size:.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:5px">Content <span style="color:#D9483A">*</span></label>
+            <textarea id="en-body" rows="5" placeholder="News content..." style="width:100%;padding:11px 13px;border:1.5px solid #C8D5D3;border-radius:9px;font-size:.95rem;box-sizing:border-box;resize:vertical;font-family:inherit;line-height:1.55">${escHtml(n.body||"")}</textarea>
+          </div>
+          <div>
+            <label style="font-size:.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:5px">Image (change optional)</label>
+            ${n.imageURL?`<img src="${n.imageURL}" style="width:100%;height:90px;object-fit:cover;border-radius:9px;margin-bottom:8px;border:1.5px solid #D8E8E5">`:""}
+            <input type="url" id="en-imageURL" value="${escHtml(n.imageURL||"")}" placeholder="https://... image URL" style="width:100%;padding:10px 13px;border:1.5px solid #C8D5D3;border-radius:9px;font-size:.9rem;box-sizing:border-box;margin-bottom:6px;font-family:inherit">
+            <input type="file" id="en-imageFile" accept="image/*" style="display:block;width:100%;padding:10px;border:2px dashed #4CAF8A;border-radius:9px;background:#F5F9F8;cursor:pointer;box-sizing:border-box;font-size:.88rem">
+            <div id="en-preview" style="margin-top:6px"></div>
+          </div>
+          <p id="editNewsMsg" style="margin:0;font-size:.85rem;color:#D9483A;min-height:18px"></p>
+          <div style="display:flex;gap:10px">
+            <button id="editNewsSaveBtn" class="btn btn-primary" style="flex:1;padding:12px" onclick="saveEditNews('${id}','${escHtml(n.imageURL||"")}')">
+              <i class="fa fa-save"></i> Save Changes
+            </button>
+            <button class="btn btn-ghost" style="padding:12px 16px" onclick="document.getElementById('newsEditModal').remove()">Cancel</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    document.getElementById("en-imageFile").addEventListener("change",function(){
+      const file=this.files[0]; if(!file) return;
+      const reader=new FileReader();
+      reader.onload=e=>{document.getElementById("en-preview").innerHTML=`<img src="${e.target.result}" style="width:100%;height:80px;object-fit:cover;border-radius:8px">`;};
+      reader.readAsDataURL(file);
+    });
+  }).catch(()=>alert("Failed to load news."));
+}
+
+async function saveEditNews(id, existingImage){
+  const title    = document.getElementById("en-title")?.value.trim();
+  const category = document.getElementById("en-category")?.value.trim()||"";
+  const date     = document.getElementById("en-date")?.value.trim()||"";
+  const body     = document.getElementById("en-body")?.value.trim();
+  const imageURL = document.getElementById("en-imageURL")?.value.trim()||"";
+  const imgFile  = document.getElementById("en-imageFile")?.files?.[0];
+  const msgEl    = document.getElementById("editNewsMsg");
+  const saveBtn  = document.getElementById("editNewsSaveBtn");
+
+  if(!title||!body){
+    if(msgEl) msgEl.textContent="\u26a0\ufe0f Title aur Content required hain."; return;
+  }
+  setLoading(saveBtn, true, "Saving...");
+  if(msgEl) msgEl.textContent="";
+
+  let finalImageURL = imageURL || existingImage;
+  if(imgFile){
+    try{
+      const fd=new FormData();
+      fd.append("file",imgFile);
+      fd.append("upload_preset","rhs-upload");
+      fd.append("folder","rhs/news");
+      const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
+      const data=await resp.json();
+      if(data.secure_url) finalImageURL=data.secure_url;
+      else throw new Error(data.error?.message||"Upload failed");
+    }catch(err){
+      setLoading(saveBtn,false);
+      if(msgEl) msgEl.textContent="\u26a0\ufe0f Image upload failed: "+err.message;
+      return;
+    }
+  }
+
+  const {__db,__fs}=window;
+  try{
+    await __fs.updateDoc(__fs.doc(__db,"news",id),{title,category,date,body,imageURL:finalImageURL});
+    setLoading(saveBtn,false);
+    document.getElementById("newsEditModal")?.remove();
+    showMsg("newsMsg","\u2705 News updated successfully!","success");
+    loadNewsList();
+  }catch(err){
+    setLoading(saveBtn,false);
+    if(msgEl) msgEl.textContent="\u26a0\ufe0f Failed to save.";
+  }
 }
 
 // ====== SLIDES ======
