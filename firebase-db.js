@@ -53,7 +53,7 @@ async function getNGOSettings() {
     ngoAddress: "Khairpur Tamewali, Bahawalpur, Punjab, Pakistan",
     ngoEmail: "risinghopesociety@gmail.com",
     bankAccount: "111111111111111",
-    alertNumber: "0346-4800064",
+    alertNumber: "0308-8919628",
     logoUrl: "",
     copyrightText: "Rising Hope Society — Khairpur Tamewali, Bahawalpur. All rights reserved.",
     ourTeamTitle: "Our Team",
