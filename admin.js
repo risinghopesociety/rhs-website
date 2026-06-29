@@ -518,6 +518,139 @@ function deleteTeamMember(id,name){
   }).catch(()=>showMsg("teamMsg","Failed to delete.","error"));
 }
 
+// ====== SLIDES ======
+function previewSlideImage(input){
+  const file=input.files?.[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{document.getElementById("slideImagePreview").innerHTML=`<img src="${e.target.result}" style="max-height:120px;border-radius:8px;object-fit:cover">`;};
+  reader.readAsDataURL(file);
+}
+
+function clearSlideForm(){
+  const titleEl=document.getElementById("slide-title"); if(titleEl) titleEl.value="";
+  const orderEl=document.getElementById("slide-order"); if(orderEl) orderEl.value="1";
+  const inp=document.getElementById("slide-image"); if(inp) inp.value="";
+  const prev=document.getElementById("slideImagePreview");
+  if(prev) prev.innerHTML=`<i class="fa fa-image" style="font-size:2rem;color:#4CAF8A;display:block;margin-bottom:8px"></i><span style="color:#14534F;font-size:.9rem">Tap to select slide image</span>`;
+  showMsg("slideMsg","","");
+}
+
+async function addSlide(){
+  if(!window.RHS) return;
+  const title=document.getElementById("slide-title")?.value.trim()||"";
+  const order=Number(document.getElementById("slide-order")?.value)||1;
+  const imgFile=document.getElementById("slide-image")?.files?.[0];
+  const btn=document.querySelector('#setup-slides .btn-primary');
+  if(!imgFile){showMsg("slideMsg","⚠️ Slide Image required.","error");return;}
+  setLoading(btn,true,"Uploading...");
+  let imageUrl="";
+  try{
+    const fd=new FormData();fd.append("file",imgFile);fd.append("upload_preset","rhs-upload");fd.append("folder","rhs/slides");
+    const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
+    const data=await resp.json();
+    if(data.secure_url)imageUrl=data.secure_url; else throw new Error(data.error?.message||"Upload failed");
+  }catch(err){setLoading(btn,false);showMsg("slideMsg","⚠️ "+err.message,"error");return;}
+  RHS.addSlide({title,imageUrl,order}).then(()=>{
+    setLoading(btn,false);showMsg("slideMsg","✅ Slide added!","success");
+    clearSlideForm();loadSlidesList();
+  }).catch(()=>{setLoading(btn,false);showMsg("slideMsg","❌ Failed.","error");});
+}
+
+function loadSlidesList(){
+  if(!window.RHS) return;
+  const wrap=document.getElementById("slidesListWrap"); if(!wrap) return;
+  wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
+  RHS.getSlides().then(res=>{
+    if(!res.slides||!res.slides.length){wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:20px">No slides yet.</p>';return;}
+    let html='<div style="display:flex;flex-direction:column;gap:12px;margin-top:12px">';
+    res.slides.forEach(s=>{
+      html+=`<div style="background:#F5F9F8;border:1.5px solid #D8E8E5;border-radius:12px;padding:14px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start">
+        ${s.imageUrl
+          ?`<img src="${s.imageUrl}" style="width:90px;height:60px;border-radius:8px;object-fit:cover;flex-shrink:0">`
+          :`<div style="width:90px;height:60px;background:#E7DFD2;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa fa-image" style="color:#8A9A96;font-size:1.5rem"></i></div>`}
+        <div style="flex:1;min-width:160px">
+          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:flex-start">
+            <div>
+              <strong style="color:#14534F">${escHtml(s.title||s.heading||"No Title")}</strong>
+              <span style="display:block;color:#8A9A96;font-size:.78rem;margin-top:2px"><i class="fa fa-sort-numeric-asc"></i> Order: ${s.order||1}</span>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-sm" style="background:#14534F;color:#fff;border:none" onclick="openEditSlide('${s.id}','${escHtml(s.title||s.heading||"")}','${s.order||1}','${s.imageUrl||""}')"><i class="fa fa-edit"></i></button>
+              <button class="btn btn-sm btn-reject" onclick="deleteSlideItem('${s.id}')"><i class="fa fa-trash"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    });
+    html+='</div>';
+    wrap.innerHTML=html;
+  }).catch(()=>{wrap.innerHTML='<p style="color:#D9483A;text-align:center;padding:20px">Failed to load.</p>';});
+}
+
+function deleteSlideItem(id){
+  if(!confirm("Delete this slide?")) return;
+  RHS.deleteSlide(id).then(()=>{loadSlidesList();showMsg("slideMsg","✅ Slide deleted.","success");})
+    .catch(()=>showMsg("slideMsg","❌ Failed.","error"));
+}
+
+function openEditSlide(id,title,order,imageUrl){
+  const old=document.getElementById("slideEditModal"); if(old) old.remove();
+  const modal=document.createElement("div");
+  modal.id="slideEditModal";
+  modal.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box";
+  modal.innerHTML=`<div style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h3 style="color:#14534F;margin:0"><i class="fa fa-edit"></i> Edit Slide</h3>
+      <button onclick="document.getElementById('slideEditModal').remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#8A9A96">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Title</label>
+        <input id="edit-slide-title" value="${title}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
+      <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Order No</label>
+        <input id="edit-slide-order" type="number" value="${order}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
+      <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:6px">Image (change optional)</label>
+        ${imageUrl?`<img src="${imageUrl}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;margin-bottom:8px">`:""}
+        <input type="file" id="edit-slide-image" accept="image/*" style="display:block;width:100%;padding:10px;border:2px dashed #4CAF8A;border-radius:8px;background:#F5F9F8;cursor:pointer;box-sizing:border-box">
+        <div id="edit-slide-preview" style="margin-top:6px"></div>
+      </div>
+      <p id="editSlideMsg" style="margin:0;font-size:.85rem;color:#D9483A"></p>
+      <div style="display:flex;gap:10px">
+        <button id="editSlideSaveBtn" class="btn btn-primary" style="flex:1" onclick="saveEditSlide('${id}','${imageUrl}')"><i class="fa fa-save"></i> Save</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('slideEditModal').remove()">Cancel</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  document.getElementById("edit-slide-image").addEventListener("change",function(){
+    const file=this.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=e=>{document.getElementById("edit-slide-preview").innerHTML=`<img src="${e.target.result}" style="width:100%;height:80px;object-fit:cover;border-radius:8px">`;};
+    reader.readAsDataURL(file);
+  });
+}
+
+async function saveEditSlide(id,existingImage){
+  const title=document.getElementById("edit-slide-title")?.value.trim()||"";
+  const order=Number(document.getElementById("edit-slide-order")?.value)||1;
+  const imgFile=document.getElementById("edit-slide-image")?.files?.[0];
+  const msgEl=document.getElementById("editSlideMsg");
+  const saveBtn=document.getElementById("editSlideSaveBtn");
+  setLoading(saveBtn,true,"Saving...");if(msgEl)msgEl.textContent="";
+  let imageUrl=existingImage;
+  if(imgFile){
+    try{
+      const fd=new FormData();fd.append("file",imgFile);fd.append("upload_preset","rhs-upload");fd.append("folder","rhs/slides");
+      const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
+      const data=await resp.json();
+      if(data.secure_url)imageUrl=data.secure_url; else throw new Error(data.error?.message||"Failed");
+    }catch(err){setLoading(saveBtn,false);if(msgEl)msgEl.textContent="⚠️ "+err.message;return;}
+  }
+  RHS.updateSlide(id,{title,imageUrl,order}).then(()=>{
+    setLoading(saveBtn,false);document.getElementById("slideEditModal")?.remove();
+    showMsg("slideMsg","✅ Slide updated!","success");loadSlidesList();
+  }).catch(()=>{setLoading(saveBtn,false);if(msgEl)msgEl.textContent="⚠️ Failed.";});
+}
+
 // ====== MESSAGES ======
 function loadMessages(){
   if(!window.RHS){setTimeout(loadMessages,500);return;}
@@ -532,10 +665,15 @@ function loadMessages(){
     let html='';
     res.messages.forEach(m=>{
       const date=m.createdAt?.toDate?m.createdAt.toDate().toLocaleDateString("en-PK"):"—";
-      html+=`<div class="message-card">
+      html+=`<div class="message-card" id="msg-${m.id}">
         <div class="msg-header">
           <span class="msg-name"><i class="fa fa-user"></i> ${escHtml(m.name||"")}</span>
-          <span class="msg-date">${date}</span>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="msg-date">${date}</span>
+            <button class="btn btn-sm btn-reject" title="Delete" onclick="deleteMessage('${m.id}','${escHtml(m.name||"")}')">
+              <i class="fa fa-trash"></i>
+            </button>
+          </div>
         </div>
         <div class="msg-email"><i class="fa fa-envelope"></i> ${escHtml(m.email||"")}</div>
         <div class="msg-text">${escHtml(m.message||"")}</div>
@@ -543,6 +681,19 @@ function loadMessages(){
     });
     wrap.innerHTML=html;
   }).catch(()=>{wrap.innerHTML='<div class="empty-state">Failed to load messages.</div>';});
+}
+
+function deleteMessage(id,name){
+  if(!confirm(`"${name}" ka message delete karein?`)) return;
+  if(!window.RHS?.deleteContactMessage){alert("Delete function not available.");return;}
+  RHS.deleteContactMessage(id).then(()=>{
+    const card=document.getElementById("msg-"+id);
+    if(card) card.remove();
+    const wrap=document.getElementById("messagesWrap");
+    if(wrap&&!wrap.querySelector(".message-card")){
+      wrap.innerHTML='<div class="empty-state"><i class="fa fa-envelope"></i><p>No messages yet.</p></div>';
+    }
+  }).catch(()=>alert("Failed to delete message."));
 }
 
 function setDefaultDates(){
