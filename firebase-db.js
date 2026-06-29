@@ -49,7 +49,7 @@ async function getNGOSettings() {
   if (snap.exists()) return snap.data();
   return {
     ngoName: "Rising Hope Society",
-    ngoPhone: "0346-4800064",
+    ngoPhone: "0308-8919628",
     ngoAddress: "Khairpur Tamewali, Bahawalpur, Punjab, Pakistan",
     ngoEmail: "risinghopesociety@gmail.com",
     bankAccount: "111111111111111",
