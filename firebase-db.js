@@ -548,22 +548,21 @@ async function updateGrant(id, updates) {
 async function addCaseExpense(data) {
   try {
     await waitForFB();
-  const ref = await fs().addDoc(fs().collection(db(), "caseExpenses"), {
-    ...data,
-    createdAt: fs().serverTimestamp()
-  });
-
-  // Debit cashbook
-  await addCashEntry({
-    type: "Outflow",
-    date: data.date || today(),
-    source: `${data.crn} | ${data.name} | ${data.detail}`,
-    amount: Number(data.amount) || 0,
-    note: `Case Expense — ${data.helpType || ""}`
-  });
-
-  return { success: true, id: ref.id };
-    } catch(err) {
+    const ref = await fs().addDoc(fs().collection(db(), "caseExpenses"), {
+      ...data,
+      createdAt: fs().serverTimestamp()
+    });
+    try {
+      await addCashEntry({
+        type: "Outflow",
+        date: data.date || today(),
+        source: `${data.crn} | ${data.name} | ${data.detail}`,
+        amount: Number(data.amount) || 0,
+        note: `Case Expense — ${data.helpType || ""}`
+      });
+    } catch(cbErr) { console.warn("CashBook debit failed:", cbErr); }
+    return { success: true, id: ref.id };
+  } catch(err) {
     console.error("addCaseExpense error:", err);
     return { success: false, message: err.message || "Failed to add expense." };
   }
