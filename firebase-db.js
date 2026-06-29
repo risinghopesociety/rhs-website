@@ -563,6 +563,10 @@ async function addCaseExpense(data) {
   });
 
   return { success: true, id: ref.id };
+    } catch(err) {
+    console.error("addCaseExpense error:", err);
+    return { success: false, message: err.message || "Failed to add expense." };
+  }
 }
 
 async function getCaseExpenses(crn) {
