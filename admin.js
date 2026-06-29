@@ -1312,7 +1312,7 @@ function addCaseExpense(crn,cnic,dob,name,fatherName,gender,email,mobile,address
     if(msg){msg.textContent="⚠️ Please fill date, detail and amount.";msg.className="form-msg error";}
     return;
   }
-  const btn = document.getElementById("addExpenseBtn");
+  const btn = document.getElementById("addExpenseBtn") || document.querySelector('.btn-primary[onclick*="addCaseExpense"]') || null;
   setLoading(btn, true, "Saving...");
   if(msg) msg.textContent="";
   if(!window.RHS){setLoading(btn,false);return;}
