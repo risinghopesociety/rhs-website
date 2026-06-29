@@ -1048,6 +1048,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (grantForm) grantForm.style.display = "none";
             if (grantResult) {
               grantResult.hidden = false;
+              setTimeout(() => grantResult.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
               grantResult.innerHTML = `
                 <div class="status-msg status-green">
                   <i class="fa-solid fa-circle-check" style="font-size:2.2rem;color:#2E9E5B;display:block;margin-bottom:12px"></i>
