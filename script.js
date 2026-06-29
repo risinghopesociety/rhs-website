@@ -1073,6 +1073,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (grantForm) grantForm.style.display = "none";
             if (grantResult) {
               grantResult.hidden = false;
+              setTimeout(() => grantResult.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
               grantResult.innerHTML = `
                 <div class="status-msg status-yellow">
                   <i class="fa-solid fa-circle-exclamation" style="font-size:2.2rem;color:#E8A33D;display:block;margin-bottom:12px"></i>
