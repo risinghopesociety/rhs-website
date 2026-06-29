@@ -634,6 +634,7 @@
           </div>
           <div class="form-actions">
             <button class="btn btn-primary" onclick="addSlide()"><i class="fa fa-plus"></i> Add Slide</button>
+            <button class="btn btn-ghost" onclick="clearSlideForm()"><i class="fa fa-rotate-left"></i> Clear</button>
           </div>
           <p class="form-msg" id="slideMsg"></p>
           <div id="slidesListWrap" style="margin-top:20px"></div>
@@ -661,7 +662,8 @@
             </div>
           </div>
           <div class="form-actions">
-            <button class="btn btn-primary" onclick="addNewsItem()"><i class="fa fa-plus"></i> Add News</button>
+            <button id="addNewsBtn" class="btn btn-primary" onclick="addNewsItem()"><i class="fa fa-plus"></i> Add News</button>
+            <button class="btn btn-ghost" onclick="clearNewsForm()"><i class="fa fa-rotate-left"></i> Clear</button>
           </div>
           <p class="form-msg" id="newsMsg"></p>
           <div id="newsListWrap" style="margin-top:20px"></div>
@@ -686,7 +688,8 @@
             </div>
           </div>
           <div class="form-actions">
-            <button class="btn btn-primary" onclick="addStoryItem()"><i class="fa fa-plus"></i> Add Story</button>
+            <button id="addStoryBtn" class="btn btn-primary" onclick="addStoryItem()"><i class="fa fa-plus"></i> Add Story</button>
+            <button class="btn btn-ghost" onclick="clearStoryForm()"><i class="fa fa-rotate-left"></i> Clear</button>
           </div>
           <p class="form-msg" id="storyMsg"></p>
           <div id="storiesListWrap" style="margin-top:20px"></div>

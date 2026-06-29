@@ -184,6 +184,9 @@ function showSetupSection(section, btn){
   const el = document.getElementById("setup-"+section);
   if(el) el.classList.remove("hidden");
   if(btn) btn.classList.add("active");
+  if(section==="stories") loadStoriesList();
+  if(section==="news") loadNewsList();
+  if(section==="slides") loadSlidesList();
 }
 
 // ====== LOAD ALL SETUP DATA ======
@@ -447,6 +450,440 @@ function deleteTeamMember(id,name){
     loadTeamList();
     showMsg("teamMsg","✅ Member deleted.","success");
   }).catch(()=>showMsg("teamMsg","Failed to delete.","error"));
+}
+
+// ====== IMPACT STORIES ======
+function previewStoryImage(input){
+  const file=input.files?.[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{document.getElementById("storyImagePreview").innerHTML=`<img src="${e.target.result}" style="width:100%;max-height:140px;object-fit:cover;border-radius:8px;margin-top:8px">`;};
+  reader.readAsDataURL(file);
+}
+
+function clearStoryForm(){
+  ["story-name","story-category","story-location","story-text"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+  const inp=document.getElementById("story-imageFile"); if(inp) inp.value="";
+  const prev=document.getElementById("storyImagePreview");
+  if(prev) prev.innerHTML=`<i class="fa fa-image" style="font-size:1.5rem;color:#4CAF8A;display:block;margin-bottom:6px"></i><span style="color:#14534F;font-size:.88rem">Tap to upload photo</span>`;
+  showMsg("storyMsg","","");
+}
+
+async function addStoryItem(){
+  if(!window.RHS){showMsg("storyMsg","System loading...","error");return;}
+  const name    =document.getElementById("story-name")?.value.trim();
+  const category=document.getElementById("story-category")?.value.trim()||"";
+  const location=document.getElementById("story-location")?.value.trim()||"";
+  const text    =document.getElementById("story-text")?.value.trim();
+  const imgFile =document.getElementById("story-imageFile")?.files?.[0];
+  if(!name){showMsg("storyMsg","⚠️ Person Name required.","error");return;}
+  if(!text){showMsg("storyMsg","⚠️ Story required.","error");return;}
+  const btn=document.getElementById("addStoryBtn");
+  let imageUrl="";
+  if(imgFile){
+    setLoading(btn,true,"Uploading photo...");
+    try{
+      const fd=new FormData();fd.append("file",imgFile);fd.append("upload_preset","rhs-upload");fd.append("folder","rhs/stories");
+      const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
+      const data=await resp.json();
+      if(data.secure_url)imageUrl=data.secure_url; else throw new Error(data.error?.message||"Upload failed");
+    }catch(err){setLoading(btn,false);showMsg("storyMsg","⚠️ Photo upload failed: "+err.message,"error");return;}
+  }
+  setLoading(btn,true,"Saving...");
+  try{
+    await RHS.addStory({name,category,location,text,imageUrl});
+    showMsg("storyMsg","✅ Story added!","success");
+    clearStoryForm();
+    loadStoriesList();
+  }catch(e){showMsg("storyMsg","❌ Failed to save.","error");}
+  finally{setLoading(btn,false);}
+}
+
+function loadStoriesList(){
+  if(!window.RHS){setTimeout(loadStoriesList,500);return;}
+  const wrap=document.getElementById("storiesListWrap"); if(!wrap) return;
+  wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
+  RHS.getStories().then(res=>{
+    if(!res.stories||!res.stories.length){wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:20px">No stories yet.</p>';return;}
+    let html='<div style="display:flex;flex-direction:column;gap:12px;margin-top:12px">';
+    res.stories.forEach(s=>{
+      html+=`<div style="background:#F5F9F8;border:1.5px solid #D8E8E5;border-radius:12px;padding:14px;display:flex;gap:12px;flex-wrap:wrap">
+        ${s.imageUrl?`<img src="${s.imageUrl}" style="width:64px;height:64px;border-radius:8px;object-fit:cover;flex-shrink:0">`:`<div style="width:64px;height:64px;background:#E7DFD2;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa fa-image" style="color:#8A9A96"></i></div>`}
+        <div style="flex:1;min-width:160px">
+          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+            <div><strong style="color:#14534F">${escHtml(s.name)}</strong>
+              ${s.category?`<span style="margin-left:6px;background:#EEF8F1;color:#14534F;padding:2px 8px;border-radius:20px;font-size:.74rem;font-weight:600">${escHtml(s.category)}</span>`:""}
+              ${s.location?`<span style="display:block;color:#8A9A96;font-size:.78rem;margin-top:2px"><i class="fa fa-map-marker-alt"></i> ${escHtml(s.location)}</span>`:""}
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-sm" style="background:#14534F;color:#fff;border:none" onclick="openEditStory('${s.id}')"><i class="fa fa-edit"></i></button>
+              <button class="btn btn-sm btn-reject" onclick="deleteStoryItem('${s.id}','${escHtml(s.name)}')"><i class="fa fa-trash"></i></button>
+            </div>
+          </div>
+          <p style="color:#4A5C58;font-size:.85rem;margin:0">${escHtml((s.text||"").substring(0,120))}${(s.text||"").length>120?"...":""}</p>
+        </div>
+      </div>`;
+    });
+    html+='</div>';
+    wrap.innerHTML=html;
+  }).catch(()=>{wrap.innerHTML='<p style="color:#D9483A;text-align:center;padding:20px">Failed to load.</p>';});
+}
+
+function deleteStoryItem(id,name){
+  if(!confirm(`"${name}" delete karni hai?`)) return;
+  RHS.deleteStory(id).then(()=>{loadStoriesList();showMsg("storyMsg","✅ Story deleted.","success");})
+    .catch(()=>showMsg("storyMsg","❌ Failed.","error"));
+}
+
+function openEditStory(id){
+  if(!window.RHS) return;
+  RHS.getStories().then(res=>{
+    const s=res.stories?.find(x=>x.id===id); if(!s){alert("Not found.");return;}
+    const old=document.getElementById("storyEditModal"); if(old) old.remove();
+    const modal=document.createElement("div");
+    modal.id="storyEditModal";
+    modal.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box";
+    modal.innerHTML=`<div style="background:#fff;border-radius:14px;padding:22px;width:100%;max-width:500px;max-height:95vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,0.25)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+        <h3 style="color:#14534F;margin:0"><i class="fa fa-edit"></i> Edit Story</h3>
+        <button onclick="document.getElementById('storyEditModal').remove()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#8A9A96">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Person Name *</label>
+          <input id="es-name" value="${escHtml(s.name||"")}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Category</label>
+            <input id="es-category" value="${escHtml(s.category||"")}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
+          <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Location</label>
+            <input id="es-location" value="${escHtml(s.location||"")}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
+        </div>
+        <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Story *</label>
+          <textarea id="es-text" rows="5" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box;resize:vertical">${escHtml(s.text||"")}</textarea></div>
+        <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:6px">Photo (change optional)</label>
+          ${s.imageUrl?`<img src="${s.imageUrl}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;margin-bottom:8px">`:""}
+          <input type="file" id="es-image" accept="image/*" style="display:block;width:100%;padding:10px;border:2px dashed #4CAF8A;border-radius:8px;background:#F5F9F8;cursor:pointer;box-sizing:border-box">
+          <div id="es-preview" style="margin-top:6px"></div>
+        </div>
+        <p id="editStoryMsg" style="margin:0;font-size:.85rem;color:#D9483A"></p>
+        <div style="display:flex;gap:10px">
+          <button id="editStorySaveBtn" class="btn btn-primary" style="flex:1" onclick="saveEditStory('${id}','${escHtml(s.imageUrl||"")}')"><i class="fa fa-save"></i> Save</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('storyEditModal').remove()">Cancel</button>
+        </div>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+    document.getElementById("es-image").addEventListener("change",function(){
+      const file=this.files[0]; if(!file) return;
+      const reader=new FileReader();
+      reader.onload=e=>{document.getElementById("es-preview").innerHTML=`<img src="${e.target.result}" style="width:100%;height:80px;object-fit:cover;border-radius:8px">`;};
+      reader.readAsDataURL(file);
+    });
+  });
+}
+
+async function saveEditStory(id,existingImage){
+  const name=document.getElementById("es-name")?.value.trim();
+  const category=document.getElementById("es-category")?.value.trim()||"";
+  const location=document.getElementById("es-location")?.value.trim()||"";
+  const text=document.getElementById("es-text")?.value.trim();
+  const imgFile=document.getElementById("es-image")?.files?.[0];
+  const msgEl=document.getElementById("editStoryMsg");
+  const saveBtn=document.getElementById("editStorySaveBtn");
+  if(!name||!text){if(msgEl)msgEl.textContent="⚠️ Name aur Story required.";return;}
+  setLoading(saveBtn,true,"Saving...");
+  if(msgEl)msgEl.textContent="";
+  let imageUrl=existingImage;
+  if(imgFile){
+    try{
+      const fd=new FormData();fd.append("file",imgFile);fd.append("upload_preset","rhs-upload");fd.append("folder","rhs/stories");
+      const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
+      const data=await resp.json();
+      if(data.secure_url)imageUrl=data.secure_url; else throw new Error(data.error?.message||"Failed");
+    }catch(err){setLoading(saveBtn,false);if(msgEl)msgEl.textContent="⚠️ "+err.message;return;}
+  }
+  RHS.updateStory(id,{name,category,location,text,imageUrl}).then(()=>{
+    setLoading(saveBtn,false);document.getElementById("storyEditModal")?.remove();
+    showMsg("storyMsg","✅ Story updated!","success");loadStoriesList();
+  }).catch(()=>{setLoading(saveBtn,false);if(msgEl)msgEl.textContent="⚠️ Failed.";});
+}
+
+// ====== NEWS FEED ======
+function previewNewsImage(input){
+  const file=input.files?.[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{document.getElementById("newsImagePreview").innerHTML=`<img src="${e.target.result}" style="max-height:120px;border-radius:8px;object-fit:cover;margin-top:4px">`;};
+  reader.readAsDataURL(file);
+}
+
+function clearNewsForm(){
+  ["news-title","news-category","news-date","news-body","news-imageURL"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+  const inp=document.getElementById("news-imageFile"); if(inp) inp.value="";
+  const prev=document.getElementById("newsImagePreview"); if(prev) prev.innerHTML="";
+  showMsg("newsMsg","","");
+}
+
+async function addNewsItem(){
+  if(!window.RHS){showMsg("newsMsg","System loading...","error");return;}
+  const title   =document.getElementById("news-title")?.value.trim();
+  const category=document.getElementById("news-category")?.value.trim()||"";
+  const date    =document.getElementById("news-date")?.value.trim()||"";
+  const body    =document.getElementById("news-body")?.value.trim();
+  const imageURL=document.getElementById("news-imageURL")?.value.trim()||"";
+  const imgFile =document.getElementById("news-imageFile")?.files?.[0];
+  if(!title){showMsg("newsMsg","⚠️ Title required.","error");return;}
+  if(!body) {showMsg("newsMsg","⚠️ Content required.","error");return;}
+  const btn=document.getElementById("addNewsBtn");
+  let finalImageURL=imageURL;
+  if(imgFile){
+    setLoading(btn,true,"Uploading image...");
+    try{
+      const fd=new FormData();fd.append("file",imgFile);fd.append("upload_preset","rhs-upload");fd.append("folder","rhs/news");
+      const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
+      const data=await resp.json();
+      if(data.secure_url)finalImageURL=data.secure_url; else throw new Error(data.error?.message||"Failed");
+    }catch(err){setLoading(btn,false);showMsg("newsMsg","⚠️ Upload failed: "+err.message,"error");return;}
+  }
+  setLoading(btn,true,"Saving...");
+  try{
+    await RHS.addNews({title,category,date,body,imageURL:finalImageURL});
+    showMsg("newsMsg","✅ News added!","success");
+    clearNewsForm();loadNewsList();
+  }catch(e){showMsg("newsMsg","❌ Failed to save.","error");}
+  finally{setLoading(btn,false);}
+}
+
+function loadNewsList(){
+  if(!window.RHS){setTimeout(loadNewsList,500);return;}
+  const wrap=document.getElementById("newsListWrap"); if(!wrap) return;
+  wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
+  RHS.getNews().then(res=>{
+    if(!res.news||!res.news.length){wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:20px">No news yet.</p>';return;}
+    let html='<div style="display:flex;flex-direction:column;gap:12px;margin-top:12px">';
+    res.news.forEach(n=>{
+      html+=`<div style="background:#F5F9F8;border:1.5px solid #D8E8E5;border-radius:12px;padding:14px;display:flex;gap:12px;flex-wrap:wrap">
+        ${n.imageURL?`<img src="${n.imageURL}" style="width:64px;height:64px;border-radius:8px;object-fit:cover;flex-shrink:0">`:`<div style="width:64px;height:64px;background:#E7DFD2;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa fa-newspaper" style="color:#8A9A96"></i></div>`}
+        <div style="flex:1;min-width:160px">
+          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+            <div><strong style="color:#14534F">${escHtml(n.title||"")}</strong>
+              ${n.category?`<span style="margin-left:6px;background:#EEF8F1;color:#14534F;padding:2px 8px;border-radius:20px;font-size:.74rem;font-weight:600">${escHtml(n.category)}</span>`:""}
+              ${n.date?`<span style="display:block;color:#8A9A96;font-size:.78rem;margin-top:2px"><i class="fa fa-calendar"></i> ${escHtml(n.date)}</span>`:""}
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-sm" style="background:#14534F;color:#fff;border:none" onclick="openEditNews('${n.id}')"><i class="fa fa-edit"></i></button>
+              <button class="btn btn-sm btn-reject" onclick="deleteNewsItem('${n.id}','${escHtml(n.title||"")}')"><i class="fa fa-trash"></i></button>
+            </div>
+          </div>
+          <p style="color:#4A5C58;font-size:.85rem;margin:0">${escHtml((n.body||"").substring(0,120))}${(n.body||"").length>120?"...":""}</p>
+        </div>
+      </div>`;
+    });
+    html+='</div>';
+    wrap.innerHTML=html;
+  }).catch(()=>{wrap.innerHTML='<p style="color:#D9483A;text-align:center;padding:20px">Failed to load.</p>';});
+}
+
+function deleteNewsItem(id,title){
+  if(!confirm(`"${title}" delete karni hai?`)) return;
+  RHS.deleteNews(id).then(()=>{loadNewsList();showMsg("newsMsg","✅ News deleted.","success");})
+    .catch(()=>showMsg("newsMsg","❌ Failed.","error"));
+}
+
+function openEditNews(id){
+  if(!window.RHS) return;
+  RHS.getNews().then(res=>{
+    const n=res.news?.find(x=>x.id===id); if(!n){alert("Not found.");return;}
+    const old=document.getElementById("newsEditModal"); if(old) old.remove();
+    const modal=document.createElement("div");
+    modal.id="newsEditModal";
+    modal.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box";
+    modal.innerHTML=`<div style="background:#fff;border-radius:14px;padding:22px;width:100%;max-width:520px;max-height:95vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,0.25)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+        <h3 style="color:#14534F;margin:0"><i class="fa fa-edit"></i> Edit News</h3>
+        <button onclick="document.getElementById('newsEditModal').remove()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#8A9A96">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Title *</label>
+          <input id="en-title" value="${escHtml(n.title||"")}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Category</label>
+            <input id="en-category" value="${escHtml(n.category||"")}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
+          <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Date</label>
+            <input id="en-date" value="${escHtml(n.date||"")}" placeholder="dd-mm-yyyy" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
+        </div>
+        <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Content *</label>
+          <textarea id="en-body" rows="5" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box;resize:vertical">${escHtml(n.body||"")}</textarea></div>
+        <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:6px">Image (change optional)</label>
+          ${n.imageURL?`<img src="${n.imageURL}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;margin-bottom:8px">`:""}
+          <input type="url" id="en-imageURL" value="${escHtml(n.imageURL||"")}" placeholder="https://..." style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box;margin-bottom:6px">
+          <input type="file" id="en-imageFile" accept="image/*" style="display:block;width:100%;padding:10px;border:2px dashed #4CAF8A;border-radius:8px;background:#F5F9F8;cursor:pointer;box-sizing:border-box">
+          <div id="en-preview" style="margin-top:6px"></div>
+        </div>
+        <p id="editNewsMsg" style="margin:0;font-size:.85rem;color:#D9483A"></p>
+        <div style="display:flex;gap:10px">
+          <button id="editNewsSaveBtn" class="btn btn-primary" style="flex:1" onclick="saveEditNews('${id}','${escHtml(n.imageURL||"")}')"><i class="fa fa-save"></i> Save</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('newsEditModal').remove()">Cancel</button>
+        </div>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+    document.getElementById("en-imageFile").addEventListener("change",function(){
+      const file=this.files[0]; if(!file) return;
+      const reader=new FileReader();
+      reader.onload=e=>{document.getElementById("en-preview").innerHTML=`<img src="${e.target.result}" style="width:100%;height:80px;object-fit:cover;border-radius:8px">`;};
+      reader.readAsDataURL(file);
+    });
+  });
+}
+
+async function saveEditNews(id,existingImage){
+  const title   =document.getElementById("en-title")?.value.trim();
+  const category=document.getElementById("en-category")?.value.trim()||"";
+  const date    =document.getElementById("en-date")?.value.trim()||"";
+  const body    =document.getElementById("en-body")?.value.trim();
+  const imageURL=document.getElementById("en-imageURL")?.value.trim()||"";
+  const imgFile =document.getElementById("en-imageFile")?.files?.[0];
+  const msgEl   =document.getElementById("editNewsMsg");
+  const saveBtn =document.getElementById("editNewsSaveBtn");
+  if(!title||!body){if(msgEl)msgEl.textContent="⚠️ Title aur Content required.";return;}
+  setLoading(saveBtn,true,"Saving...");if(msgEl)msgEl.textContent="";
+  let finalImageURL=imageURL||existingImage;
+  if(imgFile){
+    try{
+      const fd=new FormData();fd.append("file",imgFile);fd.append("upload_preset","rhs-upload");fd.append("folder","rhs/news");
+      const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
+      const data=await resp.json();
+      if(data.secure_url)finalImageURL=data.secure_url; else throw new Error(data.error?.message||"Failed");
+    }catch(err){setLoading(saveBtn,false);if(msgEl)msgEl.textContent="⚠️ "+err.message;return;}
+  }
+  RHS.updateNews(id,{title,category,date,body,imageURL:finalImageURL}).then(()=>{
+    setLoading(saveBtn,false);document.getElementById("newsEditModal")?.remove();
+    showMsg("newsMsg","✅ News updated!","success");loadNewsList();
+  }).catch(()=>{setLoading(saveBtn,false);if(msgEl)msgEl.textContent="⚠️ Failed.";});
+}
+
+// ====== SLIDES ======
+function previewSlideImage(input){
+  const file=input.files?.[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{document.getElementById("slideImagePreview").innerHTML=`<img src="${e.target.result}" style="max-height:120px;border-radius:8px;object-fit:cover">`;};
+  reader.readAsDataURL(file);
+}
+
+function clearSlideForm(){
+  ["slide-title","slide-order"].forEach(id=>{const el=document.getElementById(id);if(el)el.value=id==="slide-order"?"1":"";});
+  const inp=document.getElementById("slide-image"); if(inp) inp.value="";
+  const prev=document.getElementById("slideImagePreview");
+  if(prev) prev.innerHTML=`<i class="fa fa-image" style="font-size:2rem;color:#4CAF8A;display:block;margin-bottom:8px"></i><span style="color:#14534F;font-size:.9rem">Tap to select slide image</span>`;
+  showMsg("slideMsg","","");
+}
+
+async function addSlide(){
+  if(!window.RHS) return;
+  const title  =document.getElementById("slide-title")?.value.trim()||"";
+  const order  =Number(document.getElementById("slide-order")?.value)||1;
+  const imgFile=document.getElementById("slide-image")?.files?.[0];
+  const btn    =document.querySelector('#setup-slides .btn-primary');
+  if(!imgFile){showMsg("slideMsg","⚠️ Slide Image required.","error");return;}
+  setLoading(btn,true,"Uploading image...");
+  let imageUrl="";
+  try{
+    const fd=new FormData();fd.append("file",imgFile);fd.append("upload_preset","rhs-upload");fd.append("folder","rhs/slides");
+    const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
+    const data=await resp.json();
+    if(data.secure_url)imageUrl=data.secure_url; else throw new Error(data.error?.message||"Upload failed");
+  }catch(err){setLoading(btn,false);showMsg("slideMsg","⚠️ Image upload failed: "+err.message,"error");return;}
+  setLoading(btn,true,"Adding slide...");
+  RHS.addSlide({title,imageUrl,order}).then(()=>{
+    setLoading(btn,false);showMsg("slideMsg","✅ Slide added!","success");
+    clearSlideForm();loadSlidesList();
+  }).catch(()=>{setLoading(btn,false);showMsg("slideMsg","❌ Failed.","error");});
+}
+
+function loadSlidesList(){
+  if(!window.RHS) return;
+  const wrap=document.getElementById("slidesListWrap"); if(!wrap) return;
+  wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
+  RHS.getSlides().then(res=>{
+    if(!res.slides||!res.slides.length){wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:20px">No slides yet.</p>';return;}
+    let html=`<div style="overflow-x:auto;border-radius:8px;border:1px solid #E7DFD2"><table class="data-table" style="min-width:500px;width:100%">
+      <thead><tr><th>Image</th><th>Title</th><th>Order</th><th>Actions</th></tr></thead><tbody>`;
+    res.slides.forEach(s=>{
+      html+=`<tr>
+        <td><img src="${s.imageUrl||""}" style="width:60px;height:40px;object-fit:cover;border-radius:4px"></td>
+        <td>${escHtml(s.title||s.heading||"—")}</td>
+        <td style="text-align:center">${s.order||1}</td>
+        <td><div style="display:flex;gap:6px">
+          <button class="btn btn-sm" style="background:#14534F;color:#fff;border:none" onclick="openEditSlide('${s.id}','${escHtml(s.title||s.heading||"")}','${s.order||1}','${s.imageUrl||""}')"><i class="fa fa-edit"></i></button>
+          <button class="btn btn-sm btn-reject" onclick="deleteSlideItem('${s.id}')"><i class="fa fa-trash"></i></button>
+        </div></td>
+      </tr>`;
+    });
+    html+='</tbody></table></div>';
+    wrap.innerHTML=html;
+  }).catch(()=>{wrap.innerHTML='<p style="color:#D9483A;text-align:center;padding:20px">Failed to load.</p>';});
+}
+
+function deleteSlideItem(id){
+  if(!confirm("Delete this slide?")) return;
+  RHS.deleteSlide(id).then(()=>{loadSlidesList();showMsg("slideMsg","✅ Slide deleted.","success");})
+    .catch(()=>showMsg("slideMsg","❌ Failed.","error"));
+}
+
+function openEditSlide(id,title,order,imageUrl){
+  const old=document.getElementById("slideEditModal"); if(old) old.remove();
+  const modal=document.createElement("div");
+  modal.id="slideEditModal";
+  modal.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box";
+  modal.innerHTML=`<div style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h3 style="color:#14534F;margin:0"><i class="fa fa-edit"></i> Edit Slide</h3>
+      <button onclick="document.getElementById('slideEditModal').remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#8A9A96">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Title</label>
+        <input id="edit-slide-title" value="${title}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
+      <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Order No</label>
+        <input id="edit-slide-order" type="number" value="${order}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
+      <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:6px">Image (change optional)</label>
+        ${imageUrl?`<img src="${imageUrl}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;margin-bottom:8px">`:""}
+        <input type="file" id="edit-slide-image" accept="image/*" style="display:block;width:100%;padding:10px;border:2px dashed #4CAF8A;border-radius:8px;background:#F5F9F8;cursor:pointer;box-sizing:border-box">
+        <div id="edit-slide-preview" style="margin-top:6px"></div>
+      </div>
+      <p id="editSlideMsg" style="margin:0;font-size:.85rem;color:#D9483A"></p>
+      <div style="display:flex;gap:10px">
+        <button id="editSlideSaveBtn" class="btn btn-primary" style="flex:1" onclick="saveEditSlide('${id}','${imageUrl}')"><i class="fa fa-save"></i> Save</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('slideEditModal').remove()">Cancel</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  document.getElementById("edit-slide-image").addEventListener("change",function(){
+    const file=this.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=e=>{document.getElementById("edit-slide-preview").innerHTML=`<img src="${e.target.result}" style="width:100%;height:80px;object-fit:cover;border-radius:8px">`;};
+    reader.readAsDataURL(file);
+  });
+}
+
+async function saveEditSlide(id,existingImage){
+  const title =document.getElementById("edit-slide-title")?.value.trim()||"";
+  const order =Number(document.getElementById("edit-slide-order")?.value)||1;
+  const imgFile=document.getElementById("edit-slide-image")?.files?.[0];
+  const msgEl =document.getElementById("editSlideMsg");
+  const saveBtn=document.getElementById("editSlideSaveBtn");
+  setLoading(saveBtn,true,"Saving...");if(msgEl)msgEl.textContent="";
+  let imageUrl=existingImage;
+  if(imgFile){
+    try{
+      const fd=new FormData();fd.append("file",imgFile);fd.append("upload_preset","rhs-upload");fd.append("folder","rhs/slides");
+      const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
+      const data=await resp.json();
+      if(data.secure_url)imageUrl=data.secure_url; else throw new Error(data.error?.message||"Failed");
+    }catch(err){setLoading(saveBtn,false);if(msgEl)msgEl.textContent="⚠️ "+err.message;return;}
+  }
+  RHS.updateSlide(id,{title,imageUrl,order}).then(()=>{
+    setLoading(saveBtn,false);document.getElementById("slideEditModal")?.remove();
+    showMsg("slideMsg","✅ Slide updated!","success");loadSlidesList();
+  }).catch(()=>{setLoading(saveBtn,false);if(msgEl)msgEl.textContent="⚠️ Failed.";});
 }
 
 // ====== MESSAGES ======
