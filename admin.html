@@ -15,7 +15,7 @@
 <div id="loginScreen" class="login-screen">
   <div class="login-box">
     <div class="login-logo">
-      <img id="loginLogo" src="images/logo.png" alt="RHS Logo" class="admin-logo" style="width:80px;height:80px;object-fit:contain;border-radius:50%;background:#F5F9F8">
+      <img id="loginLogo" src="images/logo.png" alt="RHS Logo">
       <h1 id="loginOrgName">Rising Hope <em>Society</em></h1>
       <small id="loginOrgAddr">Khairpur Tamewali · Bahawalpur</small>
     </div>
@@ -57,9 +57,15 @@
       <p style="color:#1F7A45;font-size:1rem;font-weight:600;margin-bottom:8px">
         <i class="fa fa-check-circle"></i> Your password has been sent on official email
       </p>
-      <p style="color:#4A5C58;font-size:0.9rem;margin-bottom:6px">Please check your inbox at</p>
-      <p style="color:#14534F;font-weight:700;font-size:1rem">risinghopesociety@gmail.com</p>
-      <p style="color:#8A9A96;font-size:0.82rem;margin-top:10px">Login with your password and you can change it anytime.</p>
+      <p style="color:#4A5C58;font-size:0.9rem;margin-bottom:6px">
+        Please check your inbox at
+      </p>
+      <p style="color:#14534F;font-weight:700;font-size:1rem">
+        risinghopesociety@gmail.com
+      </p>
+      <p style="color:#8A9A96;font-size:0.82rem;margin-top:10px">
+        Login with your password and you can change it anytime.
+      </p>
     </div>
     <p class="login-msg" id="forgotMsg" style="margin-bottom:14px"></p>
     <button class="btn btn-primary w-full" onclick="hideForgotPassword()">
@@ -74,7 +80,7 @@
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-      <img id="sidebarLogo" src="images/logo.png" alt="RHS" class="admin-logo">
+      <img id="sidebarLogo" src="images/logo.png" alt="RHS">
       <div>
         <span id="sidebarOrgName">Rising Hope</span>
         <small>Society</small>
@@ -117,7 +123,7 @@
     </nav>
   </aside>
 
-  <!-- SIDEBAR OVERLAY -->
+  <!-- SIDEBAR OVERLAY (mobile — tap outside to close) -->
   <div id="sidebarOverlay" onclick="closeSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:49;backdrop-filter:blur(2px)"></div>
 
   <!-- MAIN -->
@@ -134,11 +140,15 @@
 
     <!-- ===== TAB: HOME ===== -->
     <div class="tab-content" id="tab-home">
+
+      <!-- WELCOME CARD - UPAR -->
       <div class="welcome-card" style="margin-bottom:20px">
         <h3><i class="fa fa-hands-helping"></i> Welcome, Admin!</h3>
         <p class="ngo-name" style="color:rgba(255,255,255,0.9)">Rising Hope Society</p>
         <p style="margin-top:4px;color:rgba(255,255,255,0.7);font-size:0.88rem" class="ngo-address">Khairpur Tamewali, Bahawalpur</p>
       </div>
+
+      <!-- ROW 1: Members -->
       <div class="stats-row-4" id="adminStatsRow">
         <button class="stat-box-btn teal" onclick="switchTab('members');loadMembers('pending')">
           <i class="fa fa-hourglass-half"></i>
@@ -157,6 +167,8 @@
           <div><span id="st-banned">0</span><small>Banned Members</small></div>
         </button>
       </div>
+
+      <!-- ROW 2: Financials -->
       <div class="stats-row-4" style="margin-top:14px">
         <button class="stat-box-btn blue" onclick="switchTab('charity')">
           <i class="fa fa-hand-holding-usd"></i>
@@ -175,6 +187,8 @@
           <div><span id="st-networth">Rs. 0</span><small>Net Worth</small></div>
         </button>
       </div>
+
+      <!-- ROW 3: Cases -->
       <div class="stats-row-4" style="margin-top:14px">
         <button class="stat-box-btn teal2" onclick="switchTab('grants');loadGrants('completed')">
           <i class="fa fa-clipboard-check"></i>
@@ -205,7 +219,7 @@
         <button class="filter-btn" onclick="loadMembers('banned',this)">🚫 Banned</button>
       </div>
       <div class="table-search-wrap">
-        <input type="text" id="memberSearchBox" class="search-input"
+        <input type="text" id="memberSearchBox" class="search-input" 
           placeholder="🔍 Search by Name, CNIC, Mobile, Registration No..."
           oninput="searchMembersTable(this.value)" autocomplete="off">
         <button class="search-clear-btn" onclick="clearMemberSearch()" title="Clear search">✕</button>
@@ -223,6 +237,7 @@
           <input type="text" id="charitySearch" placeholder="Type name, CNIC or mobile..." class="search-input" oninput="liveSearchMember(this.value)" autocomplete="off">
           <div id="charitySearchResults" class="live-results hidden"></div>
         </div>
+
         <div id="charityMemberInfo" class="member-chip hidden">
           <i class="fa fa-user-circle"></i>
           <div>
@@ -231,6 +246,7 @@
           </div>
           <button onclick="clearCharityMember()" class="chip-clear"><i class="fa fa-times"></i></button>
         </div>
+
         <div id="charityForm" class="charity-form-grid">
           <div class="field">
             <label>Payment Method <span class="req">*</span></label>
@@ -260,6 +276,7 @@
             <input type="text" id="charityNote" placeholder="Optional note" autocomplete="off">
           </div>
         </div>
+
         <div class="send-msg-row">
           <label class="checkbox-label">
             <input type="checkbox" id="sendThankMsg" checked autocomplete="off">
@@ -278,6 +295,7 @@
         </div>
         <p class="form-msg" id="charityMsg"></p>
       </div>
+
       <div class="card" style="margin-top:24px">
         <h3 class="card-title"><i class="fa fa-list"></i> Recent Charity Entries</h3>
         <div id="charityListWrap" class="table-wrap">
@@ -315,6 +333,7 @@
         <div class="nw-box red"><small>Total Outflow</small><span id="cb-outflow">Rs. 0</span></div>
         <div class="nw-box teal"><small>Net Worth</small><span id="cb-networth">Rs. 0</span></div>
       </div>
+
       <div class="card">
         <h3 class="card-title"><i class="fa fa-plus-circle"></i> Add Cash Entry</h3>
         <div class="charity-form-grid">
@@ -348,6 +367,7 @@
         </div>
         <p class="form-msg" id="cashMsg"></p>
       </div>
+
       <div class="card" style="margin-top:24px">
         <h3 class="card-title"><i class="fa fa-book-open"></i> Cash Book Ledger</h3>
         <div id="cashbookWrap" class="table-wrap">
@@ -358,6 +378,8 @@
 
     <!-- ===== TAB: ADMIN EXPENSES ===== -->
     <div class="tab-content hidden" id="tab-adminexp">
+
+      <!-- Total -->
       <div class="networth-row" style="grid-template-columns:1fr 1fr">
         <div class="nw-box red"><small>Total Admin Expenses</small><span id="ae-total">Rs. 0</span></div>
         <div class="nw-box" style="background:#EEF3FF">
@@ -371,13 +393,27 @@
           </div>
         </div>
       </div>
+
+      <!-- Add Expense -->
       <div class="card" style="margin-top:20px">
         <h3 class="card-title"><i class="fa fa-plus-circle"></i> Add Admin Expense</h3>
         <div class="charity-form-grid">
-          <div class="field"><label>Date <span class="req">*</span></label><input type="date" id="aeDate"></div>
-          <div class="field"><label>Detail <span class="req">*</span></label><input type="text" id="aeDetail" placeholder="e.g. Office Rent, Fuel, Stationery..."></div>
-          <div class="field"><label>Amount (Rs.) <span class="req">*</span></label><input type="number" id="aeAmount" placeholder="e.g. 5000" min="1"></div>
-          <div class="field"><label>Pay To</label><input type="text" id="aePayto" placeholder="e.g. Landlord, Vendor name..."></div>
+          <div class="field">
+            <label>Date <span class="req">*</span></label>
+            <input type="date" id="aeDate">
+          </div>
+          <div class="field">
+            <label>Detail <span class="req">*</span></label>
+            <input type="text" id="aeDetail" placeholder="e.g. Office Rent, Fuel, Stationery...">
+          </div>
+          <div class="field">
+            <label>Amount (Rs.) <span class="req">*</span></label>
+            <input type="number" id="aeAmount" placeholder="e.g. 5000" min="1">
+          </div>
+          <div class="field">
+            <label>Pay To</label>
+            <input type="text" id="aePayto" placeholder="e.g. Landlord, Vendor name...">
+          </div>
         </div>
         <div class="form-actions">
           <button class="btn btn-primary" onclick="submitAdminExpense()"><i class="fa fa-plus"></i> Add & Debit Cash Book</button>
@@ -385,6 +421,8 @@
         </div>
         <p class="form-msg" id="aeMsg"></p>
       </div>
+
+      <!-- Expenses List -->
       <div class="card" style="margin-top:20px">
         <h3 class="card-title"><i class="fa fa-list"></i> Admin Expenses Ledger</h3>
         <div id="adminExpWrap" class="table-wrap">
@@ -395,44 +433,92 @@
 
     <!-- ===== TAB: REPORTS ===== -->
     <div class="tab-content hidden" id="tab-reports">
+
+      <!-- SECTION 1: MEMBERS -->
       <div class="report-section-title"><i class="fa fa-users"></i> Members Reports</div>
       <div class="stats-row-4">
-        <button class="stat-box-btn teal" onclick="reportBusy(this,'printMemberReport','pending')"><i class="fa fa-hourglass-half"></i><div><span id="rp-pending">0</span><small>Underprocess</small></div></button>
-        <button class="stat-box-btn green" onclick="reportBusy(this,'printMemberReport','active')"><i class="fa fa-user-check"></i><div><span id="rp-active">0</span><small>Active Members</small></div></button>
-        <button class="stat-box-btn orange" onclick="reportBusy(this,'printMemberReport','expired')"><i class="fa fa-clock"></i><div><span id="rp-expired">0</span><small>Expired Members</small></div></button>
-        <button class="stat-box-btn red" onclick="reportBusy(this,'printMemberReport','banned')"><i class="fa fa-ban"></i><div><span id="rp-banned">0</span><small>Banned Members</small></div></button>
+        <button class="stat-box-btn teal" onclick="reportBusy(this,'printMemberReport','pending')">
+          <i class="fa fa-hourglass-half"></i>
+          <div><span id="rp-pending">0</span><small>Underprocess</small></div>
+        </button>
+        <button class="stat-box-btn green" onclick="reportBusy(this,'printMemberReport','active')">
+          <i class="fa fa-user-check"></i>
+          <div><span id="rp-active">0</span><small>Active Members</small></div>
+        </button>
+        <button class="stat-box-btn orange" onclick="reportBusy(this,'printMemberReport','expired')">
+          <i class="fa fa-clock"></i>
+          <div><span id="rp-expired">0</span><small>Expired Members</small></div>
+        </button>
+        <button class="stat-box-btn red" onclick="reportBusy(this,'printMemberReport','banned')">
+          <i class="fa fa-ban"></i>
+          <div><span id="rp-banned">0</span><small>Banned Members</small></div>
+        </button>
       </div>
+
+      <!-- SECTION 2: FINANCIALS -->
       <div class="report-section-title" style="margin-top:20px"><i class="fa fa-wallet"></i> Financial Reports</div>
       <div class="stats-row-4">
-        <button class="stat-box-btn blue" onclick="reportBusy(this,'printCharityReport','')"><i class="fa fa-hand-holding-usd"></i><div><span id="rp-charity">Rs. 0</span><small>Total Charity</small></div></button>
-        <button class="stat-box-btn red" onclick="reportBusy(this,'printAdminExpReport','')"><i class="fa fa-receipt"></i><div><span id="rp-adminexp">Rs. 0</span><small>Admin Expenses</small></div></button>
-        <button class="stat-box-btn gold" onclick="reportBusy(this,'printCaseCostReport','')"><i class="fa fa-file-invoice-dollar"></i><div><span id="rp-casecost">Rs. 0</span><small>Case Costs</small></div></button>
-        <button class="stat-box-btn purple" onclick="reportBusy(this,'generateNetWorthCertificate','')"><i class="fa fa-certificate"></i><div><span id="rp-networth">Rs. 0</span><small>Net Worth Cert.</small></div></button>
+        <button class="stat-box-btn blue" onclick="reportBusy(this,'printCharityReport','')">
+          <i class="fa fa-hand-holding-usd"></i>
+          <div><span id="rp-charity">Rs. 0</span><small>Total Charity</small></div>
+        </button>
+        <button class="stat-box-btn red" onclick="reportBusy(this,'printAdminExpReport','')">
+          <i class="fa fa-receipt"></i>
+          <div><span id="rp-adminexp">Rs. 0</span><small>Admin Expenses</small></div>
+        </button>
+        <button class="stat-box-btn gold" onclick="reportBusy(this,'printCaseCostReport','')">
+          <i class="fa fa-file-invoice-dollar"></i>
+          <div><span id="rp-casecost">Rs. 0</span><small>Case Costs</small></div>
+        </button>
+        <button class="stat-box-btn purple" onclick="reportBusy(this,'generateNetWorthCertificate','')">
+          <i class="fa fa-certificate"></i>
+          <div><span id="rp-networth">Rs. 0</span><small>Net Worth Cert.</small></div>
+        </button>
       </div>
+
+      <!-- SECTION 3: CASES -->
       <div class="report-section-title" style="margin-top:20px"><i class="fa fa-file-alt"></i> Case Reports</div>
       <div class="stats-row-4">
-        <button class="stat-box-btn teal2" onclick="reportBusy(this,'printGrantReport','completed')"><i class="fa fa-clipboard-check"></i><div><span id="rp-completed">0</span><small>Completed Cases</small></div></button>
-        <button class="stat-box-btn green" onclick="reportBusy(this,'printGrantReport','approved')"><i class="fa fa-check-circle"></i><div><span id="rp-approved">0</span><small>Approved Cases</small></div></button>
-        <button class="stat-box-btn red" onclick="reportBusy(this,'printGrantReport','rejected')"><i class="fa fa-times-circle"></i><div><span id="rp-rejected">0</span><small>Rejected Cases</small></div></button>
-        <button class="stat-box-btn gold" onclick="reportBusy(this,'printGrantReport','closed')"><i class="fa fa-lock"></i><div><span id="rp-closed">0</span><small>Closed Cases</small></div></button>
+        <button class="stat-box-btn teal2" onclick="reportBusy(this,'printGrantReport','completed')">
+          <i class="fa fa-clipboard-check"></i>
+          <div><span id="rp-completed">0</span><small>Completed Cases</small></div>
+        </button>
+        <button class="stat-box-btn green" onclick="reportBusy(this,'printGrantReport','approved')">
+          <i class="fa fa-check-circle"></i>
+          <div><span id="rp-approved">0</span><small>Approved Cases</small></div>
+        </button>
+        <button class="stat-box-btn red" onclick="reportBusy(this,'printGrantReport','rejected')">
+          <i class="fa fa-times-circle"></i>
+          <div><span id="rp-rejected">0</span><small>Rejected Cases</small></div>
+        </button>
+        <button class="stat-box-btn gold" onclick="reportBusy(this,'printGrantReport','closed')">
+          <i class="fa fa-lock"></i>
+          <div><span id="rp-closed">0</span><small>Closed Cases</small></div>
+        </button>
       </div>
+
+      <!-- SECTION 4: LEDGERS -->
       <div class="report-section-title" style="margin-top:20px"><i class="fa fa-book"></i> Ledger Reports</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
         <div class="card" style="padding:16px">
           <h4 style="font-family:'Fraunces',serif;color:var(--teal);margin-bottom:12px"><i class="fa fa-book"></i> Cash Book</h4>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-            <input type="date" id="cbRptFrom" class="modal-input" style="flex:1;min-width:120px">
-            <input type="date" id="cbRptTo" class="modal-input" style="flex:1;min-width:120px">
+            <input type="date" id="cbRptFrom" class="modal-input" style="flex:1;min-width:120px" placeholder="From">
+            <input type="date" id="cbRptTo" class="modal-input" style="flex:1;min-width:120px" placeholder="To">
           </div>
-          <button class="btn btn-primary w-full" onclick="reportBusy(this,'printCashReportFiltered','')"><i class="fa fa-file-pdf"></i> Generate Cash Book Report</button>
+          <button class="btn btn-primary w-full" onclick="reportBusy(this,'printCashReportFiltered','')">
+            <i class="fa fa-file-pdf"></i> Generate Cash Book Report
+          </button>
         </div>
         <div class="card" style="padding:16px">
           <h4 style="font-family:'Fraunces',serif;color:var(--teal);margin-bottom:12px"><i class="fa fa-receipt"></i> Admin Expenses</h4>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-            <input type="date" id="aeRptFrom" class="modal-input" style="flex:1;min-width:120px">
-            <input type="date" id="aeRptTo" class="modal-input" style="flex:1;min-width:120px">
+            <input type="date" id="aeRptFrom" class="modal-input" style="flex:1;min-width:120px" placeholder="From">
+            <input type="date" id="aeRptTo" class="modal-input" style="flex:1;min-width:120px" placeholder="To">
           </div>
-          <button class="btn btn-primary w-full" onclick="reportBusy(this,'printAdminExpFiltered','')"><i class="fa fa-file-pdf"></i> Generate Expenses Report</button>
+          <button class="btn btn-primary w-full" onclick="reportBusy(this,'printAdminExpFiltered','')">
+            <i class="fa fa-file-pdf"></i> Generate Expenses Report
+          </button>
         </div>
       </div>
     </div>
@@ -451,14 +537,30 @@
 
       <!-- SETUP TOP MENU -->
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;background:#F5F9F8;padding:12px;border-radius:12px;">
-        <button class="filter-btn active" onclick="showSetupSection('adminSettings', this)"><i class="fa fa-cog"></i> Admin Settings</button>
-        <button class="filter-btn" onclick="showSetupSection('content', this)"><i class="fa fa-edit"></i> Content</button>
-        <button class="filter-btn" onclick="showSetupSection('slides', this)"><i class="fa fa-images"></i> Slides</button>
-        <button class="filter-btn" onclick="showSetupSection('news', this)"><i class="fa fa-newspaper"></i> News Feed</button>
-        <button class="filter-btn" onclick="showSetupSection('stories', this)"><i class="fa fa-heart"></i> Impact Stories</button>
-        <button class="filter-btn" onclick="showSetupSection('team', this)"><i class="fa fa-users"></i> Team</button>
-        <button class="filter-btn" onclick="showSetupSection('contact', this)"><i class="fa fa-address-book"></i> Contact</button>
-        <button class="filter-btn" onclick="showSetupSection('statistics', this)"><i class="fa fa-chart-bar"></i> Statistics</button>
+        <button class="filter-btn active" onclick="showSetupSection('adminSettings', this)">
+          <i class="fa fa-cog"></i> Admin Settings
+        </button>
+        <button class="filter-btn" onclick="showSetupSection('content', this)">
+          <i class="fa fa-edit"></i> Content
+        </button>
+        <button class="filter-btn" onclick="showSetupSection('slides', this)">
+          <i class="fa fa-images"></i> Slides
+        </button>
+        <button class="filter-btn" onclick="showSetupSection('news', this)">
+          <i class="fa fa-newspaper"></i> News Feed
+        </button>
+        <button class="filter-btn" onclick="showSetupSection('stories', this)">
+          <i class="fa fa-heart"></i> Impact Stories
+        </button>
+        <button class="filter-btn" onclick="showSetupSection('team', this)">
+          <i class="fa fa-users"></i> Team
+        </button>
+        <button class="filter-btn" onclick="showSetupSection('contact', this)">
+          <i class="fa fa-address-book"></i> Contact
+        </button>
+        <button class="filter-btn" onclick="showSetupSection('statistics', this)">
+          <i class="fa fa-chart-bar"></i> Statistics
+        </button>
       </div>
 
       <!-- ADMIN SETTINGS -->
@@ -518,11 +620,10 @@
       <div class="setup-section hidden" id="setup-slides">
         <div class="card" style="margin-top:16px">
           <h3 class="card-title"><i class="fa fa-images"></i> Home Page Slides</h3>
-          <p style="color:#8A9A96;font-size:.88rem;margin-bottom:16px">Slides add karo — image, heading aur text ke saath homepage hero section mein show honge.</p>
+          <p style="color:#8A9A96;font-size:.88rem;margin-bottom:16px">Add unlimited slides — these will show on the home page hero section.</p>
           <div class="charity-form-grid">
-            <div class="field"><label>Slide Heading <span style="color:#D9483A">*</span></label><input type="text" id="slide-heading" placeholder="e.g. Serving Humanity with Compassion"></div>
+            <div class="field"><label>Slide Title <small>(optional)</small></label><input type="text" id="slide-title" placeholder="e.g. Welcome to RHS"></div>
             <div class="field"><label>Order No</label><input type="number" id="slide-order" placeholder="1" min="1" value="1"></div>
-            <div class="field" style="grid-column:1/-1"><label>Slide Text / Material</label><textarea id="slide-text" rows="2" placeholder="e.g. Rising Hope Society works for the welfare of deserving families..."></textarea></div>
             <div class="field" style="grid-column:1/-1">
               <label>Slide Image <span style="color:#D9483A">*</span></label>
               <label for="slide-image" style="display:block;padding:16px;background:#F5F9F8;border:2px dashed #4CAF8A;border-radius:8px;cursor:pointer;text-align:center;position:relative">
@@ -545,64 +646,48 @@
           <h3 class="card-title"><i class="fa fa-newspaper"></i> News Feed</h3>
           <div class="charity-form-grid">
             <div class="field"><label>Title <span style="color:#D9483A">*</span></label><input type="text" id="news-title" placeholder="News title"></div>
-            <div class="field"><label>Category <span style="color:#D9483A">*</span></label><input type="text" id="news-category" placeholder="e.g. Announcement"></div>
+            <div class="field"><label>Category</label><input type="text" id="news-category" placeholder="e.g. Announcement"></div>
             <div class="field"><label>Date</label><input type="text" id="news-date" placeholder="dd-mm-yyyy"></div>
             <div class="field" style="grid-column:1/-1"><label>Content <span style="color:#D9483A">*</span></label><textarea id="news-body" rows="4" placeholder="News content..."></textarea></div>
             <div class="field" style="grid-column:1/-1">
-              <label>Image <small>(optional — URL ya upload)</small></label>
-              <input type="url" id="news-imageURL" placeholder="https://... (Cloudinary or YouTube URL)" style="margin-bottom:8px">
-              <label for="news-imageFile" style="display:block;padding:14px;background:#F5F9F8;border:2px dashed #4CAF8A;border-radius:8px;cursor:pointer;text-align:center;position:relative">
-                <input type="file" id="news-imageFile" accept="image/*" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer" onchange="previewNewsImage(this)">
-                <i class="fa fa-upload" style="color:#4CAF8A;font-size:1.3rem;display:block;margin-bottom:5px"></i>
-                <span style="color:#14534F;font-size:.88rem">Tap to upload image</span>
+              <label>Image / Video URL <small>(optional)</small></label>
+              <input type="url" id="news-imageURL" placeholder="https://... (Cloudinary or YouTube URL)">
+              <p style="font-size:.78rem;color:#8A9A96;margin-top:4px">Or upload image:</p>
+              <label for="news-imageFile" style="display:block;padding:10px;background:#F5F9F8;border:2px dashed #4CAF8A;border-radius:8px;cursor:pointer;text-align:center;position:relative;margin-top:4px">
+                <input type="file" id="news-imageFile" accept="image/*,video/*" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer">
+                <i class="fa fa-upload" style="color:#4CAF8A"></i> <span style="color:#14534F;font-size:.88rem">Tap to upload image</span>
               </label>
               <div id="newsImagePreview" style="margin-top:8px"></div>
             </div>
           </div>
-
-          <!-- ✅ Add News + Clear buttons -->
-          <div class="form-actions" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
-            <button id="addNewsBtn" class="btn btn-primary" onclick="addNewsItem()">
-              <i class="fa fa-plus"></i> Add News
-            </button>
-            <button type="button" class="btn btn-ghost" onclick="clearNewsForm()">
-              <i class="fa fa-rotate-left"></i> Clear Form
-            </button>
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="addNewsItem()"><i class="fa fa-plus"></i> Add News</button>
           </div>
-
           <p class="form-msg" id="newsMsg"></p>
           <div id="newsListWrap" style="margin-top:20px"></div>
         </div>
       </div>
 
-      <!-- ===== IMPACT STORIES ===== -->
+      <!-- IMPACT STORIES -->
       <div class="setup-section hidden" id="setup-stories">
         <div class="card" style="margin-top:16px">
           <h3 class="card-title"><i class="fa fa-heart"></i> Impact Stories</h3>
           <div class="charity-form-grid">
             <div class="field"><label>Person Name <span style="color:#D9483A">*</span></label><input type="text" id="story-name" placeholder="e.g. Ahmed Khan"></div>
-            <div class="field"><label>Category <span style="color:#D9483A">*</span></label><input type="text" id="story-category" placeholder="e.g. Medical Help"></div>
-            <div class="field"><label>Location <span style="color:#D9483A">*</span></label><input type="text" id="story-location" placeholder="e.g. Khairpur Tamewali"></div>
+            <div class="field"><label>Category</label><input type="text" id="story-category" placeholder="e.g. Medical Help"></div>
+            <div class="field"><label>Location</label><input type="text" id="story-location" placeholder="e.g. Khairpur Tamewali"></div>
             <div class="field" style="grid-column:1/-1"><label>Story <span style="color:#D9483A">*</span></label><textarea id="story-text" rows="4" placeholder="Tell their story..."></textarea></div>
             <div class="field" style="grid-column:1/-1">
-              <label>Photo <span style="color:#D9483A">*</span></label>
+              <label>Image / Video <small>(optional)</small></label>
               <label for="story-imageFile" style="display:block;padding:14px;background:#F5F9F8;border:2px dashed #4CAF8A;border-radius:8px;cursor:pointer;text-align:center;position:relative">
-                <input type="file" id="story-imageFile" accept="image/*" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer" onchange="previewStoryImage(this)">
+                <input type="file" id="story-imageFile" accept="image/*,video/*" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer">
                 <div id="storyImagePreview"><i class="fa fa-image" style="font-size:1.5rem;color:#4CAF8A;display:block;margin-bottom:6px"></i><span style="color:#14534F;font-size:.88rem">Tap to upload photo</span></div>
               </label>
             </div>
           </div>
-
-          <!-- ✅ Add Story + Clear Form buttons -->
-          <div class="form-actions" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
-            <button id="addStoryBtn" class="btn btn-primary" onclick="addStoryItem()">
-              <i class="fa fa-plus"></i> Add Story
-            </button>
-            <button type="button" class="btn btn-ghost" onclick="clearStoryForm()">
-              <i class="fa fa-rotate-left"></i> Clear Form
-            </button>
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="addStoryItem()"><i class="fa fa-plus"></i> Add Story</button>
           </div>
-
           <p class="form-msg" id="storyMsg"></p>
           <div id="storiesListWrap" style="margin-top:20px"></div>
         </div>
@@ -627,6 +712,7 @@
           </div>
           <div class="form-actions">
             <button class="btn btn-primary" onclick="addTeamMember()"><i class="fa fa-plus"></i> Add Member</button>
+            <button class="btn btn-ghost" onclick="clearTeamForm()"><i class="fa fa-rotate-left"></i> Clear</button>
           </div>
           <p class="form-msg" id="teamMsg"></p>
           <div id="teamListWrap" style="margin-top:20px"></div>
@@ -711,31 +797,33 @@
   </div>
 </div>
 
-<div id="printArea" class="print-area"></div>
 
+
+
+<div id="printArea" class="print-area"></div>
 <!-- Firebase SDK -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { getAuth, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  const FIREBASE_CONFIG = {
-    apiKey: "AIzaSyArd3DU3G4thncYaGuKSEseusduNSMORzs",
-    authDomain: "rising-hope-society-pk.firebaseapp.com",
-    projectId: "rising-hope-society-pk",
-    storageBucket: "rising-hope-society-pk.firebasestorage.app",
-    messagingSenderId: "371234102504",
-    appId: "1:371234102504:web:a8bf7d8cc51d1fd797fd5d"
-  };
-  const app = initializeApp(FIREBASE_CONFIG);
-  const db = getFirestore(app);
-  const auth = getAuth(app);
-  window.__db = db; window.__auth = auth;
-  window.__fauth = { signInWithEmailAndPassword, signOut, sendPasswordResetEmail, onAuthStateChanged };
-  window.__fs = { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, serverTimestamp };
-  window.__fbReady = true;
-  window.dispatchEvent(new Event('firebaseReady'));
-</script>
-<script type="module" src="firebase-db.js"></script>
-<script src="admin.js" defer></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    const FIREBASE_CONFIG = {
+      apiKey: "AIzaSyArd3DU3G4thncYaGuKSEseusduNSMORzs",
+      authDomain: "rising-hope-society-pk.firebaseapp.com",
+      projectId: "rising-hope-society-pk",
+      storageBucket: "rising-hope-society-pk.firebasestorage.app",
+      messagingSenderId: "371234102504",
+      appId: "1:371234102504:web:a8bf7d8cc51d1fd797fd5d"
+    };
+    const app = initializeApp(FIREBASE_CONFIG);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    window.__db = db; window.__auth = auth;
+    window.__fauth = { signInWithEmailAndPassword, signOut, sendPasswordResetEmail, onAuthStateChanged };
+    window.__fs = { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, serverTimestamp };
+    window.__fbReady = true;
+    window.dispatchEvent(new Event('firebaseReady'));
+  </script>
+  <script type="module" src="firebase-db.js"></script>
+  <script src="admin.js" defer></script>
 </body>
 </html>

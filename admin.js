@@ -315,6 +315,105 @@ async function addTeamMember(){
   }).catch(()=>{setLoading(btn,false);showMsg("teamMsg","Failed.","error");});
 }
 
+function clearTeamForm(){
+  ["team-name","team-designation","team-bio","team-order"].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value="";
+  });
+  const prev=document.getElementById("team-photo-preview");
+  if(prev) prev.innerHTML='<i class="fa fa-camera" style="color:#4CAF8A;font-size:1.5rem;display:block;margin-bottom:6px"></i><span style="color:#14534F;font-size:.88rem">Tap to select photo</span>';
+  const inp=document.getElementById("team-photo");
+  if(inp) inp.value="";
+  showMsg("teamMsg","","");
+}
+
+function openEditTeam(id,name,designation,order,bio,photo){
+  const old=document.getElementById("teamEditModal"); if(old) old.remove();
+  const modal=document.createElement("div");
+  modal.id="teamEditModal";
+  modal.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box";
+  modal.innerHTML=`
+    <div style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h3 style="color:#14534F;margin:0"><i class="fa fa-edit"></i> Edit Team Member</h3>
+        <button onclick="document.getElementById('teamEditModal').remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#8A9A96">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div>
+          <label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Name *</label>
+          <input id="et-name" value="${name}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;font-size:.95rem;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Designation *</label>
+          <input id="et-desig" value="${designation}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;font-size:.95rem;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Order No</label>
+          <input id="et-order" type="number" value="${order}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;font-size:.95rem;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Bio</label>
+          <textarea id="et-bio" rows="3" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;font-size:.95rem;box-sizing:border-box;resize:vertical">${bio}</textarea>
+        </div>
+        <div>
+          <label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:6px">Photo (change optional)</label>
+          ${photo?`<img src="${photo}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;margin-bottom:8px;border:2px solid #14534F;display:block">`:""}
+          <input type="file" id="et-photo" accept="image/*" style="display:block;width:100%;padding:10px;border:2px dashed #4CAF8A;border-radius:8px;background:#F5F9F8;cursor:pointer;box-sizing:border-box">
+          <div id="et-preview" style="margin-top:6px"></div>
+        </div>
+        <p id="editTeamMsg" style="margin:0;font-size:.85rem;color:#D9483A"></p>
+        <div style="display:flex;gap:10px">
+          <button id="editTeamSaveBtn" class="btn btn-primary" style="flex:1" onclick="saveEditTeam('${id}','${photo}')">
+            <i class="fa fa-save"></i> Save Changes
+          </button>
+          <button class="btn btn-ghost" onclick="document.getElementById('teamEditModal').remove()">Cancel</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  document.getElementById("et-photo").addEventListener("change",function(){
+    const file=this.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=e=>{document.getElementById("et-preview").innerHTML=`<img src="${e.target.result}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #14534F">`;};
+    reader.readAsDataURL(file);
+  });
+}
+
+async function saveEditTeam(id, existingPhoto){
+  const name  = document.getElementById("et-name")?.value.trim();
+  const desig = document.getElementById("et-desig")?.value.trim();
+  const order = Number(document.getElementById("et-order")?.value)||99;
+  const bio   = document.getElementById("et-bio")?.value.trim()||"";
+  const imgFile = document.getElementById("et-photo")?.files?.[0];
+  const msgEl = document.getElementById("editTeamMsg");
+  const saveBtn = document.getElementById("editTeamSaveBtn");
+  if(!name||!desig){ if(msgEl) msgEl.textContent="⚠️ Name aur Designation required."; return; }
+  setLoading(saveBtn,true,"Saving...");
+  if(msgEl) msgEl.textContent="";
+  let photo=existingPhoto;
+  if(imgFile){
+    try{
+      const fd=new FormData();
+      fd.append("file",imgFile);
+      fd.append("upload_preset","rhs-upload");
+      fd.append("folder","rhs/team");
+      const resp=await fetch("https://api.cloudinary.com/v1_1/dt9yspaw7/image/upload",{method:"POST",body:fd});
+      const data=await resp.json();
+      if(data.secure_url) photo=data.secure_url;
+      else throw new Error(data.error?.message||"Upload failed");
+    }catch(err){
+      setLoading(saveBtn,false);
+      if(msgEl) msgEl.textContent="⚠️ Photo upload failed: "+err.message;
+      return;
+    }
+  }
+  RHS.updateTeamMember(id,{name,designation:desig,order,bio,photo}).then(()=>{
+    setLoading(saveBtn,false);
+    document.getElementById("teamEditModal")?.remove();
+    showMsg("teamMsg","✅ Team member updated!","success");
+    loadTeamList();
+  }).catch(()=>{ setLoading(saveBtn,false); if(msgEl) msgEl.textContent="⚠️ Failed to save."; });
+}
+
 function loadTeamList(){
   if(!window.RHS){setTimeout(loadTeamList,500);return;}
   const wrap=document.getElementById("teamListWrap");
@@ -329,7 +428,12 @@ function loadTeamList(){
         <td><strong>${escHtml(m.name)}</strong></td>
         <td>${escHtml(m.designation)}</td>
         <td>${m.order||"—"}</td>
-        <td><button class="btn btn-sm btn-reject" onclick="deleteTeamMember('${m.id}','${escHtml(m.name)}')"><i class="fa fa-trash"></i></button></td>
+        <td>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm" style="background:#14534F;color:#fff;border:none" onclick="openEditTeam('${m.id}','${escHtml(m.name)}','${escHtml(m.designation)}','${m.order||1}','${escHtml(m.bio||"")}','${m.photo||""}')"><i class="fa fa-edit"></i></button>
+            <button class="btn btn-sm btn-reject" onclick="deleteTeamMember('${m.id}','${escHtml(m.name)}')"><i class="fa fa-trash"></i></button>
+          </div>
+        </td>
       </tr>`;
     });
     html+='</tbody></table>';
@@ -359,15 +463,10 @@ function loadMessages(){
     let html='';
     res.messages.forEach(m=>{
       const date=m.createdAt?.toDate?m.createdAt.toDate().toLocaleDateString("en-PK"):"—";
-      html+=`<div class="message-card" id="msg-${m.id}">
+      html+=`<div class="message-card">
         <div class="msg-header">
           <span class="msg-name"><i class="fa fa-user"></i> ${escHtml(m.name||"")}</span>
-          <div style="display:flex;align-items:center;gap:10px">
-            <span class="msg-date">${date}</span>
-            <button class="btn btn-sm btn-reject" title="Delete" onclick="deleteMessage('${m.id}','${escHtml(m.name||"")}')">
-              <i class="fa fa-trash"></i>
-            </button>
-          </div>
+          <span class="msg-date">${date}</span>
         </div>
         <div class="msg-email"><i class="fa fa-envelope"></i> ${escHtml(m.email||"")}</div>
         <div class="msg-text">${escHtml(m.message||"")}</div>
@@ -375,19 +474,6 @@ function loadMessages(){
     });
     wrap.innerHTML=html;
   }).catch(()=>{wrap.innerHTML='<div class="empty-state">Failed to load messages.</div>';});
-}
-
-function deleteMessage(id,name){
-  if(!confirm(`"${name}" ka message delete karein?`)) return;
-  if(!window.RHS?.deleteContactMessage){alert("Delete function not available.");return;}
-  RHS.deleteContactMessage(id).then(()=>{
-    const card=document.getElementById("msg-"+id);
-    if(card) card.remove();
-    const wrap=document.getElementById("messagesWrap");
-    if(wrap&&!wrap.querySelector(".message-card")){
-      wrap.innerHTML='<div class="empty-state"><i class="fa fa-envelope"></i><p>No messages yet.</p></div>';
-    }
-  }).catch(()=>alert("Failed to delete message."));
 }
 
 function setDefaultDates(){
