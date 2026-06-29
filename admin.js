@@ -414,6 +414,66 @@ async function saveEditTeam(id, existingPhoto){
   }).catch(()=>{ setLoading(saveBtn,false); if(msgEl) msgEl.textContent="⚠️ Failed to save."; });
 }
 
+function loadStoriesList(){
+  if(!window.RHS){setTimeout(loadStoriesList,500);return;}
+  const wrap=document.getElementById("storiesListWrap"); if(!wrap) return;
+  wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
+  RHS.getStories().then(res=>{
+    if(!res.stories||!res.stories.length){wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:20px">No stories yet.</p>';return;}
+    let html='<div style="display:flex;flex-direction:column;gap:12px;margin-top:12px">';
+    res.stories.forEach(s=>{
+      html+=`<div style="background:#F5F9F8;border:1.5px solid #D8E8E5;border-radius:12px;padding:14px;display:flex;gap:12px;flex-wrap:wrap">
+        ${s.imageUrl?`<img src="${s.imageUrl}" style="width:64px;height:64px;border-radius:8px;object-fit:cover;flex-shrink:0">`:`<div style="width:64px;height:64px;background:#E7DFD2;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa fa-image" style="color:#8A9A96"></i></div>`}
+        <div style="flex:1;min-width:160px">
+          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+            <div><strong style="color:#14534F">${escHtml(s.name)}</strong>
+              ${s.category?`<span style="margin-left:6px;background:#EEF8F1;color:#14534F;padding:2px 8px;border-radius:20px;font-size:.74rem;font-weight:600">${escHtml(s.category)}</span>`:""}
+              ${s.location?`<span style="display:block;color:#8A9A96;font-size:.78rem;margin-top:2px"><i class="fa fa-map-marker-alt"></i> ${escHtml(s.location)}</span>`:""}
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-sm" style="background:#14534F;color:#fff;border:none" onclick="openEditStory('${s.id}')"><i class="fa fa-edit"></i></button>
+              <button class="btn btn-sm btn-reject" onclick="deleteStoryItem('${s.id}','${escHtml(s.name)}')"><i class="fa fa-trash"></i></button>
+            </div>
+          </div>
+          <p style="color:#4A5C58;font-size:.85rem;margin:0">${escHtml((s.text||"").substring(0,120))}${(s.text||"").length>120?"...":""}</p>
+        </div>
+      </div>`;
+    });
+    html+='</div>';
+    wrap.innerHTML=html;
+  }).catch(()=>{wrap.innerHTML='<p style="color:#D9483A;text-align:center;padding:20px">Failed to load.</p>';});
+}
+
+function loadNewsList(){
+  if(!window.RHS){setTimeout(loadNewsList,500);return;}
+  const wrap=document.getElementById("newsListWrap"); if(!wrap) return;
+  wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
+  RHS.getNews().then(res=>{
+    if(!res.news||!res.news.length){wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:20px">No news yet.</p>';return;}
+    let html='<div style="display:flex;flex-direction:column;gap:12px;margin-top:12px">';
+    res.news.forEach(n=>{
+      html+=`<div style="background:#F5F9F8;border:1.5px solid #D8E8E5;border-radius:12px;padding:14px;display:flex;gap:12px;flex-wrap:wrap">
+        ${n.imageURL?`<img src="${n.imageURL}" style="width:64px;height:64px;border-radius:8px;object-fit:cover;flex-shrink:0">`:`<div style="width:64px;height:64px;background:#E7DFD2;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa fa-newspaper" style="color:#8A9A96"></i></div>`}
+        <div style="flex:1;min-width:160px">
+          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+            <div><strong style="color:#14534F">${escHtml(n.title||"")}</strong>
+              ${n.category?`<span style="margin-left:6px;background:#EEF8F1;color:#14534F;padding:2px 8px;border-radius:20px;font-size:.74rem;font-weight:600">${escHtml(n.category)}</span>`:""}
+              ${n.date?`<span style="display:block;color:#8A9A96;font-size:.78rem;margin-top:2px"><i class="fa fa-calendar"></i> ${escHtml(n.date)}</span>`:""}
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-sm" style="background:#14534F;color:#fff;border:none" onclick="openEditNews('${n.id}')"><i class="fa fa-edit"></i></button>
+              <button class="btn btn-sm btn-reject" onclick="deleteNewsItem('${n.id}','${escHtml(n.title||"")}')"><i class="fa fa-trash"></i></button>
+            </div>
+          </div>
+          <p style="color:#4A5C58;font-size:.85rem;margin:0">${escHtml((n.body||"").substring(0,120))}${(n.body||"").length>120?"...":""}</p>
+        </div>
+      </div>`;
+    });
+    html+='</div>';
+    wrap.innerHTML=html;
+  }).catch(()=>{wrap.innerHTML='<p style="color:#D9483A;text-align:center;padding:20px">Failed to load.</p>';});
+}
+
 function loadTeamList(){
   if(!window.RHS){setTimeout(loadTeamList,500);return;}
   const wrap=document.getElementById("teamListWrap");
