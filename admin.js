@@ -1176,11 +1176,11 @@ function viewGrant(g){
           <label style="font-size:0.82rem;font-weight:600;color:#4A5C58;display:block;margin-bottom:6px">📝 Expense Detail <span style='color:#D9483A'>*</span></label>
           <textarea id="expDetail" rows="3" style="width:100%;padding:11px 13px;border:1.5px solid #C8D5D3;border-radius:10px;font-size:0.95rem;box-sizing:border-box;background:#fff;resize:vertical;font-family:inherit;line-height:1.5" placeholder="e.g. Cement 10 bags, Labour charges, Material transport, Plumbing work..."></textarea>
         </div>
-        <button class="btn btn-primary" style="width:100%;padding:13px;font-size:1rem" onclick="addCaseExpense('${escHtml(g.crn)}','${escHtml(g.cnic)}','${escHtml(g.dob)}','${escHtml(g.name)}','${escHtml(g.fatherName)}','${escHtml(g.gender)}','${escHtml(g.email)}','${escHtml(g.mobile)}','${escHtml(g.address)}','${escHtml(g.helpType)}')">
+        <button id="addExpenseBtn" class="btn btn-primary" style="width:100%;padding:13px;font-size:1rem" onclick="addCaseExpense('${escHtml(g.crn)}','${escHtml(g.cnic)}','${escHtml(g.dob)}','${escHtml(g.name)}','${escHtml(g.fatherName)}','${escHtml(g.gender)}','${escHtml(g.email)}','${escHtml(g.mobile)}','${escHtml(g.address)}','${escHtml(g.helpType)}')">
           <i class="fa fa-plus"></i> Add Expense & Debit Cash Book
         </button>
         <p class="form-msg" id="expMsg" style="margin-top:10px;font-size:0.9rem"></p>
-      </div>`:""}
+      </div>`:""} 
 
       <!-- Expenses List -->
       <div id="expensesList"></div>
@@ -1312,7 +1312,7 @@ function addCaseExpense(crn,cnic,dob,name,fatherName,gender,email,mobile,address
     if(msg){msg.textContent="⚠️ Please fill date, detail and amount.";msg.className="form-msg error";}
     return;
   }
-  const btn = document.querySelector('[onclick^="addCaseExpense"]');
+  const btn = document.getElementById("addExpenseBtn");
   setLoading(btn, true, "Saving...");
   if(msg) msg.textContent="";
   if(!window.RHS){setLoading(btn,false);return;}

@@ -420,7 +420,10 @@ async function submitGrant(data) {
   let activeCase = null;
   existing.forEach(d => {
     const dd = d.data();
-    if ((dd.status || "").toLowerCase() !== "closed") activeCase = dd;
+    const st = (dd.status || "").toLowerCase();
+    const dec = (dd.decision || "").toLowerCase();
+    // Allow re-apply if case is closed OR rejected
+    if (st !== "closed" && dec !== "rejected") activeCase = dd;
   });
 
   if (activeCase) {
@@ -512,8 +515,21 @@ async function getGrants(filter = "all") {
   else q = fs().query(col, fs().orderBy("createdAt", "desc"));
 
   const snaps = await fs().getDocs(q);
-  const grants = [];
+  let grants = [];
   snaps.forEach(d => grants.push({ id: d.id, ...d.data() }));
+
+  // FIX: Completed filter mein sirf woh cases jo status=Completed hain aur decision nahi (Approved/Rejected nahi)
+  if (filter === "completed") {
+    grants = grants.filter(g => {
+      const dec = (g.decision || "").toLowerCase();
+      return dec !== "approved" && dec !== "rejected";
+    });
+  }
+  // FIX: Approved filter mein closed cases nahi aane chahiye
+  if (filter === "approved") {
+    grants = grants.filter(g => (g.status || "").toLowerCase() !== "closed");
+  }
+
   return { success: true, grants };
 }
 

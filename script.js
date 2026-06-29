@@ -1048,8 +1048,25 @@ document.addEventListener("DOMContentLoaded", () => {
             if (grantForm) grantForm.style.display = "none";
             if (grantResult) {
               grantResult.hidden = false;
-              const txt = document.getElementById("grantResultText");
-              if (txt) txt.innerHTML = res.message || "";
+              grantResult.innerHTML = `
+                <div class="status-msg status-green">
+                  <i class="fa-solid fa-circle-check" style="font-size:2.2rem;color:#2E9E5B;display:block;margin-bottom:12px"></i>
+                  <div class="status-title" style="color:#1F7A45">Request Submitted Successfully!</div>
+                  <p>Dear <strong>${name}</strong>, Your Charity Request No <strong>${res.crn || ""}</strong> has been received. Our team will contact you soon.</p>
+                  <p style="margin-top:8px;font-size:.88rem;color:#555">
+                    📞 <a href="tel:+92${(window.NGO?.alert||"").replace(/\D/g,"").slice(-10)}" style="color:var(--teal);font-weight:600">${window.NGO?.alert||""}</a>
+                    &nbsp;|&nbsp;
+                    📧 <a href="mailto:${window.NGO?.email||""}" style="color:var(--teal);font-weight:600">${window.NGO?.email||""}</a>
+                  </p>
+                  <div class="reg-alert-btns">
+                    <button class="btn btn-primary" onclick="window.hideHelpSection();setTimeout(()=>window.showHelpSection('status'),100)">
+                      <i class="fa-solid fa-magnifying-glass"></i> Check Status
+                    </button>
+                    <button class="btn btn-ghost" onclick="window.hideHelpSection()">
+                      <i class="fa-solid fa-arrow-left"></i> Back
+                    </button>
+                  </div>
+                </div>`;
             }
           } else if (res.code === "DUPLICATE_CASE") {
             // Styled duplicate alert matching registration form
