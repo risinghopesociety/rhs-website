@@ -546,7 +546,8 @@ async function updateGrant(id, updates) {
 // CASE EXPENSES
 // ============================================================
 async function addCaseExpense(data) {
-  await waitForFB();
+  try {
+    await waitForFB();
   const ref = await fs().addDoc(fs().collection(db(), "caseExpenses"), {
     ...data,
     createdAt: fs().serverTimestamp()
