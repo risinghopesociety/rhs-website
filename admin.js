@@ -184,6 +184,10 @@ function showSetupSection(section, btn){
   const el = document.getElementById("setup-"+section);
   if(el) el.classList.remove("hidden");
   if(btn) btn.classList.add("active");
+  if(section==="stories") loadStoriesList();
+  if(section==="news") loadNewsList();
+  if(section==="slides") loadSlidesList();
+  if(section==="team") loadTeamList();
 }
 
 // ====== LOAD ALL SETUP DATA ======
