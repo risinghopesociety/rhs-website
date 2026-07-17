@@ -40,6 +40,7 @@ window.NGO = {
   bank: "111111111111111",
   alert: "0308-8919628",
   logoUrl: "",
+  signatureUrl: "",
   ourTeamTitle: "Our Team",
   ourTeamMatter: ""
 };
@@ -55,6 +56,7 @@ function loadNGOSettings() {
       bank:          res.bankAccount    || window.NGO.bank,
       alert:         res.alertNumber    || res.ngoPhone || window.NGO.alert,
       logoUrl:       res.logoUrl        || "",
+      signatureUrl:  res.presidentSignatureUrl || "",
       ourTeamTitle:  res.ourTeamTitle   || "Our Team",
       ourTeamMatter: res.ourTeamMatter  || ""
     };
@@ -589,7 +591,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div style="background:#14534F;padding:22px 28px;display:flex;align-items:center;gap:18px">
           <img src="${logoSrc}" style="width:70px;height:70px;border-radius:50%;object-fit:contain;background:#fff;padding:5px;border:3px solid rgba(255,255,255,.3);flex-shrink:0">
           <div style="flex:1;color:#fff">
-            <div style="font-size:10px;letter-spacing:.25em;color:rgba(255,255,255,.6);font-family:sans-serif;margin-bottom:3px">MEMBERSHIP CERTIFICATE</div>
+            <div style="font-size:10px;letter-spacing:.25em;color:rgba(255,255,255,.6);font-family:sans-serif;margin-bottom:3px">DIGITAL MEMBERSHIP CERTIFICATE</div>
             <div style="font-size:22px;font-weight:700;line-height:1.2">${window.NGO.name}</div>
             <div style="font-size:11px;color:rgba(255,255,255,.65);font-family:sans-serif;margin-top:3px">${window.NGO.address}</div>
           </div>
@@ -607,7 +609,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ${photoBlock}
           <div style="flex:1">
             <div style="font-size:21px;font-weight:700;color:#14534F">${member.fullName || "—"}</div>
-            <div style="font-size:13px;color:#8A9A96;font-family:sans-serif;margin-top:2px">${member.membershipType || "Member"}</div>
+            <div style="font-size:13px;color:#8A9A96;font-family:sans-serif;margin-top:2px">${member.designation || "General Member"}</div>
             <div style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;background:${badgeBg};border:1.5px solid ${badgeColor}55;border-radius:20px;padding:4px 12px">
               <div style="width:7px;height:7px;border-radius:50%;background:${badgeColor}"></div>
               <span style="font-size:11px;font-weight:700;color:${badgeColor};font-family:sans-serif;letter-spacing:.05em">${status}</span>
@@ -618,6 +620,8 @@ document.addEventListener("DOMContentLoaded", () => {
         <!-- DETAILS GRID -->
         <div style="padding:20px 28px;display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid #E7DFD2">
           ${[
+            ["Membership Type", member.membershipType || "—"],
+            ["Admin Comment",   member.adminComments   || "—"],
             ["CNIC",       member.cnic         || "—"],
             ["Date of Birth", member.dob        || "—"],
             ["Mobile",     member.mobile        || "—"],
@@ -638,7 +642,10 @@ document.addEventListener("DOMContentLoaded", () => {
         <!-- SIGNATURE + ISSUE DATE -->
         <div style="padding:20px 28px;display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid #E7DFD2;flex-wrap:wrap;gap:12px">
           <div style="text-align:center;min-width:180px">
-            <div style="font-size:11px;color:#14534F;font-family:sans-serif;font-weight:700;margin-bottom:24px">President / Authorized Signatory</div>
+            <div style="font-size:11px;color:#14534F;font-family:sans-serif;font-weight:700;margin-bottom:2px">President / Authorized Signatory</div>
+            <div style="height:46px;width:150px;margin:0 auto;display:flex;align-items:flex-end;justify-content:center">
+              ${window.NGO.signatureUrl ? `<img src="${window.NGO.signatureUrl}" loading="eager" decoding="sync" alt="Signature" style="max-width:150px;max-height:44px;width:auto;height:auto;object-fit:contain">` : ""}
+            </div>
             <div style="border-top:1.5px solid #14534F;padding-top:5px;font-size:10px;color:#8A9A96;font-family:sans-serif">${window.NGO.name}</div>
           </div>
           <div style="text-align:right;font-family:sans-serif">

@@ -290,3 +290,50 @@ body{font-family:'Inter',sans-serif;background:#F0F4F3;color:var(--ink);margin:0
   .team-admin-card { flex-wrap: wrap; }
   .team-admin-card > div:last-child { width: 100%; justify-content: flex-end; }
 }
+
+/* ===== MEMBERS — Mobile App Style Card List ===== */
+.btn-edit{background:#EEF3FF;color:#2563EB;border:1px solid #BFCFFF;}
+.btn-edit:hover{background:var(--blue);color:#fff;}
+
+.member-list{display:flex;flex-direction:column;gap:12px;}
+.member-card{
+  background:#fff;border:1px solid var(--line);border-radius:16px;
+  padding:14px 16px;box-shadow:0 1px 3px rgba(20,83,79,.05);
+  transition:.2s;
+}
+.member-card:hover{box-shadow:0 6px 18px rgba(20,83,79,.1);border-color:#BFE3CC;}
+.member-card-top{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.member-avatar{
+  width:44px;height:44px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--teal),var(--teal-2));
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-family:'Fraunces',serif;font-weight:700;font-size:1rem;
+}
+.member-card-info{flex:1;min-width:0;}
+.member-card-name{font-weight:700;font-size:0.98rem;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.member-card-sub{font-size:0.8rem;color:#8A9A96;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.member-card-status{flex-shrink:0;}
+.member-card-meta{
+  display:flex;flex-wrap:wrap;gap:8px 16px;
+  padding:10px 0;margin-bottom:10px;
+  border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);
+  font-size:0.82rem;color:#5C6E6A;
+}
+.member-card-meta i{color:var(--teal);width:14px;text-align:center;margin-right:4px;}
+.member-card-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.member-card-actions .btn-sm{padding:8px 12px;flex:1;min-width:0;justify-content:center;}
+
+@media(max-width:600px){
+  .member-card{padding:12px 14px;border-radius:14px;}
+  .member-card-name{font-size:0.92rem;}
+  .member-card-actions .btn-sm{flex:1 1 calc(50% - 8px);font-size:0.78rem;padding:9px 8px;}
+}
+
+/* Full-screen, app-like modal on small screens */
+@media(max-width:600px){
+  .modal-overlay{padding:0;align-items:flex-end;}
+  .modal{max-width:100%;width:100%;max-height:92vh;border-radius:20px 20px 0 0;}
+  .modal-body{padding:18px;}
+  .detail-grid{grid-template-columns:1fr;}
+  .modal-actions .field{min-width:100%;}
+}

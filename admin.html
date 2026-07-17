@@ -588,6 +588,25 @@
                 </div>
               </div>
             </div>
+            <div class="field" style="grid-column:1/-1">
+              <label>President / Authorized Signatory Signature</label>
+              <p style="font-size:.78rem;color:#8A9A96;margin:4px 0 8px">Used on the Digital Membership Certificate. Upload a scanned or photographed signature on a plain/white background — any size or shape is fine, it will be auto-fitted on the certificate.</p>
+              <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+                <div style="width:150px;height:60px;background:#fff;border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">
+                  <img id="currentSignaturePreview" src="" alt="Signature preview" style="max-width:140px;max-height:52px;width:auto;height:auto;object-fit:contain;display:none">
+                </div>
+                <div style="flex:1;min-width:200px">
+                  <label for="set-signatureFile" style="display:block;padding:10px 16px;background:#F5F9F8;border:2px dashed #4CAF8A;border-radius:8px;cursor:pointer;text-align:center;font-size:.9rem;color:#14534F">
+                    <i class="fa fa-signature"></i> Click to upload signature
+                    <input type="file" id="set-signatureFile" accept="image/*" style="display:none" onchange="previewSignature(this)">
+                  </label>
+                  <p style="font-size:.78rem;color:#8A9A96;margin-top:4px">
+                    PNG with transparent background works best, max 2MB.
+                    <a href="javascript:void(0)" onclick="removeSignature()" style="color:#D9483A;font-weight:600">Remove signature</a>
+                  </p>
+                </div>
+              </div>
+            </div>
             <div class="field"><label>Team Section Title</label><input type="text" id="set-ourTeamTitle" placeholder="Our Team"></div>
             <div class="field" style="grid-column:1/-1"><label>Team Section Text</label><textarea id="set-ourTeamMatter" rows="2" placeholder="Description..."></textarea></div>
           </div>

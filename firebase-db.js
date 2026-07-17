@@ -55,6 +55,7 @@ async function getNGOSettings() {
     bankAccount: "111111111111111",
     alertNumber: "0308-8919628",
     logoUrl: "",
+    presidentSignatureUrl: "",
     copyrightText: "Rising Hope Society — Khairpur Tamewali, Bahawalpur. All rights reserved.",
     ourTeamTitle: "Our Team",
     ourTeamMatter: "The volunteers and coordinators who keep Rising Hope Society moving forward."
@@ -289,12 +290,23 @@ async function getMemberByCredentials(cnic, dob) {
   return { success: true, found: true, active: data.status === "Active", member: data };
 }
 
-async function updateMemberStatus(id, status) {
+async function updateMemberStatus(id, status, extra = {}) {
   await waitForFB();
-  const updates = { status };
-  if (status === "Active") {
+  const updates = { ...extra, status };
+  if (status === "Active" && !extra.validUpto) {
     updates.validUpto = addMonthToDate(today());
   }
+  await fs().updateDoc(fs().doc(db(), "members", id), updates);
+  return { success: true };
+}
+
+// Update any/all fields of a member record (used by the admin Edit form)
+async function updateMemberDetails(id, data) {
+  await waitForFB();
+  const updates = { ...data };
+  // Never let an empty edit form accidentally wipe registrationNo/id fields
+  delete updates.id;
+  delete updates.row;
   await fs().updateDoc(fs().doc(db(), "members", id), updates);
   return { success: true };
 }
@@ -781,7 +793,7 @@ window.RHS = {
   getTeam, addTeamMember, updateTeamMember, deleteTeamMember,
   // Members
   registerMember, getMembers, getMemberByCredentials,
-  updateMemberStatus, searchMembers,
+  updateMemberStatus, updateMemberDetails, searchMembers,
   // Charity
   addCharityEntry, getCharityLedger, getAllCharity,
   // Grants

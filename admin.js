@@ -9,7 +9,9 @@ window.NGO = {
   address: "Khairpur Tamewali, Bahawalpur, Punjab, Pakistan",
   email: "risinghopesociety@gmail.com",
   bank: "111111111111111",
-  alert: "0308-8919628"
+  alert: "0308-8919628",
+  logoUrl: "",
+  signatureUrl: ""
 };
 
 function loadNGOSettings() {
@@ -22,10 +24,19 @@ function loadNGOSettings() {
       address: res.ngoAddress || window.NGO.address,
       email:   res.ngoEmail   || window.NGO.email,
       bank:    res.bankAccount|| window.NGO.bank,
-      alert:   res.alertNumber|| res.ngoPhone || window.NGO.alert
+      alert:   res.alertNumber|| res.ngoPhone || window.NGO.alert,
+      logoUrl: res.logoUrl || "",
+      signatureUrl: res.presidentSignatureUrl || ""
     };
     document.querySelectorAll(".ngo-name").forEach(el => el.textContent = window.NGO.name);
     document.querySelectorAll(".ngo-address").forEach(el => el.textContent = window.NGO.address);
+    const logoPrev = document.getElementById("currentLogoPreview");
+    if (logoPrev && window.NGO.logoUrl) logoPrev.src = window.NGO.logoUrl;
+    const sigPrev = document.getElementById("currentSignaturePreview");
+    if (sigPrev) {
+      if (window.NGO.signatureUrl) { sigPrev.src = window.NGO.signatureUrl; sigPrev.style.display = "block"; }
+      else { sigPrev.style.display = "none"; }
+    }
   }).catch(() => {});
 }
 
@@ -227,6 +238,50 @@ function loadSetupData(){
   loadTeamList();
 }
 
+// ====== LOGO / SIGNATURE UPLOAD (Cloudinary) ======
+let __pendingLogoUrl = null;
+let __pendingSignatureUrl = null;
+
+function previewLogo(input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  const preview = document.getElementById("currentLogoPreview");
+  // Instant local preview
+  const localUrl = URL.createObjectURL(file);
+  if(preview) preview.src = localUrl;
+  if(!window.RHS){ return; }
+  showMsg("adminSettingsMsg","Uploading logo...","");
+  RHS.uploadImage(file, "rhs/settings").then(url=>{
+    __pendingLogoUrl = url;
+    showMsg("adminSettingsMsg","✅ Logo uploaded. Click 'Save Settings' to apply.","success");
+  }).catch(()=>{
+    showMsg("adminSettingsMsg","⚠️ Logo upload failed. Please try again.","error");
+  });
+}
+
+function previewSignature(input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  const preview = document.getElementById("currentSignaturePreview");
+  const localUrl = URL.createObjectURL(file);
+  if(preview){ preview.src = localUrl; preview.style.display = "block"; }
+  if(!window.RHS){ return; }
+  showMsg("adminSettingsMsg","Uploading signature...","");
+  RHS.uploadImage(file, "rhs/settings").then(url=>{
+    __pendingSignatureUrl = url;
+    showMsg("adminSettingsMsg","✅ Signature uploaded. Click 'Save Settings' to apply.","success");
+  }).catch(()=>{
+    showMsg("adminSettingsMsg","⚠️ Signature upload failed. Please try again.","error");
+  });
+}
+
+function removeSignature(){
+  __pendingSignatureUrl = "";
+  const preview = document.getElementById("currentSignaturePreview");
+  if(preview){ preview.src=""; preview.style.display="none"; }
+  showMsg("adminSettingsMsg","Signature will be removed on next Save.","");
+}
+
 // ====== SAVE ADMIN SETTINGS ======
 function saveAdminSettings(){
   if(!window.RHS){return;}
@@ -240,11 +295,15 @@ function saveAdminSettings(){
     ourTeamTitle:document.getElementById("set-ourTeamTitle")?.value||"",
     ourTeamMatter:document.getElementById("set-ourTeamMatter")?.value||""
   };
+  if(__pendingLogoUrl !== null) data.logoUrl = __pendingLogoUrl;
+  if(__pendingSignatureUrl !== null) data.presidentSignatureUrl = __pendingSignatureUrl;
   const btn=document.querySelector('#setup-adminSettings .btn-primary');
   setLoading(btn,true,"Saving...");
   RHS.saveNGOSettings(data).then(()=>{
     setLoading(btn,false);
     showMsg("adminSettingsMsg","✅ Settings saved!","success");
+    __pendingLogoUrl = null;
+    __pendingSignatureUrl = null;
     loadNGOSettings();
   }).catch(()=>{setLoading(btn,false);showMsg("adminSettingsMsg","Failed to save.","error");});
 }
@@ -824,6 +883,11 @@ function viewMember(m){
         <input class="modal-input" id="mComment" value="${escHtml(m.adminComments||"")}" placeholder="Optional note">
       </div>
     </div>
+    <div style="margin-top:12px">
+      <button class="btn btn-sm btn-ghost" style="border-color:var(--teal);color:var(--teal)" onclick="saveMembershipDetails('${m.id || m.row}')">
+        <i class="fa fa-save"></i> Save Membership Type / Designation / Comment
+      </button>
+    </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
       ${(()=>{
         const s=(m.status||"").toLowerCase();
@@ -853,11 +917,38 @@ function viewMember(m){
 function changeMemberStatus(id, status){
   showMsg("memberActionMsg","Updating...","");
   if(!window.RHS){showMsg("memberActionMsg","System loading...","error");return;}
-  RHS.updateMemberStatus(id, status).then(res=>{
+  // Carry over Membership Type / Designation / Admin Comment set in this modal at approval time
+  const extra = {};
+  const memType = document.getElementById("mMemType")?.value;
+  const desig   = document.getElementById("mDesig")?.value?.trim();
+  const comment = document.getElementById("mComment")?.value;
+  if(memType) extra.membershipType = memType;
+  if(desig)   extra.designation = desig;
+  if(comment !== undefined && comment !== null) extra.adminComments = comment.trim();
+  RHS.updateMemberStatus(id, status, extra).then(res=>{
     if(res.success){
       showMsg("memberActionMsg","✅ Status updated to: "+status,"success");
       loadMembers(currentMemberFilter);
       loadAdminStats();
+    } else {
+      showMsg("memberActionMsg",res.message||"Failed.","error");
+    }
+  }).catch(()=>showMsg("memberActionMsg","Network error. Please check connection.","error"));
+}
+
+// Save Membership Type / Designation / Admin Comment without changing status
+function saveMembershipDetails(id){
+  if(!window.RHS){showMsg("memberActionMsg","System loading...","error");return;}
+  const data = {
+    membershipType: document.getElementById("mMemType")?.value || "",
+    designation:    document.getElementById("mDesig")?.value?.trim() || "",
+    adminComments:  document.getElementById("mComment")?.value?.trim() || ""
+  };
+  showMsg("memberActionMsg","Saving...","");
+  RHS.updateMemberDetails(id, data).then(res=>{
+    if(res.success){
+      showMsg("memberActionMsg","✅ Membership details saved!","success");
+      loadMembers(currentMemberFilter);
     } else {
       showMsg("memberActionMsg",res.message||"Failed.","error");
     }
@@ -904,17 +995,23 @@ function highlight(text, q) {
   return escHtml(text).replace(new RegExp(escaped, 'gi'), m => `<span class="search-highlight">${m}</span>`);
 }
 
+function memberInitials(name){
+  const parts = (name || "?").trim().split(/\s+/);
+  return ((parts[0]?.[0]||"") + (parts[1]?.[0]||"")).toUpperCase() || "?";
+}
+
 function renderMembersTable(members, q = "") {
   const wrap = document.getElementById("membersTableWrap");
   if (!members.length) {
     wrap.innerHTML = '<div class="empty-state"><i class="fa fa-users"></i><p>No members found.</p></div>';
     return;
   }
-  let html = '<table class="data-table"><thead><tr><th>#</th><th>Reg No</th><th>Name</th><th>CNIC</th><th>Gender</th><th>Mobile</th><th>Status</th><th>Valid Upto</th><th>Actions</th></tr></thead><tbody>';
+  let html = '<div class="member-list">';
   members.forEach((m, i) => {
     const sb = statusBadge(m.status);
     const s = (m.status || "").toLowerCase();
     const docId = m.id || m.row;
+    const mJson = JSON.stringify(m).replace(/'/g, "&#39;");
     let actionBtns = "";
     if (s === "underprocess" || s === "under process" || s === "pending") {
       actionBtns = `
@@ -934,25 +1031,109 @@ function renderMembersTable(members, q = "") {
         <button class="btn btn-sm btn-approve" onclick='quickStatus("${docId}","Active","${escHtml(m.fullName)}")' title="Activate"><i class="fa fa-check"></i></button>
         <button class="btn btn-sm btn-ban" onclick='quickStatus("${docId}","Expired","${escHtml(m.fullName)}")' title="Mark Expired"><i class="fa fa-clock"></i></button>`;
     }
-    html += `<tr>
-      <td>${i + 1}</td>
-      <td><strong>${highlight(m.registrationNo, q)}</strong></td>
-      <td>${highlight(m.fullName, q)}</td>
-      <td><code>${highlight(m.cnic, q)}</code></td>
-      <td>${escHtml(m.gender)}</td>
-      <td>${highlight(m.mobile, q)}</td>
-      <td>${sb}</td>
-      <td>${m.validUpto || "—"}</td>
-      <td style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+    html += `
+    <div class="member-card">
+      <div class="member-card-top">
+        <div class="member-avatar">${memberInitials(m.fullName)}</div>
+        <div class="member-card-info">
+          <div class="member-card-name">${highlight(m.fullName, q)}</div>
+          <div class="member-card-sub"><code>${highlight(m.cnic, q)}</code> &nbsp;·&nbsp; ${escHtml(m.gender)||"—"}</div>
+        </div>
+        <div class="member-card-status">${sb}</div>
+      </div>
+      <div class="member-card-meta">
+        <div><i class="fa fa-hashtag"></i> ${highlight(m.registrationNo, q)}</div>
+        <div><i class="fa fa-phone"></i> ${highlight(m.mobile, q)}</div>
+        <div><i class="fa fa-calendar-check"></i> ${m.validUpto || "—"}</div>
+      </div>
+      <div class="member-card-actions">
         ${actionBtns}
-        <button class="btn btn-sm btn-ghost" onclick='viewMember(${JSON.stringify(m).replace(/'/g, "&#39;")})' title="View Detail">
-          <i class="fa fa-eye"></i>
-        </button>
-      </td>
-    </tr>`;
+        <button class="btn btn-sm btn-ghost" onclick='viewMember(${mJson})' title="View Detail"><i class="fa fa-eye"></i> View</button>
+        <button class="btn btn-sm btn-edit" onclick='editMember(${mJson})' title="Edit Member"><i class="fa fa-pen"></i> Edit</button>
+      </div>
+    </div>`;
   });
-  html += "</tbody></table>";
+  html += "</div>";
   wrap.innerHTML = html;
+}
+
+// ====== EDIT MEMBER (full field editor) ======
+function editMember(m){
+  const id = m.id || m.row;
+  document.getElementById("modalMemberName").textContent = "Edit Member — " + (m.fullName || "");
+  document.getElementById("memberModalBody").innerHTML = `
+    <div class="detail-grid">
+      <div class="field"><label class="lbl" style="margin-bottom:4px">Full Name</label>
+        <input class="modal-input" id="em-fullName" value="${escHtml(m.fullName||"")}"></div>
+      <div class="field"><label class="lbl" style="margin-bottom:4px">CNIC</label>
+        <input class="modal-input" id="em-cnic" value="${escHtml(m.cnic||"")}"></div>
+      <div class="field"><label class="lbl" style="margin-bottom:4px">Date of Birth</label>
+        <input class="modal-input" type="date" id="em-dob" value="${escHtml(m.dob||"")}"></div>
+      <div class="field"><label class="lbl" style="margin-bottom:4px">Gender</label>
+        <select class="modal-input" id="em-gender">
+          <option value="Male" ${m.gender==="Male"?"selected":""}>Male</option>
+          <option value="Female" ${m.gender==="Female"?"selected":""}>Female</option>
+          <option value="Other" ${m.gender==="Other"?"selected":""}>Other</option>
+        </select></div>
+      <div class="field"><label class="lbl" style="margin-bottom:4px">Profession</label>
+        <input class="modal-input" id="em-profession" value="${escHtml(m.profession||"")}"></div>
+      <div class="field"><label class="lbl" style="margin-bottom:4px">Mobile</label>
+        <input class="modal-input" id="em-mobile" value="${escHtml(m.mobile||"")}"></div>
+      <div class="field"><label class="lbl" style="margin-bottom:4px">Email</label>
+        <input class="modal-input" id="em-email" value="${escHtml(m.email||"")}"></div>
+      <div class="field"><label class="lbl" style="margin-bottom:4px">Father / Husband</label>
+        <input class="modal-input" id="em-fatherName" value="${escHtml(m.fatherName||"")}"></div>
+      <div class="field"><label class="lbl" style="margin-bottom:4px">Province</label>
+        <input class="modal-input" id="em-province" value="${escHtml(m.province||"")}"></div>
+      <div class="field"><label class="lbl" style="margin-bottom:4px">Valid Upto</label>
+        <input class="modal-input" type="date" id="em-validUpto" value="${escHtml(m.validUpto||"")}"></div>
+      <div class="field detail-full"><label class="lbl" style="margin-bottom:4px">Address</label>
+        <textarea class="modal-input" id="em-address" rows="2">${escHtml(m.address||"")}</textarea></div>
+      <div class="field"><label class="lbl" style="margin-bottom:4px">Membership Type</label>
+        <select class="modal-input" id="em-membershipType">
+          <option value="">— Select —</option>
+          <option value="Executive Body Member" ${m.membershipType==="Executive Body Member"?"selected":""}>Executive Body Member</option>
+          <option value="General Body Member" ${m.membershipType==="General Body Member"?"selected":""}>General Body Member</option>
+          <option value="Associate Member" ${m.membershipType==="Associate Member"?"selected":""}>Associate Member</option>
+        </select></div>
+      <div class="field"><label class="lbl" style="margin-bottom:4px">Designation</label>
+        <input class="modal-input" id="em-designation" value="${escHtml(m.designation||"")}" placeholder="e.g. President"></div>
+      <div class="field"><label class="lbl" style="margin-bottom:4px">Status</label>
+        <select class="modal-input" id="em-status">
+          ${["Underprocess","Active","Expired","Banned"].map(s=>`<option value="${s}" ${m.status===s?"selected":""}>${s}</option>`).join("")}
+        </select></div>
+      <div class="field detail-full"><label class="lbl" style="margin-bottom:4px">Admin Comment</label>
+        <input class="modal-input" id="em-adminComments" value="${escHtml(m.adminComments||"")}" placeholder="Optional note"></div>
+    </div>
+    <div style="margin-top:20px">
+      <button class="btn btn-primary w-full" onclick="saveMemberEdit('${id}')"><i class="fa fa-save"></i> Save Changes</button>
+    </div>
+    <p class="form-msg" id="memberActionMsg"></p>`;
+  document.getElementById("memberModal").classList.remove("hidden");
+}
+
+function saveMemberEdit(id){
+  if(!window.RHS){showMsg("memberActionMsg","System loading...","error");return;}
+  const val = (k)=>document.getElementById("em-"+k)?.value?.trim() || "";
+  const data = {
+    fullName: val("fullName"), cnic: val("cnic"), dob: val("dob"), gender: val("gender"),
+    profession: val("profession"), mobile: val("mobile"), email: val("email"),
+    fatherName: val("fatherName"), province: val("province"), address: val("address"),
+    membershipType: val("membershipType"), designation: val("designation"),
+    validUpto: val("validUpto"), status: val("status"), adminComments: val("adminComments")
+  };
+  if(!data.fullName || !data.cnic){ showMsg("memberActionMsg","Full Name and CNIC are required.","error"); return; }
+  showMsg("memberActionMsg","Saving...","");
+  RHS.updateMemberDetails(id, data).then(res=>{
+    if(res.success){
+      showMsg("memberActionMsg","✅ Member updated successfully!","success");
+      loadMembers(currentMemberFilter);
+      loadAdminStats();
+      setTimeout(()=>closeModal("memberModal"), 900);
+    } else {
+      showMsg("memberActionMsg",res.message||"Failed to update.","error");
+    }
+  }).catch(()=>showMsg("memberActionMsg","Network error. Please check connection.","error"));
 }
 
 // ====== TABLE SEARCH — GRANTS ======
