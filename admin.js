@@ -1068,7 +1068,7 @@ function editMember(m){
       <div class="field"><label class="lbl" style="margin-bottom:4px">CNIC</label>
         <input class="modal-input" id="em-cnic" value="${escHtml(m.cnic||"")}"></div>
       <div class="field"><label class="lbl" style="margin-bottom:4px">Date of Birth</label>
-        <input class="modal-input" type="date" id="em-dob" value="${escHtml(m.dob||"")}"></div>
+        <input class="modal-input" type="date" id="em-dob" value="${escHtml(toInputDate(m.dob))}"></div>
       <div class="field"><label class="lbl" style="margin-bottom:4px">Gender</label>
         <select class="modal-input" id="em-gender">
           <option value="Male" ${m.gender==="Male"?"selected":""}>Male</option>
@@ -1086,7 +1086,7 @@ function editMember(m){
       <div class="field"><label class="lbl" style="margin-bottom:4px">Province</label>
         <input class="modal-input" id="em-province" value="${escHtml(m.province||"")}"></div>
       <div class="field"><label class="lbl" style="margin-bottom:4px">Valid Upto</label>
-        <input class="modal-input" type="date" id="em-validUpto" value="${escHtml(m.validUpto||"")}"></div>
+        <input class="modal-input" type="date" id="em-validUpto" value="${escHtml(toInputDate(m.validUpto))}"></div>
       <div class="field detail-full"><label class="lbl" style="margin-bottom:4px">Address</label>
         <textarea class="modal-input" id="em-address" rows="2">${escHtml(m.address||"")}</textarea></div>
       <div class="field"><label class="lbl" style="margin-bottom:4px">Membership Type</label>
@@ -1116,11 +1116,11 @@ function saveMemberEdit(id){
   if(!window.RHS){showMsg("memberActionMsg","System loading...","error");return;}
   const val = (k)=>document.getElementById("em-"+k)?.value?.trim() || "";
   const data = {
-    fullName: val("fullName"), cnic: val("cnic"), dob: val("dob"), gender: val("gender"),
+    fullName: val("fullName"), cnic: val("cnic"), dob: formatDateForServer(val("dob")), gender: val("gender"),
     profession: val("profession"), mobile: val("mobile"), email: val("email"),
     fatherName: val("fatherName"), province: val("province"), address: val("address"),
     membershipType: val("membershipType"), designation: val("designation"),
-    validUpto: val("validUpto"), status: val("status"), adminComments: val("adminComments")
+    validUpto: formatDateForServer(val("validUpto")), status: val("status"), adminComments: val("adminComments")
   };
   if(!data.fullName || !data.cnic){ showMsg("memberActionMsg","Full Name and CNIC are required.","error"); return; }
   showMsg("memberActionMsg","Saving...","");
@@ -1288,6 +1288,15 @@ function formatDateForServer(ymd){
   const p=ymd.split("-");
   if(p.length===3)return p[2]+"-"+p[1]+"-"+p[0];
   return ymd;
+}
+
+// Converts a stored dd-mm-yyyy date string to yyyy-mm-dd so native <input type="date">
+// fields can display it correctly. Native date inputs only accept/emit yyyy-mm-dd.
+function toInputDate(dmy){
+  if(!dmy)return"";
+  const p=dmy.split("-");
+  if(p.length===3 && p[0].length===2 && p[2].length===4)return p[2]+"-"+p[1]+"-"+p[0];
+  return dmy; // already yyyy-mm-dd or unrecognized, leave as-is
 }
 
 function clearCharityForm(){
