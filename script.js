@@ -68,6 +68,10 @@ function loadNGOSettings() {
     if (teamTitle) teamTitle.textContent = window.NGO.ourTeamTitle;
     const teamMatter = document.querySelector("#team .section-head p");
     if (teamMatter && window.NGO.ourTeamMatter) teamMatter.textContent = window.NGO.ourTeamMatter;
+    // Preload logo & signature into browser cache so certificate print never
+    // has to wait on them the first time a member downloads their certificate.
+    if (window.NGO.logoUrl) { const li = new Image(); li.src = window.NGO.logoUrl; }
+    if (window.NGO.signatureUrl) { const si = new Image(); si.src = window.NGO.signatureUrl; }
   }).catch(() => {});
 }
 
@@ -516,6 +520,40 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
+  /* ===================== PRINT HELPER =====================
+     Waits for every <img> inside the print area to actually finish
+     loading (logo / photo / signature can be on a remote CDN) before
+     triggering window.print(). Printing before images are loaded is
+     what causes a downloaded certificate PDF to come out blank/empty
+     on mobile. Also avoids clearing the print area on a fixed timer,
+     since mobile "Save as PDF" flows can take longer than a few
+     seconds to actually finish. */
+  let __printClearTimer = null;
+  function printAreaWhenReady(pa) {
+    const imgs = Array.from(pa.querySelectorAll("img"));
+    const loaders = imgs.map(img => {
+      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+      return new Promise(resolve => {
+        img.addEventListener("load", resolve, { once: true });
+        img.addEventListener("error", resolve, { once: true });
+      });
+    });
+    const allLoaded = Promise.all(loaders);
+    const timeout = new Promise(resolve => setTimeout(resolve, 4000));
+
+    Promise.race([allLoaded, timeout]).then(() => {
+      window.print();
+      if (__printClearTimer) clearTimeout(__printClearTimer);
+      const clear = () => {
+        pa.innerHTML = "";
+        window.removeEventListener("afterprint", clear);
+      };
+      window.addEventListener("afterprint", clear);
+      // Safety net for mobile browsers that never fire 'afterprint'
+      __printClearTimer = setTimeout(clear, 30000);
+    });
+  }
+
   function renderCertificate(member) {
     if (!certResult) return;
     const st = (member.status || "Active");
@@ -664,8 +702,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
 
       </div>`;
-    window.print();
-    setTimeout(() => { pa.innerHTML = ""; }, 3000);
+    printAreaWhenReady(pa);
   };
 
   /* CLEAR VERIFY BTN */
@@ -812,8 +849,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const pa = document.getElementById("printCert");
     if (!pa) return;
     pa.innerHTML = `<style>@page{margin:12mm;size:A4;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}</style>${content.outerHTML}`;
-    window.print();
-    setTimeout(() => { pa.innerHTML = ""; }, 3000);
+    printAreaWhenReady(pa);
   };
 
   /* ===================== TEAM ===================== */
