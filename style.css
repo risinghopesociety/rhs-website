@@ -628,12 +628,14 @@ img, video { max-width: 100%; display: block; }
 .helpdesk-btns .btn { min-width: 200px; justify-content: center; }
 
 /* ===================== PRINT CERTIFICATE ===================== */
-.print-cert { display: none; }
+/* Rendered off-screen (not display:none) so html2canvas can capture it
+   to build a real PDF file — display:none elements can't be rasterized. */
+.print-cert { position: fixed; top: 0; left: -99999px; width: 700px; background: #fff; z-index: -1; }
 @media print {
   @page { margin: 15mm; size: A4; }
   body * { visibility: hidden; }
   .print-cert, .print-cert * { visibility: visible; }
-  .print-cert { display: block; position: absolute; top: 0; left: 0; width: 100%; }
+  .print-cert { position: absolute; top: 0; left: 0; width: 100%; }
   .no-print { display: none !important; }
 }
 

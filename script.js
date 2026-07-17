@@ -520,16 +520,18 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
-  /* ===================== PRINT HELPER =====================
-     Waits for every <img> inside the print area to actually finish
-     loading (logo / photo / signature can be on a remote CDN) before
-     triggering window.print(). Printing before images are loaded is
-     what causes a downloaded certificate PDF to come out blank/empty
-     on mobile. Also avoids clearing the print area on a fixed timer,
-     since mobile "Save as PDF" flows can take longer than a few
-     seconds to actually finish. */
+  /* ===================== PDF DOWNLOAD HELPER =====================
+     Previously this used window.print() + the browser's "Save as PDF"
+     print destination. That relies on each phone's OS-level print
+     service, which on a lot of Android browsers (Samsung Internet,
+     Xiaomi/MI Browser, in-app browsers, etc.) either fails silently or
+     finishes writing the file before the certificate has actually been
+     painted — the result is a downloaded PDF that opens blank.
+     Instead we now rasterize the certificate with html2canvas and build
+     a real PDF file with jsPDF ourselves, so the download always
+     contains the finished certificate regardless of the phone/browser. */
   let __printClearTimer = null;
-  function printAreaWhenReady(pa) {
+  function printAreaWhenReady(pa, filename) {
     const imgs = Array.from(pa.querySelectorAll("img"));
     const loaders = imgs.map(img => {
       if (img.complete && img.naturalWidth > 0) return Promise.resolve();
@@ -542,16 +544,49 @@ document.addEventListener("DOMContentLoaded", () => {
     const timeout = new Promise(resolve => setTimeout(resolve, 4000));
 
     Promise.race([allLoaded, timeout]).then(() => {
+      generatePdfFromArea(pa, filename);
+    });
+  }
+
+  function generatePdfFromArea(pa, filename) {
+    const clear = () => { pa.innerHTML = ""; };
+    if (!window.html2canvas || !(window.jspdf && window.jspdf.jsPDF)) {
+      // PDF libraries failed to load (e.g. no internet) — fall back to
+      // the browser's native print dialog rather than doing nothing.
       window.print();
       if (__printClearTimer) clearTimeout(__printClearTimer);
-      const clear = () => {
-        pa.innerHTML = "";
-        window.removeEventListener("afterprint", clear);
-      };
-      window.addEventListener("afterprint", clear);
-      // Safety net for mobile browsers that never fire 'afterprint'
+      window.addEventListener("afterprint", clear, { once: true });
       __printClearTimer = setTimeout(clear, 30000);
-    });
+      return;
+    }
+    window.html2canvas(pa, { scale: 2, useCORS: true, backgroundColor: "#ffffff" })
+      .then(canvas => {
+        const { jsPDF } = window.jspdf;
+        const imgData = canvas.toDataURL("image/jpeg", 0.95);
+        const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = pageWidth - 20;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 10;
+        pdf.addImage(imgData, "JPEG", 10, position, imgWidth, imgHeight);
+        heightLeft -= (pageHeight - 20);
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight + 10;
+          pdf.addPage();
+          pdf.addImage(imgData, "JPEG", 10, position, imgWidth, imgHeight);
+          heightLeft -= (pageHeight - 20);
+        }
+        pdf.save(filename || "document.pdf");
+        clear();
+      })
+      .catch(() => {
+        // Rendering failed — fall back to native print rather than
+        // leaving the user with nothing.
+        clear();
+        window.print();
+      });
   }
 
   function renderCertificate(member) {
@@ -702,7 +737,8 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
 
       </div>`;
-    printAreaWhenReady(pa);
+    const fname = "Membership-Certificate-" + (member.registrationNo || member.fullName || "RHS").replace(/[^a-z0-9]+/gi, "-") + ".pdf";
+    printAreaWhenReady(pa, fname);
   };
 
   /* CLEAR VERIFY BTN */
@@ -849,7 +885,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const pa = document.getElementById("printCert");
     if (!pa) return;
     pa.innerHTML = `<style>@page{margin:12mm;size:A4;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}</style>${content.outerHTML}`;
-    printAreaWhenReady(pa);
+    printAreaWhenReady(pa, "Charity-Ledger.pdf");
   };
 
   /* ===================== TEAM ===================== */
