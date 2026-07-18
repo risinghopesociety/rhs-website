@@ -849,23 +849,29 @@ function statusBadge(status){
 
 function viewMember(m){
   document.getElementById("modalMemberName").textContent=m.fullName;
+  const photoHtml = m.photo
+    ? `<img src="${m.photo}" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid #14534F;display:block;margin:0 auto 16px" onerror="this.style.display='none'">`
+    : `<div style="width:90px;height:90px;border-radius:50%;background:#EEF8F1;border:3px solid #14534F;display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fa fa-user" style="font-size:2rem;color:#8A9A96"></i></div>`;
   document.getElementById("memberModalBody").innerHTML=`
+    ${photoHtml}
     <div class="detail-grid">
       <div class="detail-item"><span class="lbl">Registration No</span><span class="val">${escHtml(m.registrationNo)}</span></div>
       <div class="detail-item"><span class="lbl">Status</span><span class="val">${statusBadge(m.status)}</span></div>
       <div class="detail-item"><span class="lbl">CNIC</span><span class="val">${escHtml(m.cnic)}</span></div>
-      <div class="detail-item"><span class="lbl">Date of Birth</span><span class="val">${escHtml(m.dob)}</span></div>
-      <div class="detail-item"><span class="lbl">Gender</span><span class="val">${escHtml(m.gender)}</span></div>
-      <div class="detail-item"><span class="lbl">Profession</span><span class="val">${escHtml(m.profession)}</span></div>
-      <div class="detail-item"><span class="lbl">Mobile</span><span class="val">${escHtml(m.mobile)}</span></div>
-      <div class="detail-item"><span class="lbl">Email</span><span class="val">${escHtml(m.email)}</span></div>
-      <div class="detail-item"><span class="lbl">Father / Husband</span><span class="val">${escHtml(m.fatherName)}</span></div>
-      <div class="detail-item"><span class="lbl">Province</span><span class="val">${escHtml(m.province)}</span></div>
-      <div class="detail-item detail-full"><span class="lbl">Address</span><span class="val">${escHtml(m.address)}</span></div>
+      <div class="detail-item"><span class="lbl">Date of Birth</span><span class="val">${escHtml(m.dob)||"—"}</span></div>
+      <div class="detail-item"><span class="lbl">Full Name</span><span class="val">${escHtml(m.fullName)}</span></div>
+      <div class="detail-item"><span class="lbl">Father / Husband</span><span class="val">${escHtml(m.fatherName)||"—"}</span></div>
+      <div class="detail-item"><span class="lbl">Gender</span><span class="val">${escHtml(m.gender)||"—"}</span></div>
+      <div class="detail-item"><span class="lbl">Profession</span><span class="val">${escHtml(m.profession)||"—"}</span></div>
+      <div class="detail-item"><span class="lbl">Mobile</span><span class="val">${escHtml(m.mobile)||"—"}</span></div>
+      <div class="detail-item"><span class="lbl">Email</span><span class="val">${escHtml(m.email)||"—"}</span></div>
+      <div class="detail-item"><span class="lbl">Province</span><span class="val">${escHtml(m.province)||"—"}</span></div>
       <div class="detail-item"><span class="lbl">Membership Type</span><span class="val">${escHtml(m.membershipType)||"—"}</span></div>
       <div class="detail-item"><span class="lbl">Designation</span><span class="val">${escHtml(m.designation)||"—"}</span></div>
-      <div class="detail-item"><span class="lbl">Registered On</span><span class="val">${escHtml(m.timestamp)}</span></div>
+      <div class="detail-item"><span class="lbl">Registration Date</span><span class="val">${escHtml(m.timestamp)||"—"}</span></div>
       <div class="detail-item"><span class="lbl">Valid Upto</span><span class="val">${escHtml(m.validUpto)||"—"}</span></div>
+      <div class="detail-item"><span class="lbl">Admin Comment</span><span class="val">${escHtml(m.adminComments)||"—"}</span></div>
+      <div class="detail-item detail-full"><span class="lbl">Address</span><span class="val">${escHtml(m.address)||"—"}</span></div>
     </div>
     <div class="modal-actions">
       <div class="field"><label class="lbl" style="margin-bottom:4px">Membership Type</label>
@@ -1034,7 +1040,9 @@ function renderMembersTable(members, q = "") {
     html += `
     <div class="member-card">
       <div class="member-card-top">
-        <div class="member-avatar">${memberInitials(m.fullName)}</div>
+        ${m.photo
+          ? `<img src="${m.photo}" class="member-avatar" style="object-fit:cover;border-radius:50%;background:#EEF8F1" onerror="this.outerHTML='<div class=\\'member-avatar\\'>${memberInitials(m.fullName)}</div>'">`
+          : `<div class="member-avatar">${memberInitials(m.fullName)}</div>`}
         <div class="member-card-info">
           <div class="member-card-name">${highlight(m.fullName, q)}</div>
           <div class="member-card-sub"><code>${highlight(m.cnic, q)}</code> &nbsp;·&nbsp; ${escHtml(m.gender)||"—"}</div>
@@ -2306,3 +2314,108 @@ document.addEventListener("click",e=>{
   if(e.target.classList.contains("modal-overlay"))e.target.classList.add("hidden");
   if(!e.target.closest(".search-live-wrap"))document.getElementById("charitySearchResults")?.classList.add("hidden");
 });
+
+/* ============================================================
+   VALIDATION RULES — Admin Panel
+   ============================================================ */
+
+function loadValidationRules() {
+  const wrap = document.getElementById("validationRulesWrap");
+  if (!wrap) return;
+  if (!window.RHS) { setTimeout(loadValidationRules, 600); return; }
+  RHS.getValidationRules().then(res => {
+    if (!res.success || !res.rules || !res.rules.length) {
+      wrap.innerHTML = `
+        <div style="text-align:center;padding:24px;color:#8A9A96;border:2px dashed var(--line);border-radius:10px">
+          <i class="fa fa-shield-halved" style="font-size:2rem;display:block;margin-bottom:8px"></i>
+          No rules added yet. Add your first rule below.
+        </div>`;
+      return;
+    }
+    let html = `
+      <table style="width:100%;border-collapse:collapse;font-family:sans-serif;font-size:.9rem">
+        <thead>
+          <tr style="background:#14534F;color:#fff">
+            <th style="padding:10px 14px;text-align:left">Amount Range (Rs.)</th>
+            <th style="padding:10px 14px;text-align:left">Validity Days</th>
+            <th style="padding:10px 14px;text-align:left">Effective Date</th>
+            <th style="padding:10px 14px;text-align:left">Added By</th>
+            <th style="padding:10px 14px;text-align:center">Action</th>
+          </tr>
+        </thead>
+        <tbody>`;
+    res.rules.forEach((r, i) => {
+      html += `
+        <tr style="background:${i%2?"#F5F9F8":"#fff"};border-bottom:1px solid #E7DFD2">
+          <td style="padding:10px 14px;font-weight:600;color:#14534F">
+            Rs. ${Number(r.minAmount).toLocaleString()} – Rs. ${Number(r.maxAmount).toLocaleString()}
+          </td>
+          <td style="padding:10px 14px">
+            <span style="background:#EEF8F1;color:#2E9E5B;font-weight:700;padding:3px 10px;border-radius:20px;font-size:.85rem">
+              ${r.days} Days
+            </span>
+          </td>
+          <td style="padding:10px 14px;color:#555">${r.effectiveDate || "—"}</td>
+          <td style="padding:10px 14px;color:#8A9A96;font-size:.82rem">${r.addedBy || "Admin"}</td>
+          <td style="padding:10px 14px;text-align:center">
+            <button class="btn btn-sm btn-reject" onclick="deleteValidationRule('${r.id}')" title="Delete Rule">
+              <i class="fa fa-trash"></i> Delete
+            </button>
+          </td>
+        </tr>`;
+    });
+    html += `</tbody></table>
+      <p style="font-size:.78rem;color:#8A9A96;margin-top:8px;font-style:italic">
+        <i class="fa fa-info-circle"></i> ${res.rules.length} rule(s) active. New donations will use the matching range rule.
+      </p>`;
+    wrap.innerHTML = html;
+  }).catch(() => {
+    if (wrap) wrap.innerHTML = `<div style="color:#D9483A;padding:12px">Failed to load rules. Please refresh.</div>`;
+  });
+}
+
+function addValidationRule() {
+  const minA = parseInt(document.getElementById("vr-minAmount")?.value || 0);
+  const maxA = parseInt(document.getElementById("vr-maxAmount")?.value || 0);
+  const days = parseInt(document.getElementById("vr-days")?.value || 0);
+  const msg  = document.getElementById("vrMsg");
+  if (!minA || !maxA || !days) { if(msg){msg.textContent="⚠️ All fields are required.";msg.className="form-msg error";} return; }
+  if (minA >= maxA) { if(msg){msg.textContent="⚠️ Min Amount must be less than Max Amount.";msg.className="form-msg error";} return; }
+  if (days < 1)    { if(msg){msg.textContent="⚠️ Validity Days must be at least 1.";msg.className="form-msg error";} return; }
+  if(msg){msg.textContent="Saving...";msg.className="form-msg";}
+  const addBtn = document.querySelector("#setup-validationRules .btn-primary");
+  setLoading(addBtn, true, "Adding...");
+  if (!window.RHS) { setLoading(addBtn, false); return; }
+  RHS.addValidationRule({ minAmount: minA, maxAmount: maxA, days }).then(res => {
+    setLoading(addBtn, false);
+    if (res.success) {
+      if(msg){msg.textContent="✅ Rule added successfully!";msg.className="form-msg success";}
+      document.getElementById("vr-minAmount").value = "";
+      document.getElementById("vr-maxAmount").value = "";
+      document.getElementById("vr-days").value = "";
+      loadValidationRules();
+      setTimeout(() => { if(msg) msg.textContent=""; }, 3000);
+    } else {
+      if(msg){msg.textContent=res.message||"Failed.";msg.className="form-msg error";}
+    }
+  }).catch(() => {
+    setLoading(addBtn, false);
+    if(msg){msg.textContent="Network error.";msg.className="form-msg error";}
+  });
+}
+
+function deleteValidationRule(id) {
+  if (!confirm("Delete this validation rule?")) return;
+  if (!window.RHS) return;
+  RHS.deleteValidationRule(id).then(res => {
+    if (res.success) loadValidationRules();
+    else alert("Failed to delete: " + (res.message || ""));
+  }).catch(() => alert("Network error."));
+}
+
+// Load rules when setup tab opens
+const _origShowSetupSection = window.showSetupSection;
+window.showSetupSection = function(name, btn) {
+  if (_origShowSetupSection) _origShowSetupSection(name, btn);
+  if (name === "validationRules") loadValidationRules();
+};

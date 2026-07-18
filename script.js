@@ -647,7 +647,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const isBanned = status === "BANNED";
     const badgeColor = isActive ? "#2E9E5B" : isBanned ? "#D9483A" : "#E8A33D";
     const badgeBg    = isActive ? "#EEF8F1"  : isBanned ? "#FEF2F2" : "#FEF9EC";
-    const issueDate  = new Date().toLocaleDateString("en-PK", { day:"2-digit", month:"long", year:"numeric" });
+    // Use member's registration date (timestamp) instead of today
+    const issueDateRaw = member.timestamp || "";
+    let issueDate = "";
+    if (issueDateRaw && /^\d{2}-\d{2}-\d{4}$/.test(issueDateRaw)) {
+      const [dd, mm, yyyy] = issueDateRaw.split("-");
+      const d = new Date(parseInt(yyyy), parseInt(mm)-1, parseInt(dd));
+      issueDate = d.toLocaleDateString("en-PK", { day:"numeric", month:"long", year:"numeric" });
+    } else {
+      issueDate = issueDateRaw || new Date().toLocaleDateString("en-PK", { day:"numeric", month:"long", year:"numeric" });
+    }
     const verifyUrl  = `${location.origin}${location.pathname}#verify`;
     const photoBlock = member.photo
       ? `<img src="${member.photo}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:4px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.25)">`

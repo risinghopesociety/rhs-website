@@ -183,6 +183,28 @@ function addMonthToDate(ds) {
   return ("0" + dt.getDate()).slice(-2) + "-" + ("0" + (dt.getMonth() + 1)).slice(-2) + "-" + dt.getFullYear();
 }
 
+// Add N days to a dd-mm-yyyy date string
+function addDaysToDate(ds, days) {
+  const p = (ds || "").split("-");
+  if (p.length !== 3) { ds = today(); const pd = today().split("-"); p[0]=pd[0];p[1]=pd[1];p[2]=pd[2]; }
+  const dt = new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0]));
+  dt.setDate(dt.getDate() + days);
+  return ("0" + dt.getDate()).slice(-2) + "-" + ("0" + (dt.getMonth() + 1)).slice(-2) + "-" + dt.getFullYear();
+}
+
+// Parse dd-mm-yyyy to timestamp for comparison
+function parseDMY(ds) {
+  if (!ds) return 0;
+  const p = ds.split("-");
+  if (p.length !== 3) return 0;
+  return new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0])).getTime();
+}
+
+// Return whichever date is later (dd-mm-yyyy)
+function getLatestDate(a, b) {
+  return parseDMY(a) >= parseDMY(b) ? a : b;
+}
+
 async function generateRegNo() {
   await waitForFB();
   const year = new Date().getFullYear();
@@ -293,8 +315,12 @@ async function getMemberByCredentials(cnic, dob) {
 async function updateMemberStatus(id, status, extra = {}) {
   await waitForFB();
   const updates = { ...extra, status };
+  // When approving to Active, set validUpto = registration date + 30 days (if not already set)
   if (status === "Active" && !extra.validUpto) {
-    updates.validUpto = addMonthToDate(today());
+    const memberRef = await fs().getDoc(fs().doc(db(), "members", id));
+    const mData = memberRef.exists() ? memberRef.data() : {};
+    const regDate = mData.timestamp || today(); // timestamp = dd-mm-yyyy registration date
+    updates.validUpto = addDaysToDate(regDate, 30);
   }
   await fs().updateDoc(fs().doc(db(), "members", id), updates);
   return { success: true };
@@ -338,11 +364,21 @@ async function addCharityEntry(data) {
     createdAt: fs().serverTimestamp()
   });
 
-  // Update member validUpto
+  // Update member validUpto using validation rules
   if (data.memberId) {
-    const validUpto = addMonthToDate(data.date || today());
-    await fs().updateDoc(fs().doc(db(), "members", data.memberId), { validUpto });
+    const amount = Number(data.amount) || 0;
+    const daysToAdd = await getValidationDaysForAmount(amount);
+    let validUpto = "";
+    if (daysToAdd > 0) {
+      const memberRef = await fs().getDoc(fs().doc(db(), "members", data.memberId));
+      const memberData = memberRef.exists() ? memberRef.data() : {};
+      const existingValid = memberData.validUpto || "";
+      // Start from today (donation date), not from old validUpto
+      validUpto = addDaysToDate(data.date || today(), daysToAdd);
+      await fs().updateDoc(fs().doc(db(), "members", data.memberId), { validUpto });
+    }
     data.validUpto = validUpto;
+    data.daysAdded = daysToAdd;
   }
 
   // Add to cashbook
@@ -784,6 +820,65 @@ async function getPublicStats() {
 }
 
 
+// ============================================================
+// VALIDATION RULES — Firestore (collection: validationRules)
+// ============================================================
+
+async function getValidationRules() {
+  await waitForFB();
+  try {
+    const q = fs().query(fs().collection(db(), "validationRules"), fs().orderBy("minAmount", "asc"));
+    const snaps = await fs().getDocs(q);
+    const rules = [];
+    snaps.forEach(d => rules.push({ id: d.id, ...d.data() }));
+    return { success: true, rules };
+  } catch(e) {
+    return { success: false, rules: [], message: e.message };
+  }
+}
+
+async function addValidationRule(data) {
+  await waitForFB();
+  try {
+    await fs().addDoc(fs().collection(db(), "validationRules"), {
+      minAmount:     Number(data.minAmount),
+      maxAmount:     Number(data.maxAmount),
+      days:          Number(data.days),
+      effectiveDate: today(),
+      addedBy:       "Admin",
+      createdAt:     fs().serverTimestamp()
+    });
+    return { success: true };
+  } catch(e) {
+    return { success: false, message: e.message };
+  }
+}
+
+async function deleteValidationRule(id) {
+  await waitForFB();
+  try {
+    await fs().deleteDoc(fs().doc(db(), "validationRules", id));
+    return { success: true };
+  } catch(e) {
+    return { success: false, message: e.message };
+  }
+}
+
+// Get how many validity days to add for a given donation amount
+// Returns 0 if no rule matches (amount below minimum or no rules)
+async function getValidationDaysForAmount(amount) {
+  try {
+    const res = await getValidationRules();
+    if (!res.success || !res.rules.length) return 0;
+    const amt = Number(amount) || 0;
+    // Find matching range rule (minAmount <= amt <= maxAmount)
+    const match = res.rules.find(r => amt >= Number(r.minAmount) && amt <= Number(r.maxAmount));
+    return match ? Number(match.days) : 0;
+  } catch(e) {
+    return 0;
+  }
+}
+
 window.RHS = {
   // Settings
   getNGOSettings, saveNGOSettings,
@@ -810,8 +905,10 @@ window.RHS = {
   submitContactMessage, getContactMessages,
   // Image
   uploadImage, imgUrl,
+  // Validation Rules
+  getValidationRules, addValidationRule, deleteValidationRule, getValidationDaysForAmount,
   // Utils
-  today, generateCNIC, addMonthToDate
+  today, generateCNIC, addMonthToDate, addDaysToDate
 };
 
 console.log("✅ RHS Firebase DB Layer Ready!");

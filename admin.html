@@ -558,8 +558,8 @@
         <button class="filter-btn" onclick="showSetupSection('contact', this)">
           <i class="fa fa-address-book"></i> Contact
         </button>
-        <button class="filter-btn" onclick="showSetupSection('statistics', this)">
-          <i class="fa fa-chart-bar"></i> Statistics
+        <button class="filter-btn" onclick="showSetupSection('validationRules', this)">
+          <i class="fa fa-shield-halved"></i> Validation Rules
         </button>
       </div>
 
@@ -759,20 +759,41 @@
       </div>
 
       <!-- STATISTICS -->
-      <div class="setup-section hidden" id="setup-statistics">
+      <!-- VALIDATION RULES -->
+      <div class="setup-section hidden" id="setup-validationRules">
         <div class="card" style="margin-top:16px">
-          <h3 class="card-title"><i class="fa fa-chart-bar"></i> Website Statistics</h3>
-          <p style="color:#8A9A96;font-size:.88rem;margin-bottom:16px">These numbers show on the main website homepage.</p>
-          <div class="charity-form-grid">
-            <div class="field"><label>Members Served</label><input type="number" id="set-members" placeholder="0" min="0"></div>
-            <div class="field"><label>Families Helped</label><input type="number" id="set-families" placeholder="0" min="0"></div>
-            <div class="field"><label>Projects Completed</label><input type="number" id="set-projects" placeholder="0" min="0"></div>
-            <div class="field"><label>Volunteers</label><input type="number" id="set-volunteers" placeholder="0" min="0"></div>
+          <h3 class="card-title"><i class="fa fa-shield-halved"></i> Membership Validation Rules</h3>
+          <p style="color:#8A9A96;font-size:.88rem;margin-bottom:4px">
+            Define how many days a member certificate stays valid based on donation amount range.
+            New approved members (no donation yet) automatically get <strong>30 days</strong> from approval date.
+          </p>
+          <p style="color:#92620A;font-size:.82rem;margin-bottom:20px;background:#FEF9EC;border:1px solid #F5C76A55;border-radius:8px;padding:8px 12px">
+            <i class="fa fa-info-circle"></i> Rules apply to <strong>new donations only</strong>. Old donation history is not changed. Each rule is saved with an effective date.
+          </p>
+          <div id="validationRulesWrap">
+            <div style="text-align:center;padding:24px;color:#8A9A96"><i class="fa fa-spinner fa-spin"></i> Loading rules...</div>
           </div>
-          <div class="form-actions">
-            <button class="btn btn-primary" onclick="saveStatistics()"><i class="fa fa-save"></i> Save Statistics</button>
+          <div style="margin-top:24px;border-top:1px solid var(--line);padding-top:20px">
+            <h4 style="font-size:1rem;color:var(--teal);margin-bottom:14px"><i class="fa fa-plus-circle"></i> Add New Rule</h4>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+              <div class="field">
+                <label>Min Amount (Rs.) <span style="color:var(--coral)">*</span></label>
+                <input type="number" id="vr-minAmount" placeholder="e.g. 500" min="0" autocomplete="off">
+              </div>
+              <div class="field">
+                <label>Max Amount (Rs.) <span style="color:var(--coral)">*</span></label>
+                <input type="number" id="vr-maxAmount" placeholder="e.g. 999" min="0" autocomplete="off">
+              </div>
+              <div class="field">
+                <label>Validity Days <span style="color:var(--coral)">*</span></label>
+                <input type="number" id="vr-days" placeholder="e.g. 30" min="1" autocomplete="off">
+              </div>
+            </div>
+            <div class="form-actions" style="margin-top:12px">
+              <button class="btn btn-primary" onclick="addValidationRule()"><i class="fa fa-plus"></i> Add Rule</button>
+            </div>
+            <p class="form-msg" id="vrMsg"></p>
           </div>
-          <p class="form-msg" id="statisticsMsg"></p>
         </div>
       </div>
 
