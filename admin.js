@@ -1070,6 +1070,21 @@ function editMember(m){
   const id = m.id || m.row;
   document.getElementById("modalMemberName").textContent = "Edit Member — " + (m.fullName || "");
   document.getElementById("memberModalBody").innerHTML = `
+    <div class="field detail-full" style="margin-bottom:16px">
+      <label class="lbl" style="margin-bottom:6px">Member Photo</label>
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div id="em-photo-preview" style="width:64px;height:64px;border-radius:50%;flex-shrink:0;overflow:hidden;background:#F5F9F8;border:2px solid var(--teal);display:flex;align-items:center;justify-content:center">
+          ${m.photo ? `<img src="${m.photo}" style="width:100%;height:100%;object-fit:cover">` : `<i class="fa fa-user" style="color:#8A9A96;font-size:1.4rem"></i>`}
+        </div>
+        <div style="flex:1;min-width:180px">
+          <label for="em-photoFile" style="display:block;padding:10px 14px;background:#F5F9F8;border:2px dashed #4CAF8A;border-radius:8px;cursor:pointer;text-align:center;font-size:.85rem;color:#14534F">
+            <i class="fa fa-camera"></i> Tap to change photo
+            <input type="file" id="em-photoFile" accept="image/*" style="display:none" onchange="previewEditMemberPhoto(this)">
+          </label>
+          <p style="font-size:.75rem;color:#8A9A96;margin-top:4px">Leave empty to keep the current photo.</p>
+        </div>
+      </div>
+    </div>
     <div class="detail-grid">
       <div class="field"><label class="lbl" style="margin-bottom:4px">Full Name</label>
         <input class="modal-input" id="em-fullName" value="${escHtml(m.fullName||"")}"></div>
@@ -1120,7 +1135,17 @@ function editMember(m){
   document.getElementById("memberModal").classList.remove("hidden");
 }
 
-function saveMemberEdit(id){
+function previewEditMemberPhoto(input){
+  const file = input.files?.[0];
+  if(!file) return;
+  const preview = document.getElementById("em-photo-preview");
+  if(!preview) return;
+  const reader = new FileReader();
+  reader.onload = e => { preview.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`; };
+  reader.readAsDataURL(file);
+}
+
+async function saveMemberEdit(id){
   if(!window.RHS){showMsg("memberActionMsg","System loading...","error");return;}
   const val = (k)=>document.getElementById("em-"+k)?.value?.trim() || "";
   const data = {
@@ -1131,8 +1156,25 @@ function saveMemberEdit(id){
     validUpto: formatDateForServer(val("validUpto")), status: val("status"), adminComments: val("adminComments")
   };
   if(!data.fullName || !data.cnic){ showMsg("memberActionMsg","Full Name and CNIC are required.","error"); return; }
-  showMsg("memberActionMsg","Saving...","");
+
+  const saveBtn = document.querySelector('#memberModalBody .btn-primary');
+  const photoFile = document.getElementById("em-photoFile")?.files?.[0];
+
+  showMsg("memberActionMsg", photoFile ? "Uploading photo..." : "Saving...", "");
+  setLoading(saveBtn, true, "Saving...");
+
+  if (photoFile) {
+    try {
+      data.photo = await RHS.uploadImage(photoFile, "rhs/members");
+    } catch (e) {
+      setLoading(saveBtn, false);
+      showMsg("memberActionMsg", "⚠️ Photo upload failed: " + (e.message || "please try again."), "error");
+      return;
+    }
+  }
+
   RHS.updateMemberDetails(id, data).then(res=>{
+    setLoading(saveBtn, false);
     if(res.success){
       showMsg("memberActionMsg","✅ Member updated successfully!","success");
       loadMembers(currentMemberFilter);
@@ -1141,7 +1183,10 @@ function saveMemberEdit(id){
     } else {
       showMsg("memberActionMsg",res.message||"Failed to update.","error");
     }
-  }).catch(()=>showMsg("memberActionMsg","Network error. Please check connection.","error"));
+  }).catch(()=>{
+    setLoading(saveBtn, false);
+    showMsg("memberActionMsg","Network error. Please check connection.","error");
+  });
 }
 
 // ====== TABLE SEARCH — GRANTS ======
@@ -2333,7 +2378,8 @@ function loadValidationRules() {
       return;
     }
     let html = `
-      <table style="width:100%;border-collapse:collapse;font-family:sans-serif;font-size:.9rem">
+      <div style="width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch">
+      <table style="width:100%;min-width:560px;border-collapse:collapse;font-family:sans-serif;font-size:.9rem">
         <thead>
           <tr style="background:#14534F;color:#fff">
             <th style="padding:10px 14px;text-align:left">Amount Range (Rs.)</th>
@@ -2364,7 +2410,7 @@ function loadValidationRules() {
           </td>
         </tr>`;
     });
-    html += `</tbody></table>
+    html += `</tbody></table></div>
       <p style="font-size:.78rem;color:#8A9A96;margin-top:8px;font-style:italic">
         <i class="fa fa-info-circle"></i> ${res.rules.length} rule(s) active. New donations will use the matching range rule.
       </p>`;

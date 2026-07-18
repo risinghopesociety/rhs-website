@@ -263,6 +263,57 @@ body{font-family:'Inter',sans-serif;background:#F0F4F3;color:var(--ink);margin:0
 .setup-section{display:block;}
 .setup-section.hidden{display:none!important;}
 
+/* ===== SETUP TOP MENU — Mobile Friendly ===== */
+.setup-top-menu-wrap{
+  display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;
+  background:#F5F9F8;padding:12px;border-radius:12px;
+  max-width:100%;box-sizing:border-box;
+}
+.setup-top-menu-wrap .filter-btn{
+  white-space:nowrap;flex:0 0 auto;
+}
+@media(max-width:600px){
+  .setup-top-menu-wrap{gap:6px;padding:10px;justify-content:flex-start;}
+  .setup-top-menu-wrap .filter-btn{
+    flex:1 1 calc(50% - 6px);
+    justify-content:center;
+    padding:9px 8px;
+    font-size:.78rem;
+    gap:6px;
+  }
+}
+@media(max-width:360px){
+  .setup-top-menu-wrap .filter-btn{flex:1 1 100%;}
+}
+
+/* ===== VALIDATION RULES — Add New Rule form — Mobile Friendly ===== */
+.vr-add-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:14px;
+  max-width:100%;
+}
+@media(max-width:700px){
+  .vr-add-grid{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:480px){
+  .vr-add-grid{grid-template-columns:1fr;gap:12px;}
+}
+
+/* ===== GENERAL SAFETY NET — any leftover fixed 2/3-column inline
+   grids anywhere in the admin panel collapse to a single column on
+   small screens so nothing is ever pushed off-screen ===== */
+@media(max-width:480px){
+  [style*="grid-template-columns:1fr 1fr 1fr"],
+  [style*="grid-template-columns: 1fr 1fr 1fr"]{
+    grid-template-columns:1fr!important;
+  }
+  [style*="grid-template-columns:1fr 1fr"],
+  [style*="grid-template-columns: 1fr 1fr"]{
+    grid-template-columns:1fr!important;
+  }
+}
+
 /* ===== MESSAGES TAB ===== */
 .message-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px;}
 .message-card .msg-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}

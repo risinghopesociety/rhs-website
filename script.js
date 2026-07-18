@@ -670,14 +670,14 @@ document.addEventListener("DOMContentLoaded", () => {
       <div style="border:5px double #14534F;border-radius:6px;font-family:Georgia,serif;max-width:680px;margin:0 auto;overflow:hidden">
 
         <!-- DARK GREEN HEADER -->
-        <div style="background:#14534F;padding:22px 28px;display:flex;align-items:center;gap:18px">
+        <div style="background:#14534F;padding:22px 28px;display:flex;align-items:center">
           <img src="${logoSrc}" style="width:70px;height:70px;border-radius:50%;object-fit:contain;background:#fff;padding:5px;border:3px solid rgba(255,255,255,.3);flex-shrink:0">
-          <div style="flex:1;color:#fff">
+          <div style="flex:1;color:#fff;margin-left:18px">
             <div style="font-size:10px;letter-spacing:.25em;color:rgba(255,255,255,.6);font-family:sans-serif;margin-bottom:3px">DIGITAL MEMBERSHIP CERTIFICATE</div>
             <div style="font-size:22px;font-weight:700;line-height:1.2">${window.NGO.name}</div>
             <div style="font-size:11px;color:rgba(255,255,255,.65);font-family:sans-serif;margin-top:3px">${window.NGO.address}</div>
           </div>
-          <div style="text-align:right;color:#fff;flex-shrink:0">
+          <div style="text-align:right;color:#fff;flex-shrink:0;margin-left:18px">
             <div style="font-size:9px;color:rgba(255,255,255,.5);font-family:sans-serif">REG. NO.</div>
             <div style="font-size:15px;font-weight:700;font-family:sans-serif">${regNo}</div>
           </div>
@@ -687,14 +687,14 @@ document.addEventListener("DOMContentLoaded", () => {
         <div style="height:5px;background:linear-gradient(90deg,#E8A33D,#F5C76A,#E8A33D)"></div>
 
         <!-- PHOTO + NAME ROW -->
-        <div style="background:#F5F9F8;padding:22px 28px;display:flex;align-items:center;gap:20px;border-bottom:1px solid #E7DFD2">
+        <div style="background:#F5F9F8;padding:22px 28px;display:flex;align-items:center;border-bottom:1px solid #E7DFD2">
           ${photoBlock}
-          <div style="flex:1">
+          <div style="flex:1;margin-left:20px">
             <div style="font-size:21px;font-weight:700;color:#14534F">${member.fullName || "—"}</div>
             <div style="font-size:13px;color:#8A9A96;font-family:sans-serif;margin-top:2px">${member.designation || "General Member"}</div>
-            <div style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;background:${badgeBg};border:1.5px solid ${badgeColor}55;border-radius:20px;padding:4px 12px">
-              <div style="width:7px;height:7px;border-radius:50%;background:${badgeColor}"></div>
-              <span style="font-size:11px;font-weight:700;color:${badgeColor};font-family:sans-serif;letter-spacing:.05em">${status}</span>
+            <div style="margin-top:8px;display:inline-flex;align-items:center;background:${badgeBg};border:1.5px solid ${badgeColor}55;border-radius:20px;padding:4px 12px">
+              <div style="width:7px;height:7px;border-radius:50%;background:${badgeColor};flex-shrink:0"></div>
+              <span style="font-size:11px;font-weight:700;color:${badgeColor};font-family:sans-serif;letter-spacing:.05em;margin-left:6px">${status}</span>
             </div>
           </div>
         </div>
@@ -722,15 +722,15 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
 
         <!-- SIGNATURE + ISSUE DATE -->
-        <div style="padding:20px 28px;display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid #E7DFD2;flex-wrap:wrap;gap:12px">
-          <div style="text-align:center;min-width:180px">
+        <div style="padding:20px 28px;display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid #E7DFD2;flex-wrap:wrap">
+          <div style="text-align:center;min-width:180px;margin-bottom:12px">
             <div style="font-size:11px;color:#14534F;font-family:sans-serif;font-weight:700;margin-bottom:2px">President / Authorized Signatory</div>
             <div style="height:46px;width:150px;margin:0 auto;display:flex;align-items:flex-end;justify-content:center">
               ${window.NGO.signatureUrl ? `<img src="${window.NGO.signatureUrl}" loading="eager" decoding="sync" alt="Signature" style="max-width:150px;max-height:44px;width:auto;height:auto;object-fit:contain">` : ""}
             </div>
             <div style="border-top:1.5px solid #14534F;padding-top:5px;font-size:10px;color:#8A9A96;font-family:sans-serif">${window.NGO.name}</div>
           </div>
-          <div style="text-align:right;font-family:sans-serif">
+          <div style="text-align:right;font-family:sans-serif;margin-bottom:12px">
             <div style="font-size:9px;color:#8A9A96;text-transform:uppercase;letter-spacing:.08em">Issue Date</div>
             <div style="font-size:13px;font-weight:700;color:#14534F;margin-top:2px">${issueDate}</div>
           </div>
@@ -825,33 +825,33 @@ document.addEventListener("DOMContentLoaded", () => {
           if (donResult) {
             donResult.innerHTML = `
               <div id="ledgerContent" style="border:2px solid #E7DFD2;border-radius:12px;overflow:hidden;background:#fff;font-family:Georgia,serif">
-                <div style="background:#14534F;padding:18px 24px;display:flex;align-items:center;gap:14px">
+                <div style="background:#14534F;padding:18px 24px;display:flex;align-items:center">
                   <img src="${logoSrc}" style="width:50px;height:50px;border-radius:50%;object-fit:contain;background:#fff;padding:4px;border:2px solid rgba(255,255,255,0.3);flex-shrink:0">
-                  <div style="flex:1">
+                  <div style="flex:1;margin-left:14px">
                     <div style="font-size:9px;letter-spacing:.2em;color:rgba(255,255,255,.6);font-family:sans-serif;margin-bottom:2px">CHARITY DONATION LEDGER</div>
                     <div style="font-size:16px;font-weight:700;color:#fff">${window.NGO.name}</div>
                     <div style="font-size:11px;color:rgba(255,255,255,.6);font-family:sans-serif">${window.NGO.address}</div>
                   </div>
-                  <div style="text-align:right;flex-shrink:0">
+                  <div style="text-align:right;flex-shrink:0;margin-left:14px">
                     <div style="font-size:9px;color:rgba(255,255,255,.5);font-family:sans-serif;margin-bottom:2px">TOTAL CHARITY</div>
                     <div style="font-size:16px;font-weight:700;color:#E8A33D;font-family:sans-serif">Rs. ${res.total.toLocaleString()}</div>
                   </div>
                 </div>
                 <div style="height:3px;background:#E8A33D"></div>
-                <div style="padding:16px 24px;display:flex;gap:16px;align-items:center;border-bottom:1px solid #E7DFD2;background:#FAFAF8;flex-wrap:wrap">
+                <div style="padding:16px 24px;display:flex;align-items:center;border-bottom:1px solid #E7DFD2;background:#FAFAF8;flex-wrap:wrap">
                   ${m.photo
                     ? `<img src="${m.photo}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:3px solid #14534F;flex-shrink:0">`
                     : `<div style="width:60px;height:60px;border-radius:50%;background:#EEF8F1;border:3px solid #14534F;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa-solid fa-user" style="font-size:1.5rem;color:#4CAF8A"></i></div>`}
-                  <div style="flex:1;min-width:0">
+                  <div style="flex:1;min-width:0;margin-left:16px">
                     <div style="font-size:16px;font-weight:700;color:#14534F">${m.fullName}</div>
                     <div style="font-size:12px;color:#8A9A96;font-family:sans-serif">${m.registrationNo || "—"} · ${m.membershipType || "Member"}</div>
                   </div>
-                  <div style="text-align:right">
+                  <div style="text-align:right;margin-left:16px">
                     <div style="font-size:11px;color:#8A9A96;font-family:sans-serif;margin-bottom:4px">Valid Upto</div>
                     <div style="font-size:14px;font-weight:700;color:#14534F;font-family:sans-serif">${m.validUpto || "—"}</div>
-                    <div style="margin-top:6px;display:inline-flex;align-items:center;gap:5px;background:${isActive ? "#EEF8F1" : "#FEF2F2"};border:1px solid ${statusColor}40;border-radius:20px;padding:3px 10px">
-                      <div style="width:6px;height:6px;border-radius:50%;background:${statusColor}"></div>
-                      <span style="font-size:11px;font-weight:700;color:${statusColor};font-family:sans-serif">${(m.status || "—").toUpperCase()}</span>
+                    <div style="margin-top:6px;display:inline-flex;align-items:center;background:${isActive ? "#EEF8F1" : "#FEF2F2"};border:1px solid ${statusColor}40;border-radius:20px;padding:3px 10px">
+                      <div style="width:6px;height:6px;border-radius:50%;background:${statusColor};flex-shrink:0"></div>
+                      <span style="font-size:11px;font-weight:700;color:${statusColor};font-family:sans-serif;margin-left:5px">${(m.status || "—").toUpperCase()}</span>
                     </div>
                   </div>
                 </div>
