@@ -124,34 +124,81 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* ===================== HERO SLIDER ===================== */
-  const slides   = document.querySelectorAll(".slide");
-  const dotsWrap = document.getElementById("sliderDots");
-  if (slides.length && dotsWrap) {
+  function initHeroSlider() {
+    const heroSlider = document.getElementById("heroSlider");
+    const dotsWrap   = document.getElementById("sliderDots");
+    if (!heroSlider || !dotsWrap) return;
+
     let currentSlide = 0;
     let sliderInterval;
-    slides.forEach((_, i) => {
-      const dot = document.createElement("button");
-      dot.classList.add("dot");
-      if (i === 0) dot.classList.add("active");
-      dot.addEventListener("click", () => goToSlide(i));
-      dotsWrap.appendChild(dot);
-    });
-    const dots = dotsWrap.querySelectorAll(".dot");
+    let slides = [];
+    let dots = [];
+
     function goToSlide(index) {
+      if (!slides.length) return;
       slides[currentSlide].classList.remove("active");
       dots[currentSlide].classList.remove("active");
       currentSlide = (index + slides.length) % slides.length;
       slides[currentSlide].classList.add("active");
       dots[currentSlide].classList.add("active");
     }
-    function startSlider() { sliderInterval = setInterval(() => goToSlide(currentSlide + 1), 5500); }
-    function resetSlider() { clearInterval(sliderInterval); startSlider(); }
+    function startSlider() {
+      clearInterval(sliderInterval);
+      if (slides.length > 1) sliderInterval = setInterval(() => goToSlide(currentSlide + 1), 5500);
+    }
+    function resetSlider() { startSlider(); }
+
+    function renderSlides(imageUrls) {
+      // remove any existing slide elements
+      heroSlider.querySelectorAll(".slide").forEach(el => el.remove());
+      const overlay = heroSlider.querySelector(".slider-overlay");
+      imageUrls.forEach((url, i) => {
+        const div = document.createElement("div");
+        div.className = "slide" + (i === 0 ? " active" : "");
+        div.style.backgroundImage = `url('${url}')`;
+        heroSlider.insertBefore(div, overlay);
+      });
+      slides = Array.from(heroSlider.querySelectorAll(".slide"));
+
+      dotsWrap.innerHTML = "";
+      slides.forEach((_, i) => {
+        const dot = document.createElement("button");
+        dot.classList.add("dot");
+        if (i === 0) dot.classList.add("active");
+        dot.addEventListener("click", () => { goToSlide(i); resetSlider(); });
+        dotsWrap.appendChild(dot);
+      });
+      dots = Array.from(dotsWrap.querySelectorAll(".dot"));
+      currentSlide = 0;
+      startSlider();
+    }
+
+    // Fallback slides (used if admin panel has none yet, or Firebase not ready)
+    const fallbackImages = ["images/slide1.jpg", "images/slide2.jpg", "images/slide3.jpg", "images/slide4.jpg"];
+    renderSlides(fallbackImages);
+
     const nextBtn = document.getElementById("nextSlide");
     const prevBtn = document.getElementById("prevSlide");
     if (nextBtn) nextBtn.addEventListener("click", () => { goToSlide(currentSlide + 1); resetSlider(); });
     if (prevBtn) prevBtn.addEventListener("click", () => { goToSlide(currentSlide - 1); resetSlider(); });
-    startSlider();
+
+    // Load real slides from admin panel (Firestore) once available
+    function loadAdminSlides() {
+      if (!window.RHS || !RHS.getSlides) { setTimeout(loadAdminSlides, 500); return; }
+      RHS.getSlides().then(res => {
+        if (res && res.success && res.slides && res.slides.length) {
+          const urls = res.slides
+            .slice()
+            .sort((a, b) => (a.order || 0) - (b.order || 0))
+            .map(s => s.imageUrl)
+            .filter(Boolean);
+          if (urls.length) renderSlides(urls);
+        }
+      }).catch(() => {});
+    }
+    loadAdminSlides();
   }
+  initHeroSlider();
 
   /* ===================== INPUT FORMATTERS ===================== */
 
