@@ -961,6 +961,11 @@ async function deleteNews(id) {
   await fs().deleteDoc(fs().doc(db(), "news", id));
   return { success: true };
 }
+async function updateNews(id, data) {
+  await waitForFB();
+  await fs().updateDoc(fs().doc(db(), "news", id), data);
+  return { success: true };
+}
 
 // STORIES CRUD
 async function addStory(data) {
@@ -971,6 +976,11 @@ async function addStory(data) {
 async function deleteStory(id) {
   await waitForFB();
   await fs().deleteDoc(fs().doc(db(), "stories", id));
+  return { success: true };
+}
+async function updateStory(id, data) {
+  await waitForFB();
+  await fs().updateDoc(fs().doc(db(), "stories", id), data);
   return { success: true };
 }
 
@@ -1017,8 +1027,10 @@ async function deleteContactMessage(id) {
 
 // Add all new functions to RHS exports
 window.RHS.addNews               = addNews;
+window.RHS.updateNews            = updateNews;
 window.RHS.deleteNews            = deleteNews;
 window.RHS.addStory              = addStory;
+window.RHS.updateStory           = updateStory;
 window.RHS.deleteStory           = deleteStory;
 window.RHS.getSlides             = getSlides;
 window.RHS.addSlide              = addSlide;

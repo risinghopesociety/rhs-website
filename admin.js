@@ -477,12 +477,224 @@ async function saveEditTeam(id, existingPhoto){
   }).catch(()=>{ setLoading(saveBtn,false); if(msgEl) msgEl.textContent="⚠️ Failed to save."; });
 }
 
+// ====== NEWS FEED MANAGEMENT ======
+window._newsCache = {};
+window._storiesCache = {};
+
+function previewNewsImage(input){
+  const file=input.files?.[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{document.getElementById("newsImagePreview").innerHTML=`<img src="${e.target.result}" style="max-height:100px;border-radius:8px;object-fit:cover">`;};
+  reader.readAsDataURL(file);
+}
+
+function clearNewsForm(){
+  ["news-title","news-category","news-date","news-body","news-imageURL"].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value="";
+  });
+  const inp=document.getElementById("news-imageFile"); if(inp) inp.value="";
+  const prev=document.getElementById("newsImagePreview"); if(prev) prev.innerHTML="";
+  showMsg("newsMsg","","");
+}
+
+async function addNewsItem(){
+  if(!window.RHS) return;
+  const title=document.getElementById("news-title")?.value.trim()||"";
+  const category=document.getElementById("news-category")?.value.trim()||"";
+  const date=document.getElementById("news-date")?.value.trim()||"";
+  const body=document.getElementById("news-body")?.value.trim()||"";
+  let imageURL=document.getElementById("news-imageURL")?.value.trim()||"";
+  const imgFile=document.getElementById("news-imageFile")?.files?.[0];
+  if(!title||!body){showMsg("newsMsg","⚠️ Title and Content required.","error");return;}
+  const btn=document.getElementById("addNewsBtn");
+  setLoading(btn,true,"Saving...");
+  if(imgFile){
+    try{ imageURL=await RHS.uploadImage(imgFile,"rhs/news"); }
+    catch(err){ setLoading(btn,false); showMsg("newsMsg","⚠️ "+err.message,"error"); return; }
+  }
+  RHS.addNews({title,category,date,body,imageURL}).then(()=>{
+    setLoading(btn,false); showMsg("newsMsg","✅ News added!","success");
+    clearNewsForm(); loadNewsList();
+  }).catch(()=>{setLoading(btn,false);showMsg("newsMsg","❌ Failed.","error");});
+}
+
+function openEditNews(id){
+  const n=window._newsCache[id]; if(!n) return;
+  const old=document.getElementById("newsEditModal"); if(old) old.remove();
+  const modal=document.createElement("div");
+  modal.id="newsEditModal";
+  modal.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box";
+  modal.innerHTML=`<div style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3 style="color:#14534F;margin:0"><i class="fa fa-edit"></i> Edit News</h3>
+      <button onclick="document.getElementById('newsEditModal').remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#8A9A96">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div><label style="font-size:.85rem;color:#4A5C58">Title</label>
+        <input id="edit-news-title" value="${escHtml(n.title||"")}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
+      <div><label style="font-size:.85rem;color:#4A5C58">Category</label>
+        <input id="edit-news-category" value="${escHtml(n.category||"")}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
+      <div><label style="font-size:.85rem;color:#4A5C58">Date</label>
+        <input id="edit-news-date" value="${escHtml(n.date||"")}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
+      <div><label style="font-size:.85rem;color:#4A5C58">Content</label>
+        <textarea id="edit-news-body" rows="4" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box">${escHtml(n.body||"")}</textarea></div>
+      <div><label style="font-size:.85rem;color:#4A5C58">Replace Image (optional)</label>
+        <input type="file" id="edit-news-image" accept="image/*" style="display:block;width:100%;padding:10px;border:2px dashed #4CAF8A;border-radius:8px;background:#F5F9F8;cursor:pointer;box-sizing:border-box">
+        <div id="edit-news-preview" style="margin-top:6px"></div></div>
+      <p id="editNewsMsg" style="margin:0;font-size:.85rem;color:#D9483A"></p>
+      <div style="display:flex;gap:10px">
+        <button id="editNewsSaveBtn" class="btn btn-primary" style="flex:1" onclick="saveEditNews('${id}')"><i class="fa fa-save"></i> Save</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('newsEditModal').remove()">Cancel</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  document.getElementById("edit-news-image").addEventListener("change",function(){
+    const file=this.files?.[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=e=>{document.getElementById("edit-news-preview").innerHTML=`<img src="${e.target.result}" style="width:100%;height:80px;object-fit:cover;border-radius:8px">`;};
+    reader.readAsDataURL(file);
+  });
+}
+
+async function saveEditNews(id){
+  const title=document.getElementById("edit-news-title")?.value.trim()||"";
+  const category=document.getElementById("edit-news-category")?.value.trim()||"";
+  const date=document.getElementById("edit-news-date")?.value.trim()||"";
+  const body=document.getElementById("edit-news-body")?.value.trim()||"";
+  const imgFile=document.getElementById("edit-news-image")?.files?.[0];
+  const msgEl=document.getElementById("editNewsMsg");
+  const saveBtn=document.getElementById("editNewsSaveBtn");
+  setLoading(saveBtn,true,"Saving...");
+  const data={title,category,date,body};
+  if(imgFile){
+    try{ data.imageURL=await RHS.uploadImage(imgFile,"rhs/news"); }
+    catch(err){ setLoading(saveBtn,false); if(msgEl) msgEl.textContent=err.message; return; }
+  }
+  RHS.updateNews(id,data).then(()=>{
+    setLoading(saveBtn,false); document.getElementById("newsEditModal")?.remove();
+    showMsg("newsMsg","✅ News updated!","success"); loadNewsList();
+  }).catch(()=>{setLoading(saveBtn,false); if(msgEl) msgEl.textContent="Failed to update.";});
+}
+
+function deleteNewsItem(id,title){
+  if(!confirm(`Delete "${title}"?`)) return;
+  RHS.deleteNews(id).then(()=>{loadNewsList();showMsg("newsMsg","✅ News deleted.","success");})
+    .catch(()=>showMsg("newsMsg","❌ Failed.","error"));
+}
+
+// ====== IMPACT STORIES MANAGEMENT ======
+function previewStoryImage(input){
+  const file=input.files?.[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{document.getElementById("storyImagePreview").innerHTML=`<img src="${e.target.result}" style="max-height:120px;border-radius:8px;object-fit:cover">`;};
+  reader.readAsDataURL(file);
+}
+
+function clearStoryForm(){
+  ["story-name","story-category","story-location","story-text"].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value="";
+  });
+  const inp=document.getElementById("story-imageFile"); if(inp) inp.value="";
+  const prev=document.getElementById("storyImagePreview");
+  if(prev) prev.innerHTML=`<i class="fa fa-image" style="font-size:1.5rem;color:#4CAF8A;display:block;margin-bottom:6px"></i><span style="color:#14534F;font-size:.88rem">Tap to upload photo</span>`;
+  showMsg("storyMsg","","");
+}
+
+async function addStoryItem(){
+  if(!window.RHS) return;
+  const name=document.getElementById("story-name")?.value.trim()||"";
+  const category=document.getElementById("story-category")?.value.trim()||"";
+  const location=document.getElementById("story-location")?.value.trim()||"";
+  const text=document.getElementById("story-text")?.value.trim()||"";
+  const imgFile=document.getElementById("story-imageFile")?.files?.[0];
+  if(!name||!text){showMsg("storyMsg","⚠️ Person Name and Story required.","error");return;}
+  const btn=document.getElementById("addStoryBtn");
+  setLoading(btn,true,"Saving...");
+  let imageUrl="";
+  if(imgFile){
+    try{ imageUrl=await RHS.uploadImage(imgFile,"rhs/stories"); }
+    catch(err){ setLoading(btn,false); showMsg("storyMsg","⚠️ "+err.message,"error"); return; }
+  }
+  RHS.addStory({name,category,location,text,imageUrl}).then(()=>{
+    setLoading(btn,false); showMsg("storyMsg","✅ Story added!","success");
+    clearStoryForm(); loadStoriesList();
+  }).catch(()=>{setLoading(btn,false);showMsg("storyMsg","❌ Failed.","error");});
+}
+
+function openEditStory(id){
+  const s=window._storiesCache[id]; if(!s) return;
+  const old=document.getElementById("storyEditModal"); if(old) old.remove();
+  const modal=document.createElement("div");
+  modal.id="storyEditModal";
+  modal.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box";
+  modal.innerHTML=`<div style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3 style="color:#14534F;margin:0"><i class="fa fa-edit"></i> Edit Story</h3>
+      <button onclick="document.getElementById('storyEditModal').remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#8A9A96">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div><label style="font-size:.85rem;color:#4A5C58">Person Name</label>
+        <input id="edit-story-name" value="${escHtml(s.name||"")}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
+      <div><label style="font-size:.85rem;color:#4A5C58">Category</label>
+        <input id="edit-story-category" value="${escHtml(s.category||"")}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
+      <div><label style="font-size:.85rem;color:#4A5C58">Location</label>
+        <input id="edit-story-location" value="${escHtml(s.location||"")}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
+      <div><label style="font-size:.85rem;color:#4A5C58">Story</label>
+        <textarea id="edit-story-text" rows="4" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box">${escHtml(s.text||"")}</textarea></div>
+      <div><label style="font-size:.85rem;color:#4A5C58">Replace Image (optional)</label>
+        <input type="file" id="edit-story-image" accept="image/*" style="display:block;width:100%;padding:10px;border:2px dashed #4CAF8A;border-radius:8px;background:#F5F9F8;cursor:pointer;box-sizing:border-box">
+        <div id="edit-story-preview" style="margin-top:6px"></div></div>
+      <p id="editStoryMsg" style="margin:0;font-size:.85rem;color:#D9483A"></p>
+      <div style="display:flex;gap:10px">
+        <button id="editStorySaveBtn" class="btn btn-primary" style="flex:1" onclick="saveEditStory('${id}')"><i class="fa fa-save"></i> Save</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('storyEditModal').remove()">Cancel</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  document.getElementById("edit-story-image").addEventListener("change",function(){
+    const file=this.files?.[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=e=>{document.getElementById("edit-story-preview").innerHTML=`<img src="${e.target.result}" style="width:100%;height:80px;object-fit:cover;border-radius:8px">`;};
+    reader.readAsDataURL(file);
+  });
+}
+
+async function saveEditStory(id){
+  const name=document.getElementById("edit-story-name")?.value.trim()||"";
+  const category=document.getElementById("edit-story-category")?.value.trim()||"";
+  const location=document.getElementById("edit-story-location")?.value.trim()||"";
+  const text=document.getElementById("edit-story-text")?.value.trim()||"";
+  const imgFile=document.getElementById("edit-story-image")?.files?.[0];
+  const msgEl=document.getElementById("editStoryMsg");
+  const saveBtn=document.getElementById("editStorySaveBtn");
+  setLoading(saveBtn,true,"Saving...");
+  const data={name,category,location,text};
+  if(imgFile){
+    try{ data.imageUrl=await RHS.uploadImage(imgFile,"rhs/stories"); }
+    catch(err){ setLoading(saveBtn,false); if(msgEl) msgEl.textContent=err.message; return; }
+  }
+  RHS.updateStory(id,data).then(()=>{
+    setLoading(saveBtn,false); document.getElementById("storyEditModal")?.remove();
+    showMsg("storyMsg","✅ Story updated!","success"); loadStoriesList();
+  }).catch(()=>{setLoading(saveBtn,false); if(msgEl) msgEl.textContent="Failed to update.";});
+}
+
+function deleteStoryItem(id,name){
+  if(!confirm(`Delete "${name}"?`)) return;
+  RHS.deleteStory(id).then(()=>{loadStoriesList();showMsg("storyMsg","✅ Story deleted.","success");})
+    .catch(()=>showMsg("storyMsg","❌ Failed.","error"));
+}
+
 function loadStoriesList(){
   if(!window.RHS){setTimeout(loadStoriesList,500);return;}
   const wrap=document.getElementById("storiesListWrap"); if(!wrap) return;
   wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
   RHS.getStories().then(res=>{
     if(!res.stories||!res.stories.length){wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:20px">No stories yet.</p>';return;}
+    window._storiesCache={};
+    res.stories.forEach(s=>{ window._storiesCache[s.id]=s; });
     let html='<div style="display:flex;flex-direction:column;gap:12px;margin-top:12px">';
     res.stories.forEach(s=>{
       html+=`<div style="background:#F5F9F8;border:1.5px solid #D8E8E5;border-radius:12px;padding:14px;display:flex;gap:12px;flex-wrap:wrap">
@@ -513,6 +725,8 @@ function loadNewsList(){
   wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
   RHS.getNews().then(res=>{
     if(!res.news||!res.news.length){wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:20px">No news yet.</p>';return;}
+    window._newsCache={};
+    res.news.forEach(n=>{ window._newsCache[n.id]=n; });
     let html='<div style="display:flex;flex-direction:column;gap:12px;margin-top:12px">';
     res.news.forEach(n=>{
       html+=`<div style="background:#F5F9F8;border:1.5px solid #D8E8E5;border-radius:12px;padding:14px;display:flex;gap:12px;flex-wrap:wrap">
