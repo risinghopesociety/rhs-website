@@ -1503,6 +1503,18 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   /* ===================== NEWS ===================== */
+  // Shows "Read More" only when the text is actually clipped by the 3-line CSS clamp,
+  // instead of guessing from character count (which was unreliable across card widths).
+  function revealOverflowingReadMoreButtons(container) {
+    requestAnimationFrame(() => {
+      container.querySelectorAll(".news-card-text, .story-card-text").forEach(p => {
+        const btn = p.nextElementSibling;
+        if (btn && btn.classList.contains("read-more-link")) {
+          btn.style.display = (p.scrollHeight > p.clientHeight + 1) ? "" : "none";
+        }
+      });
+    });
+  }
   window._newsDataCache = {};
   function loadNews() {
     const grid = document.getElementById("newsGrid");
@@ -1519,7 +1531,6 @@ document.addEventListener("DOMContentLoaded", () => {
         res.news.forEach(n => { window._newsDataCache[n.id] = n; });
         grid.innerHTML = res.news.map(n => {
           const bodyText = n.body || n.content || "";
-          const needsMore = bodyText.length > 140;
           return `
           <article class="news-card">
             ${n.imageURL
@@ -1530,10 +1541,11 @@ document.addEventListener("DOMContentLoaded", () => {
               <div class="news-card-date"><i class="fa-regular fa-calendar"></i> ${n.date || ""}</div>
               <h3 class="news-card-title">${n.title || ""}</h3>
               <p class="news-card-text">${bodyText}</p>
-              ${needsMore ? `<button class="read-more-link" onclick="openDetailModal('news','${n.id}')">Read More <i class="fa-solid fa-arrow-right"></i></button>` : ""}
+              <button class="read-more-link" style="display:none" onclick="openDetailModal('news','${n.id}')">Read More <i class="fa-solid fa-arrow-right"></i></button>
             </div>
           </article>`;
         }).join("");
+        revealOverflowingReadMoreButtons(grid);
       })
       .catch(() => {
         grid.innerHTML = '<div class="news-loading">Could not load news.</div>';
@@ -1557,7 +1569,6 @@ document.addEventListener("DOMContentLoaded", () => {
         res.stories.forEach(s => { window._storiesDataCache[s.id] = s; });
         grid.innerHTML = res.stories.map(s => {
           const storyText = s.text || s.story || "";
-          const needsMore = storyText.length > 140;
           return `
           <article class="story-card">
             <span class="story-badge">${s.category || s.helpType || "Community"}</span>
@@ -1568,10 +1579,11 @@ document.addEventListener("DOMContentLoaded", () => {
               <div class="story-card-name">${s.name || ""}</div>
               <div class="story-card-location"><i class="fa-solid fa-location-dot"></i> ${s.location || "Khairpur Tamewali"}</div>
               <p class="story-card-text">${storyText}</p>
-              ${needsMore ? `<button class="read-more-link" onclick="openDetailModal('story','${s.id}')">Read More <i class="fa-solid fa-arrow-right"></i></button>` : ""}
+              <button class="read-more-link" style="display:none" onclick="openDetailModal('story','${s.id}')">Read More <i class="fa-solid fa-arrow-right"></i></button>
             </div>
           </article>`;
         }).join("");
+        revealOverflowingReadMoreButtons(grid);
       })
       .catch(() => {
         grid.innerHTML = '<div class="news-loading">Could not load stories.</div>';
