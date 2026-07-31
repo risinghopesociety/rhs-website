@@ -1503,6 +1503,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   /* ===================== NEWS ===================== */
+  window._newsDataCache = {};
   function loadNews() {
     const grid = document.getElementById("newsGrid");
     if (!grid) return;
@@ -1514,7 +1515,12 @@ document.addEventListener("DOMContentLoaded", () => {
           grid.innerHTML = '<div class="news-loading"><i class="fa-solid fa-newspaper" style="font-size:2rem;display:block;margin-bottom:8px"></i>No news yet. Check back soon!</div>';
           return;
         }
-        grid.innerHTML = res.news.map(n => `
+        window._newsDataCache = {};
+        res.news.forEach(n => { window._newsDataCache[n.id] = n; });
+        grid.innerHTML = res.news.map(n => {
+          const bodyText = n.body || n.content || "";
+          const needsMore = bodyText.length > 140;
+          return `
           <article class="news-card">
             ${n.imageURL
               ? `<img src="${n.imageURL}" alt="${n.title}" class="news-card-img" loading="lazy">`
@@ -1523,9 +1529,11 @@ document.addEventListener("DOMContentLoaded", () => {
               <span class="news-tag">${n.category || "News"}</span>
               <div class="news-card-date"><i class="fa-regular fa-calendar"></i> ${n.date || ""}</div>
               <h3 class="news-card-title">${n.title || ""}</h3>
-              <p class="news-card-text">${n.body || n.content || ""}</p>
+              <p class="news-card-text">${bodyText}</p>
+              ${needsMore ? `<button class="read-more-link" onclick="openDetailModal('news','${n.id}')">Read More <i class="fa-solid fa-arrow-right"></i></button>` : ""}
             </div>
-          </article>`).join("");
+          </article>`;
+        }).join("");
       })
       .catch(() => {
         grid.innerHTML = '<div class="news-loading">Could not load news.</div>';
@@ -1533,6 +1541,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ===================== STORIES ===================== */
+  window._storiesDataCache = {};
   function loadStories() {
     const grid = document.getElementById("storiesGrid");
     if (!grid) return;
@@ -1544,7 +1553,12 @@ document.addEventListener("DOMContentLoaded", () => {
           grid.innerHTML = '<div class="news-loading"><i class="fa-solid fa-heart" style="font-size:2rem;display:block;margin-bottom:8px;color:var(--coral)"></i>Stories coming soon!</div>';
           return;
         }
-        grid.innerHTML = res.stories.map(s => `
+        window._storiesDataCache = {};
+        res.stories.forEach(s => { window._storiesDataCache[s.id] = s; });
+        grid.innerHTML = res.stories.map(s => {
+          const storyText = s.text || s.story || "";
+          const needsMore = storyText.length > 140;
+          return `
           <article class="story-card">
             <span class="story-badge">${s.category || s.helpType || "Community"}</span>
             ${s.imageUrl || s.photoURL
@@ -1553,14 +1567,59 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="story-card-body">
               <div class="story-card-name">${s.name || ""}</div>
               <div class="story-card-location"><i class="fa-solid fa-location-dot"></i> ${s.location || "Khairpur Tamewali"}</div>
-              <p class="story-card-text">${s.text || s.story || ""}</p>
+              <p class="story-card-text">${storyText}</p>
+              ${needsMore ? `<button class="read-more-link" onclick="openDetailModal('story','${s.id}')">Read More <i class="fa-solid fa-arrow-right"></i></button>` : ""}
             </div>
-          </article>`).join("");
+          </article>`;
+        }).join("");
       })
       .catch(() => {
         grid.innerHTML = '<div class="news-loading">Could not load stories.</div>';
       });
   }
+
+  /* ===================== DETAIL MODAL (News / Stories) ===================== */
+  window.openDetailModal = function (type, id) {
+    const item = type === "news" ? window._newsDataCache[id] : window._storiesDataCache[id];
+    if (!item) return;
+    const imgWrap  = document.getElementById("detailModalImgWrap");
+    const tagEl    = document.getElementById("detailModalTag");
+    const dateEl   = document.getElementById("detailModalDate");
+    const titleEl  = document.getElementById("detailModalTitle");
+    const textEl   = document.getElementById("detailModalText");
+    const modal    = document.getElementById("detailModal");
+    if (!modal) return;
+
+    if (type === "news") {
+      imgWrap.innerHTML = item.imageURL ? `<img src="${item.imageURL}" class="detail-modal-img" alt="${item.title || ""}">` : "";
+      tagEl.textContent  = item.category || "News";
+      dateEl.innerHTML   = item.date ? `<i class="fa-regular fa-calendar"></i> ${item.date}` : "";
+      titleEl.textContent = item.title || "";
+      textEl.textContent  = item.body || item.content || "";
+    } else {
+      const img = item.imageUrl || item.photoURL;
+      imgWrap.innerHTML = img ? `<img src="${img}" class="detail-modal-img" alt="${item.name || ""}">` : "";
+      tagEl.textContent  = item.category || item.helpType || "Community";
+      dateEl.innerHTML   = `<i class="fa-solid fa-location-dot"></i> ${item.location || "Khairpur Tamewali"}`;
+      titleEl.textContent = item.name || "";
+      textEl.textContent  = item.text || item.story || "";
+    }
+    modal.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+  };
+
+  window.closeDetailModal = function () {
+    const modal = document.getElementById("detailModal");
+    if (!modal) return;
+    modal.classList.add("hidden");
+    document.body.style.overflow = "";
+  };
+
+  const detailModalEl = document.getElementById("detailModal");
+  if (detailModalEl) {
+    detailModalEl.addEventListener("click", (e) => { if (e.target === detailModalEl) closeDetailModal(); });
+  }
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDetailModal(); });
 
   /* ===================== LOAD ALL ===================== */
   loadNGOSettings();

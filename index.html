@@ -681,5 +681,19 @@
       } catch(e) { console.warn("Public stats error:", e); }
     })();
   </script>
+<!-- ===== NEWS/STORY DETAIL MODAL ===== -->
+<div class="detail-modal-overlay hidden" id="detailModal">
+  <div class="detail-modal-box">
+    <button class="detail-modal-close" onclick="closeDetailModal()" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    <div id="detailModalImgWrap"></div>
+    <div class="detail-modal-body">
+      <span class="detail-modal-tag" id="detailModalTag"></span>
+      <div class="detail-modal-date" id="detailModalDate"></div>
+      <h3 class="detail-modal-title" id="detailModalTitle"></h3>
+      <p class="detail-modal-text" id="detailModalText"></p>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
