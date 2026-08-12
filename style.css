@@ -213,6 +213,20 @@ img, video { max-width: 100%; display: block; }
   cursor: pointer; border: none;
   transition: background .2s, transform .2s;
 }
+.slider-mute-btn {
+  position: absolute; top: 24px; right: 24px; z-index: 4;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.4);
+  background: rgba(20,40,38,.45);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: background .2s;
+}
+.slider-mute-btn:hover { background: rgba(20,40,38,.7); }
+.slider-mute-btn.hidden { display: none; }
 .slider-dots .dot.active { background: var(--gold); transform: scale(1.2); }
 
 .hero-content {

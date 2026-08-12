@@ -134,23 +134,66 @@ document.addEventListener("DOMContentLoaded", () => {
     let slides = [];
     let slideItems = [];
     let dots = [];
+    let userAllowedSound = false; // becomes true once the user taps the mute button to unmute
+    const muteBtn = document.getElementById("sliderMuteBtn");
+
+    function currentVideo() {
+      return slides[currentSlide] ? slides[currentSlide].querySelector("video") : null;
+    }
+
+    function updateMuteBtn() {
+      const vid = currentVideo();
+      if (!muteBtn) return;
+      if (!vid) { muteBtn.classList.add("hidden"); return; }
+      muteBtn.classList.remove("hidden");
+      muteBtn.innerHTML = vid.muted
+        ? '<i class="fa-solid fa-volume-xmark"></i>'
+        : '<i class="fa-solid fa-volume-high"></i>';
+    }
+
+    function playVideoSlide(vid) {
+      if (!vid) return;
+      vid.currentTime = 0;
+      vid.muted = !userAllowedSound; // try with sound if the user has already allowed it once
+      vid.play().catch(() => {
+        // Browser blocked audio autoplay -> fall back to muted playback
+        vid.muted = true;
+        vid.play().catch(() => {});
+        updateMuteBtn();
+      });
+      updateMuteBtn();
+    }
+
+    if (muteBtn) {
+      muteBtn.addEventListener("click", () => {
+        const vid = currentVideo();
+        if (!vid) return;
+        vid.muted = !vid.muted;
+        if (!vid.muted) { userAllowedSound = true; vid.play().catch(() => {}); }
+        updateMuteBtn();
+      });
+    }
 
     function goToSlide(index) {
       if (!slides.length) return;
+      const prevVid = currentVideo();
+      if (prevVid) prevVid.pause();
       slides[currentSlide].classList.remove("active");
       dots[currentSlide].classList.remove("active");
       currentSlide = (index + slides.length) % slides.length;
       slides[currentSlide].classList.add("active");
       dots[currentSlide].classList.add("active");
-      const vid = slides[currentSlide].querySelector("video");
-      if (vid) { vid.currentTime = 0; vid.play().catch(() => {}); }
+      const vid = currentVideo();
+      if (vid) playVideoSlide(vid); else updateMuteBtn();
     }
+    // Image slides auto-advance on a timer. Video slides auto-advance only once
+    // the video actually finishes playing, via the 'ended' listener in renderSlides.
     function scheduleNext() {
       clearTimeout(sliderTimer);
       if (slides.length <= 1) return;
       const cur = slideItems[currentSlide];
-      const duration = (cur && cur.type === "video") ? 8000 : 5500;
-      sliderTimer = setTimeout(() => { goToSlide(currentSlide + 1); scheduleNext(); }, duration);
+      if (cur && cur.type === "video") return; // wait for 'ended' event instead
+      sliderTimer = setTimeout(() => { goToSlide(currentSlide + 1); scheduleNext(); }, 5500);
     }
     function resetSlider() { scheduleNext(); }
 
@@ -167,11 +210,12 @@ document.addEventListener("DOMContentLoaded", () => {
           const video = document.createElement("video");
           video.className = "slide-video-el";
           video.src = item.url;
-          video.muted = true;
-          video.loop = true;
           video.playsInline = true;
-          video.autoplay = true;
-          if (i === 0) video.play().catch(() => {});
+          video.autoplay = (i === 0);
+          video.muted = true; // required for the very first automatic play; playVideoSlide()/goToSlide() will re-evaluate real sound state
+          video.addEventListener("ended", () => {
+            if (slides[currentSlide] === div) { goToSlide(currentSlide + 1); scheduleNext(); }
+          });
           div.appendChild(video);
         } else {
           div.style.backgroundImage = `url('${item.url}')`;
@@ -190,6 +234,8 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       dots = Array.from(dotsWrap.querySelectorAll(".dot"));
       currentSlide = 0;
+      const firstVid = currentVideo();
+      if (firstVid) playVideoSlide(firstVid); else updateMuteBtn();
       scheduleNext();
     }
 
