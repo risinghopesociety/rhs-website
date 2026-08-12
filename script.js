@@ -130,8 +130,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!heroSlider || !dotsWrap) return;
 
     let currentSlide = 0;
-    let sliderInterval;
+    let sliderTimer;
     let slides = [];
+    let slideItems = [];
     let dots = [];
 
     function goToSlide(index) {
@@ -141,21 +142,40 @@ document.addEventListener("DOMContentLoaded", () => {
       currentSlide = (index + slides.length) % slides.length;
       slides[currentSlide].classList.add("active");
       dots[currentSlide].classList.add("active");
+      const vid = slides[currentSlide].querySelector("video");
+      if (vid) { vid.currentTime = 0; vid.play().catch(() => {}); }
     }
-    function startSlider() {
-      clearInterval(sliderInterval);
-      if (slides.length > 1) sliderInterval = setInterval(() => goToSlide(currentSlide + 1), 5500);
+    function scheduleNext() {
+      clearTimeout(sliderTimer);
+      if (slides.length <= 1) return;
+      const cur = slideItems[currentSlide];
+      const duration = (cur && cur.type === "video") ? 8000 : 5500;
+      sliderTimer = setTimeout(() => { goToSlide(currentSlide + 1); scheduleNext(); }, duration);
     }
-    function resetSlider() { startSlider(); }
+    function resetSlider() { scheduleNext(); }
 
-    function renderSlides(imageUrls) {
-      // remove any existing slide elements
+    function renderSlides(items) {
+      // items: array of { url, type: 'image'|'video' }
       heroSlider.querySelectorAll(".slide").forEach(el => el.remove());
       const overlay = heroSlider.querySelector(".slider-overlay");
-      imageUrls.forEach((url, i) => {
+      slideItems = items;
+      items.forEach((item, i) => {
         const div = document.createElement("div");
-        div.className = "slide" + (i === 0 ? " active" : "");
-        div.style.backgroundImage = `url('${url}')`;
+        const isVideo = item.type === "video";
+        div.className = "slide" + (isVideo ? " slide-video" : "") + (i === 0 ? " active" : "");
+        if (isVideo) {
+          const video = document.createElement("video");
+          video.className = "slide-video-el";
+          video.src = item.url;
+          video.muted = true;
+          video.loop = true;
+          video.playsInline = true;
+          video.autoplay = true;
+          if (i === 0) video.play().catch(() => {});
+          div.appendChild(video);
+        } else {
+          div.style.backgroundImage = `url('${item.url}')`;
+        }
         heroSlider.insertBefore(div, overlay);
       });
       slides = Array.from(heroSlider.querySelectorAll(".slide"));
@@ -170,11 +190,12 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       dots = Array.from(dotsWrap.querySelectorAll(".dot"));
       currentSlide = 0;
-      startSlider();
+      scheduleNext();
     }
 
     // Fallback slides (used if admin panel has none yet, or Firebase not ready)
-    const fallbackImages = ["images/slide1.jpg", "images/slide2.jpg", "images/slide3.jpg", "images/slide4.jpg"];
+    const fallbackImages = ["images/slide1.jpg", "images/slide2.jpg", "images/slide3.jpg", "images/slide4.jpg"]
+      .map(url => ({ url, type: "image" }));
     renderSlides(fallbackImages);
 
     const nextBtn = document.getElementById("nextSlide");
@@ -187,12 +208,17 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!window.RHS || !RHS.getSlides) { setTimeout(loadAdminSlides, 500); return; }
       RHS.getSlides().then(res => {
         if (res && res.success && res.slides && res.slides.length) {
-          const urls = res.slides
+          const items = res.slides
             .slice()
             .sort((a, b) => (a.order || 0) - (b.order || 0))
-            .map(s => RHS.imgUrl ? RHS.imgUrl(s.imageUrl, 1600) : s.imageUrl)
-            .filter(Boolean);
-          if (urls.length) renderSlides(urls);
+            .filter(s => s.imageUrl)
+            .map(s => ({
+              url: (s.type === "video")
+                ? s.imageUrl
+                : (RHS.imgUrl ? RHS.imgUrl(s.imageUrl, 1600) : s.imageUrl),
+              type: s.type === "video" ? "video" : "image"
+            }));
+          if (items.length) renderSlides(items);
         }
       }).catch(() => {});
     }

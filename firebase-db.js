@@ -34,6 +34,21 @@ async function uploadImage(file, folder = "rhs/members") {
   throw new Error(data.error?.message || "Image upload failed");
 }
 
+async function uploadMedia(file, folder = "rhs/misc") {
+  const isVideo = !!(file.type && file.type.startsWith("video/"));
+  const resourceType = isVideo ? "video" : "image";
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("upload_preset", CLOUDINARY_PRESET);
+  fd.append("folder", folder);
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/${resourceType}/upload`, {
+    method: "POST", body: fd
+  });
+  const data = await res.json();
+  if (data.secure_url) return { url: data.secure_url, type: isVideo ? "video" : "image" };
+  throw new Error(data.error?.message || "Upload failed");
+}
+
 function imgUrl(url, width = 400) {
   if (!url) return "";
   if (url.includes("res.cloudinary.com") && url.includes("/upload/")) {
@@ -907,7 +922,7 @@ window.RHS = {
   // Messages
   submitContactMessage, getContactMessages,
   // Image
-  uploadImage, imgUrl,
+  uploadImage, uploadMedia, imgUrl,
   // Validation Rules
   getValidationRules, addValidationRule, deleteValidationRule, getValidationDaysForAmount,
   // Utils

@@ -644,10 +644,10 @@
             <div class="field"><label>Slide Title <small>(optional)</small></label><input type="text" id="slide-title" placeholder="e.g. Welcome to RHS"></div>
             <div class="field"><label>Order No</label><input type="number" id="slide-order" placeholder="1" min="1" value="1"></div>
             <div class="field" style="grid-column:1/-1">
-              <label>Slide Image <span style="color:#D9483A">*</span></label>
+              <label>Slide Image / Video <span style="color:#D9483A">*</span></label>
               <label for="slide-image" style="display:block;padding:16px;background:#F5F9F8;border:2px dashed #4CAF8A;border-radius:8px;cursor:pointer;text-align:center;position:relative">
-                <input type="file" id="slide-image" accept="image/*" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer" onchange="previewSlideImage(this)">
-                <div id="slideImagePreview"><i class="fa fa-image" style="font-size:2rem;color:#4CAF8A;display:block;margin-bottom:8px"></i><span style="color:#14534F;font-size:.9rem">Tap to select slide image</span></div>
+                <input type="file" id="slide-image" accept="image/*,video/*" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer" onchange="previewSlideImage(this)">
+                <div id="slideImagePreview"><i class="fa fa-image" style="font-size:2rem;color:#4CAF8A;display:block;margin-bottom:8px"></i><span style="color:#14534F;font-size:.9rem">Tap to select image or video</span></div>
               </label>
             </div>
           </div>
