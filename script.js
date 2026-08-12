@@ -155,13 +155,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!vid) return;
       vid.currentTime = 0;
       vid.muted = !userAllowedSound; // try with sound if the user has already allowed it once
+      updateMuteBtn();
       vid.play().catch(() => {
         // Browser blocked audio autoplay -> fall back to muted playback
         vid.muted = true;
-        vid.play().catch(() => {});
         updateMuteBtn();
+        vid.play().catch(() => {});
       });
-      updateMuteBtn();
     }
 
     if (muteBtn) {
