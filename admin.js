@@ -419,7 +419,7 @@ function openEditTeam(id,name,designation,order,bio,photo){
         </div>
         <div>
           <label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:6px">Photo (change optional)</label>
-          ${photo?`<img src="${photo}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;margin-bottom:8px;border:2px solid #14534F;display:block">`:""}
+          ${photo?`<img src="${RHS.imgUrl?RHS.imgUrl(photo,150):photo}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;margin-bottom:8px;border:2px solid #14534F;display:block">`:""}
           <input type="file" id="et-photo" accept="image/*" style="display:block;width:100%;padding:10px;border:2px dashed #4CAF8A;border-radius:8px;background:#F5F9F8;cursor:pointer;box-sizing:border-box">
           <div id="et-preview" style="margin-top:6px"></div>
         </div>
@@ -698,7 +698,7 @@ function loadStoriesList(){
     let html='<div style="display:flex;flex-direction:column;gap:12px;margin-top:12px">';
     res.stories.forEach(s=>{
       html+=`<div style="background:#F5F9F8;border:1.5px solid #D8E8E5;border-radius:12px;padding:14px;display:flex;gap:12px;flex-wrap:wrap">
-        ${s.imageUrl?`<img src="${s.imageUrl}" style="width:64px;height:64px;border-radius:8px;object-fit:cover;flex-shrink:0">`:`<div style="width:64px;height:64px;background:#E7DFD2;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa fa-image" style="color:#8A9A96"></i></div>`}
+        ${s.imageUrl?`<img src="${RHS.imgUrl?RHS.imgUrl(s.imageUrl,160):s.imageUrl}" style="width:64px;height:64px;border-radius:8px;object-fit:cover;flex-shrink:0">`:`<div style="width:64px;height:64px;background:#E7DFD2;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa fa-image" style="color:#8A9A96"></i></div>`}
         <div style="flex:1;min-width:160px">
           <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">
             <div><strong style="color:#14534F">${escHtml(s.name)}</strong>
@@ -730,7 +730,7 @@ function loadNewsList(){
     let html='<div style="display:flex;flex-direction:column;gap:12px;margin-top:12px">';
     res.news.forEach(n=>{
       html+=`<div style="background:#F5F9F8;border:1.5px solid #D8E8E5;border-radius:12px;padding:14px;display:flex;gap:12px;flex-wrap:wrap">
-        ${n.imageURL?`<img src="${n.imageURL}" style="width:64px;height:64px;border-radius:8px;object-fit:cover;flex-shrink:0">`:`<div style="width:64px;height:64px;background:#E7DFD2;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa fa-newspaper" style="color:#8A9A96"></i></div>`}
+        ${n.imageURL?`<img src="${RHS.imgUrl?RHS.imgUrl(n.imageURL,160):n.imageURL}" style="width:64px;height:64px;border-radius:8px;object-fit:cover;flex-shrink:0">`:`<div style="width:64px;height:64px;background:#E7DFD2;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa fa-newspaper" style="color:#8A9A96"></i></div>`}
         <div style="flex:1;min-width:160px">
           <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">
             <div><strong style="color:#14534F">${escHtml(n.title||"")}</strong>
@@ -761,7 +761,7 @@ function loadTeamList(){
     let html='<div style="display:flex;flex-direction:column;gap:12px;margin-top:12px">';
     res.team.forEach(m=>{
       html+=`<div style="background:#F5F9F8;border:1.5px solid #D8E8E5;border-radius:12px;padding:14px;display:flex;gap:12px;flex-wrap:wrap">
-        ${m.photo?`<img src="${m.photo}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid #4CAF8A">`:`<div style="width:64px;height:64px;background:#E7DFD2;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa fa-user" style="color:#8A9A96;font-size:1.4rem"></i></div>`}
+        ${m.photo?`<img src="${RHS.imgUrl?RHS.imgUrl(m.photo,160):m.photo}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid #4CAF8A">`:`<div style="width:64px;height:64px;background:#E7DFD2;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa fa-user" style="color:#8A9A96;font-size:1.4rem"></i></div>`}
         <div style="flex:1;min-width:160px">
           <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px">
             <div>
@@ -839,7 +839,7 @@ function loadSlidesList(){
     res.slides.forEach(s=>{
       html+=`<div style="background:#F5F9F8;border:1.5px solid #D8E8E5;border-radius:12px;padding:14px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start">
         ${s.imageUrl
-          ?`<img src="${s.imageUrl}" style="width:90px;height:60px;border-radius:8px;object-fit:cover;flex-shrink:0">`
+          ?`<img src="${RHS.imgUrl?RHS.imgUrl(s.imageUrl,220):s.imageUrl}" style="width:90px;height:60px;border-radius:8px;object-fit:cover;flex-shrink:0">`
           :`<div style="width:90px;height:60px;background:#E7DFD2;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa fa-image" style="color:#8A9A96;font-size:1.5rem"></i></div>`}
         <div style="flex:1;min-width:160px">
           <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:flex-start">
@@ -882,7 +882,7 @@ function openEditSlide(id,title,order,imageUrl){
       <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Order No</label>
         <input id="edit-slide-order" type="number" value="${order}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
       <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:6px">Image (change optional)</label>
-        ${imageUrl?`<img src="${imageUrl}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;margin-bottom:8px">`:""}
+        ${imageUrl?`<img src="${RHS.imgUrl?RHS.imgUrl(imageUrl,300):imageUrl}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;margin-bottom:8px">`:""}
         <input type="file" id="edit-slide-image" accept="image/*" style="display:block;width:100%;padding:10px;border:2px dashed #4CAF8A;border-radius:8px;background:#F5F9F8;cursor:pointer;box-sizing:border-box">
         <div id="edit-slide-preview" style="margin-top:6px"></div>
       </div>
@@ -1064,7 +1064,7 @@ function statusBadge(status){
 function viewMember(m){
   document.getElementById("modalMemberName").textContent=m.fullName;
   const photoHtml = m.photo
-    ? `<img src="${m.photo}" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid #14534F;display:block;margin:0 auto 16px" onerror="this.style.display='none'">`
+    ? `<img src="${RHS.imgUrl?RHS.imgUrl(m.photo,220):m.photo}" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid #14534F;display:block;margin:0 auto 16px" onerror="this.style.display='none'">`
     : `<div style="width:90px;height:90px;border-radius:50%;background:#EEF8F1;border:3px solid #14534F;display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="fa fa-user" style="font-size:2rem;color:#8A9A96"></i></div>`;
   document.getElementById("memberModalBody").innerHTML=`
     ${photoHtml}
@@ -1255,7 +1255,7 @@ function renderMembersTable(members, q = "") {
     <div class="member-card">
       <div class="member-card-top">
         ${m.photo
-          ? `<img src="${m.photo}" class="member-avatar" style="object-fit:cover;border-radius:50%;background:#EEF8F1" onerror="this.outerHTML='<div class=\\'member-avatar\\'>${memberInitials(m.fullName)}</div>'">`
+          ? `<img src="${RHS.imgUrl?RHS.imgUrl(m.photo,120):m.photo}" class="member-avatar" style="object-fit:cover;border-radius:50%;background:#EEF8F1" onerror="this.outerHTML='<div class=\\'member-avatar\\'>${memberInitials(m.fullName)}</div>'">`
           : `<div class="member-avatar">${memberInitials(m.fullName)}</div>`}
         <div class="member-card-info">
           <div class="member-card-name">${highlight(m.fullName, q)}</div>
@@ -1288,7 +1288,7 @@ function editMember(m){
       <label class="lbl" style="margin-bottom:6px">Member Photo</label>
       <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
         <div id="em-photo-preview" style="width:64px;height:64px;border-radius:50%;flex-shrink:0;overflow:hidden;background:#F5F9F8;border:2px solid var(--teal);display:flex;align-items:center;justify-content:center">
-          ${m.photo ? `<img src="${m.photo}" style="width:100%;height:100%;object-fit:cover">` : `<i class="fa fa-user" style="color:#8A9A96;font-size:1.4rem"></i>`}
+          ${m.photo ? `<img src="${RHS.imgUrl?RHS.imgUrl(m.photo,120):m.photo}" style="width:100%;height:100%;object-fit:cover">` : `<i class="fa fa-user" style="color:#8A9A96;font-size:1.4rem"></i>`}
         </div>
         <div style="flex:1;min-width:180px">
           <label for="em-photoFile" style="display:block;padding:10px 14px;background:#F5F9F8;border:2px dashed #4CAF8A;border-radius:8px;cursor:pointer;text-align:center;font-size:.85rem;color:#14534F">

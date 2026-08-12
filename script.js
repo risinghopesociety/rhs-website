@@ -190,7 +190,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const urls = res.slides
             .slice()
             .sort((a, b) => (a.order || 0) - (b.order || 0))
-            .map(s => s.imageUrl)
+            .map(s => RHS.imgUrl ? RHS.imgUrl(s.imageUrl, 1600) : s.imageUrl)
             .filter(Boolean);
           if (urls.length) renderSlides(urls);
         }
@@ -650,7 +650,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const borderCol  = isActive ? "#14534F"   : isBanned ? "#D9483A" : isExpired ? "#E07B2A" : "#E8A33D";
 
     const photoHtml = member.photo
-      ? `<img src="${member.photo}" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid ${borderCol};display:block;margin:0 auto 12px">`
+      ? `<img src="${RHS.imgUrl ? RHS.imgUrl(member.photo, 220) : member.photo}" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid ${borderCol};display:block;margin:0 auto 12px">`
       : `<div style="width:90px;height:90px;border-radius:50%;background:#EEF8F1;border:3px solid ${borderCol};display:flex;align-items:center;justify-content:center;margin:0 auto 12px"><i class="fa-solid fa-user" style="font-size:2rem;color:#8A9A96"></i></div>`;
     certResult.hidden = false;
     certResult.innerHTML = `
@@ -706,7 +706,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const verifyUrl  = `${location.origin}${location.pathname}#verify`;
     const photoBlock = member.photo
-      ? `<img src="${member.photo}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:4px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.25)">`
+      ? `<img src="${RHS.imgUrl ? RHS.imgUrl(member.photo, 240) : member.photo}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:4px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.25)">`
       : `<div style="width:100px;height:100px;border-radius:50%;background:#EEF8F1;border:4px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center"><svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' fill='#4CAF8A' viewBox='0 0 24 24'><path d='M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z'/></svg></div>`;
     pa.innerHTML = `
       <style>
@@ -887,7 +887,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div style="height:3px;background:#E8A33D"></div>
                 <div style="padding:16px 24px;display:flex;align-items:center;border-bottom:1px solid #E7DFD2;background:#FAFAF8;flex-wrap:wrap">
                   ${m.photo
-                    ? `<img src="${m.photo}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:3px solid #14534F;flex-shrink:0">`
+                    ? `<img src="${RHS.imgUrl ? RHS.imgUrl(m.photo, 150) : m.photo}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:3px solid #14534F;flex-shrink:0">`
                     : `<div style="width:60px;height:60px;border-radius:50%;background:#EEF8F1;border:3px solid #14534F;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa-solid fa-user" style="font-size:1.5rem;color:#4CAF8A"></i></div>`}
                   <div style="flex:1;min-width:0;margin-left:16px">
                     <div style="font-size:16px;font-weight:700;color:#14534F">${m.fullName}</div>
@@ -959,7 +959,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const card = document.createElement("div");
         card.className = "team-card";
         const photoHtml = member.photo
-          ? `<div class="photo" style="background-image:url('${member.photo}')"></div>`
+          ? `<div class="photo" style="background-image:url('${RHS.imgUrl ? RHS.imgUrl(member.photo, 260) : member.photo}')"></div>`
           : `<div class="photo" style="background:#EEF8F1;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-user" style="font-size:2rem;color:#8A9A96"></i></div>`;
         card.innerHTML = `${photoHtml}<h4>${member.name}</h4><div class="role">${member.designation}</div><p class="bio">${member.bio || ""}</p>`;
         teamGrid.appendChild(card);
@@ -1534,7 +1534,7 @@ document.addEventListener("DOMContentLoaded", () => {
           return `
           <article class="news-card">
             ${n.imageURL
-              ? `<img src="${n.imageURL}" alt="${n.title}" class="news-card-img" loading="lazy">`
+              ? `<img src="${RHS.imgUrl ? RHS.imgUrl(n.imageURL, 700) : n.imageURL}" alt="${n.title}" class="news-card-img" loading="lazy">`
               : `<div class="news-card-img" style="background:#EEF8F1;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-newspaper" style="font-size:2rem;color:#8A9A96"></i></div>`}
             <div class="news-card-body">
               <span class="news-tag">${n.category || "News"}</span>
@@ -1573,7 +1573,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <article class="story-card">
             <span class="story-badge">${s.category || s.helpType || "Community"}</span>
             ${s.imageUrl || s.photoURL
-              ? `<img src="${s.imageUrl || s.photoURL}" alt="${s.name}" class="story-card-img" loading="lazy">`
+              ? `<img src="${RHS.imgUrl ? RHS.imgUrl(s.imageUrl || s.photoURL, 700) : (s.imageUrl || s.photoURL)}" alt="${s.name}" class="story-card-img" loading="lazy">`
               : `<div class="story-card-img" style="background:#EEF8F1;display:flex;align-items:center;justify-content:center;font-size:2.5rem">🤲</div>`}
             <div class="story-card-body">
               <div class="story-card-name">${s.name || ""}</div>
@@ -1603,14 +1603,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!modal) return;
 
     if (type === "news") {
-      imgWrap.innerHTML = item.imageURL ? `<img src="${item.imageURL}" class="detail-modal-img" alt="${item.title || ""}">` : "";
+      imgWrap.innerHTML = item.imageURL ? `<img src="${RHS.imgUrl ? RHS.imgUrl(item.imageURL, 1000) : item.imageURL}" class="detail-modal-img" alt="${item.title || ""}">` : "";
       tagEl.textContent  = item.category || "News";
       dateEl.innerHTML   = item.date ? `<i class="fa-regular fa-calendar"></i> ${item.date}` : "";
       titleEl.textContent = item.title || "";
       textEl.textContent  = item.body || item.content || "";
     } else {
       const img = item.imageUrl || item.photoURL;
-      imgWrap.innerHTML = img ? `<img src="${img}" class="detail-modal-img" alt="${item.name || ""}">` : "";
+      imgWrap.innerHTML = img ? `<img src="${RHS.imgUrl ? RHS.imgUrl(img, 1000) : img}" class="detail-modal-img" alt="${item.name || ""}">` : "";
       tagEl.textContent  = item.category || item.helpType || "Community";
       dateEl.innerHTML   = `<i class="fa-solid fa-location-dot"></i> ${item.location || "Khairpur Tamewali"}`;
       titleEl.textContent = item.name || "";

@@ -34,10 +34,13 @@ async function uploadImage(file, folder = "rhs/members") {
   throw new Error(data.error?.message || "Image upload failed");
 }
 
-function imgUrl(url, size = 300) {
+function imgUrl(url, width = 400) {
   if (!url) return "";
-  if (url.startsWith("http")) return url;
-  return `https://res.cloudinary.com/${CLOUDINARY_CLOUD}/image/upload/w_${size},h_${size},c_fill,q_auto,f_auto/${url}`;
+  if (url.includes("res.cloudinary.com") && url.includes("/upload/")) {
+    return url.replace("/upload/", `/upload/w_${width},q_auto,f_auto/`);
+  }
+  // Any other URL (local asset like images/slide1.jpg, or a non-Cloudinary link) -> leave untouched
+  return url;
 }
 
 // ============================================================
