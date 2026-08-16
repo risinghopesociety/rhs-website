@@ -708,6 +708,19 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
+  function generateImageFromArea(el, filename) {
+    if (!window.html2canvas) { window.print(); return; }
+    window.html2canvas(el, { scale: 3, useCORS: true, backgroundColor: "#ffffff" })
+      .then(canvas => {
+        const link = document.createElement("a");
+        link.download = filename || "card.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+        document.getElementById("printCert").innerHTML = "";
+      })
+      .catch(() => { document.getElementById("printCert").innerHTML = ""; });
+  }
+
   function renderCertificate(member) {
     if (!certResult) return;
     const st = (member.status || "Active");
@@ -745,6 +758,9 @@ document.addEventListener("DOMContentLoaded", () => {
           <button class="btn btn-primary" onclick="printCertificate(${JSON.stringify(member).replace(/"/g, '&quot;')})">
             <i class="fa-solid fa-print"></i> Download / Print
           </button>
+          <button class="btn btn-primary" style="background:#E8A33D;border-color:#E8A33D" onclick="printSmartCard(${JSON.stringify(member).replace(/"/g, '&quot;')})">
+            <i class="fa-solid fa-id-card"></i> Download Smart Card
+          </button>
           <button class="btn btn-ghost" onclick="window.closeLedger ? window.closeLedger() : null; document.getElementById('certResult').hidden=true; document.getElementById('certResult').innerHTML='';">
             <i class="fa-solid fa-rotate-left"></i> Search Again
           </button>
@@ -754,6 +770,89 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <p class="cert-footnote">Computer-generated digital certificate. No signature required.</p>
       </div>`;
+  }
+
+  window.printSmartCard = function (member) {
+    const pa = document.getElementById("printCert");
+    if (!pa) return;
+    const logoSrc = window.NGO.logoUrl || "images/logo.png";
+    const status = (member.status || "Active").toUpperCase();
+    const isActive = status === "ACTIVE";
+    const isBanned = status === "BANNED";
+    const badgeColor = isActive ? "#2E9E5B" : isBanned ? "#D9483A" : "#E8A33D";
+    const badgeBg = isActive ? "#EEF8F1" : isBanned ? "#FEF2F2" : "#FEF9EC";
+    const photoBlock = member.photo
+      ? `<img src="${RHS.imgUrl ? RHS.imgUrl(member.photo, 220) : member.photo}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid #14534F;flex-shrink:0">`
+      : `<div style="width:56px;height:56px;border-radius:50%;background:#EEF8F1;border:2px solid #14534F;flex-shrink:0;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-user" style="color:#8A9A96"></i></div>`;
+    const verifyUrl = `${location.origin}${location.pathname}#verify`;
+
+    pa.innerHTML = `
+      <div id="smartCardInner" style="width:380px;border-radius:16px;overflow:hidden;background:#FAFAF8;font-family:Arial,sans-serif;border:1px solid #E7DFD2">
+        <div style="background:#14534F;padding:14px 16px;display:flex;align-items:center;gap:10px">
+          <img src="${logoSrc}" style="width:34px;height:34px;border-radius:50%;object-fit:contain;background:#fff;padding:3px">
+          <div style="flex:1">
+            <div style="color:#fff;font-size:13px;font-weight:700">${window.NGO.name}</div>
+            <div style="color:#E8A33D;font-size:10px;letter-spacing:.06em">MEMBERSHIP SMART CARD</div>
+          </div>
+        </div>
+        <div style="height:3px;background:linear-gradient(90deg,#E8A33D,#F5C76A,#E8A33D)"></div>
+        <div style="padding:16px;display:flex;gap:12px;align-items:center">
+          ${photoBlock}
+          <div>
+            <div style="font-size:15px;font-weight:700;color:#14534F">${member.fullName || "—"}</div>
+            <div style="font-size:11px;color:#8A9A96">${member.designation || "General Member"}</div>
+            <div style="margin-top:4px;display:inline-flex;align-items:center;background:${badgeBg};border:1.5px solid ${badgeColor}55;border-radius:20px;padding:2px 10px">
+              <div style="width:6px;height:6px;border-radius:50%;background:${badgeColor}"></div>
+              <span style="font-size:9.5px;font-weight:700;color:${badgeColor};letter-spacing:.04em;margin-left:5px">${status}</span>
+            </div>
+          </div>
+        </div>
+        <div style="padding:0 16px 14px;display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;font-size:11px">
+          <div><div style="color:#8A9A96;font-size:9px;letter-spacing:.05em">CNIC</div><div style="font-weight:700;color:#1C2B29">${member.cnic || "—"}</div></div>
+          <div><div style="color:#8A9A96;font-size:9px;letter-spacing:.05em">REG NO</div><div style="font-weight:700;color:#1C2B29">${member.registrationNo || "—"}</div></div>
+          <div><div style="color:#8A9A96;font-size:9px;letter-spacing:.05em">VALID UPTO</div><div style="font-weight:700;color:#1C2B29">${member.validUpto || "—"}</div></div>
+          <div><div style="color:#8A9A96;font-size:9px;letter-spacing:.05em">PROVINCE</div><div style="font-weight:700;color:#1C2B29">${member.province || "—"}</div></div>
+        </div>
+        <div style="border-top:1px dashed #E7DFD2"></div>
+        <div style="padding:12px 16px;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+          <div>
+            <div style="height:40px;width:120px;display:flex;align-items:flex-end">
+              ${window.NGO.signatureUrl ? `<img src="${window.NGO.signatureUrl}" style="max-width:120px;max-height:38px;object-fit:contain">` : ""}
+            </div>
+            <div style="border-top:1.5px solid #14534F;padding-top:3px;font-size:9px;color:#8A9A96;width:120px">Authorized Signature</div>
+          </div>
+          <div id="smartCardQR" style="width:56px;height:56px;background:#fff;border:1px solid #E7DFD2;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0"></div>
+        </div>
+        <div style="background:#EEF8F1;padding:8px 16px;text-align:center">
+          <div style="font-size:9px;color:#4A6B60">Scan or visit to verify · ${verifyUrl}</div>
+        </div>
+      </div>`;
+
+    if (window.QRCode) {
+      new QRCode(document.getElementById("smartCardQR"), {
+        text: verifyUrl, width: 50, height: 50,
+        colorDark: "#14534F", colorLight: "#ffffff"
+      });
+    }
+
+    const fname = "Membership-SmartCard-" + (member.registrationNo || member.fullName || "RHS").replace(/[^a-z0-9]+/gi, "-") + ".png";
+    setTimeout(() => {
+      const inner = document.getElementById("smartCardInner");
+      printAreaImageWhenReady(inner, fname);
+    }, 150); // small delay so the QR library finishes drawing before we capture
+  };
+
+  function printAreaImageWhenReady(el, filename) {
+    const imgs = Array.from(el.querySelectorAll("img"));
+    const loaders = imgs.map(img => {
+      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+      return new Promise(resolve => {
+        img.addEventListener("load", resolve, { once: true });
+        img.addEventListener("error", resolve, { once: true });
+      });
+    });
+    Promise.race([Promise.all(loaders), new Promise(r => setTimeout(r, 4000))])
+      .then(() => generateImageFromArea(el, filename));
   }
 
   window.printCertificate = function (member) {
