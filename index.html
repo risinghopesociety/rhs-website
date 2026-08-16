@@ -115,24 +115,24 @@
 
 <!-- ===== HERO ===== -->
 <section class="hero" id="home">
-  <div class="slider" id="heroSlider">
-    <div class="slide active" style="background-image:url('images/slide1.jpg')"></div>
-    <div class="slide" style="background-image:url('images/slide2.jpg')"></div>
-    <div class="slide" style="background-image:url('images/slide3.jpg')"></div>
-    <div class="slide" style="background-image:url('images/slide4.jpg')"></div>
-    <div class="slider-overlay"></div>
-    <button class="slider-arrow prev" id="prevSlide" aria-label="Previous slide"><i class="fa-solid fa-chevron-left"></i></button>
-    <button class="slider-arrow next" id="nextSlide" aria-label="Next slide"><i class="fa-solid fa-chevron-right"></i></button>
-    <button class="slider-mute-btn hidden" id="sliderMuteBtn" aria-label="Toggle sound"><i class="fa-solid fa-volume-high"></i></button>
-    <div class="slider-dots" id="sliderDots"></div>
-  </div>
-  <div class="hero-content">
-    <span class="eyebrow" id="heroEyebrow"> </span>
-    <h1 id="heroHeading">  <br>   <span class="accent"> </span></h1>
-    <p id="heroText" >
+  <div class="hero-content container">
+    <span class="eyebrow" id="heroEyebrow">Rising Hope Society</span>
+    <h1 id="heroHeading">Real help, <span class="accent">real change.</span></h1>
+    <p id="heroText">Grassroots welfare work in Khairpur Tamewali — powered entirely by volunteers and generous donors.</p>
+    <div class="hero-actions">
       <a href="#memberSection" onclick="showMemberSection('registration')" class="btn btn-primary">Join Us <i class="fa-solid fa-arrow-right"></i></a>
       <a href="#charityDesk" class="btn btn-ghost">Get Help <i class="fa-solid fa-hand-holding-heart"></i></a>
     </div>
+  </div>
+
+  <div class="hero-carousel-wrap container">
+    <div class="hero-carousel" id="heroSlider">
+      <div class="hero-track" id="heroTrack"></div>
+    </div>
+    <button class="carousel-arrow prev" id="prevSlide" aria-label="Previous slide"><i class="fa-solid fa-chevron-left"></i></button>
+    <button class="carousel-arrow next" id="nextSlide" aria-label="Next slide"><i class="fa-solid fa-chevron-right"></i></button>
+    <button class="slider-mute-btn hidden" id="sliderMuteBtn" aria-label="Toggle sound"><i class="fa-solid fa-volume-high"></i></button>
+    <div class="slider-dots" id="sliderDots"></div>
   </div>
 </section>
 

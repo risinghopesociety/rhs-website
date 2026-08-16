@@ -126,19 +126,27 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ===================== HERO SLIDER ===================== */
   function initHeroSlider() {
     const heroSlider = document.getElementById("heroSlider");
+    const track      = document.getElementById("heroTrack");
     const dotsWrap   = document.getElementById("sliderDots");
-    if (!heroSlider || !dotsWrap) return;
+    if (!heroSlider || !track || !dotsWrap) return;
 
     let currentSlide = 0;
     let sliderTimer;
-    let slides = [];
+    let cards = [];
     let slideItems = [];
     let dots = [];
     let userAllowedSound = false; // becomes true once the user taps the mute button to unmute
+    let scrollDebounce;
     const muteBtn = document.getElementById("sliderMuteBtn");
 
+    function cardStep() {
+      if (!cards.length) return 0;
+      const gap = parseFloat(getComputedStyle(track).columnGap || getComputedStyle(track).gap || "16") || 16;
+      return cards[0].getBoundingClientRect().width + gap;
+    }
+
     function currentVideo() {
-      return slides[currentSlide] ? slides[currentSlide].querySelector("video") : null;
+      return cards[currentSlide] ? cards[currentSlide].querySelector("video") : null;
     }
 
     function updateMuteBtn() {
@@ -157,7 +165,6 @@ document.addEventListener("DOMContentLoaded", () => {
       vid.muted = !userAllowedSound; // try with sound if the user has already allowed it once
       updateMuteBtn();
       vid.play().catch(() => {
-        // Browser blocked audio autoplay -> fall back to muted playback
         vid.muted = true;
         updateMuteBtn();
         vid.play().catch(() => {});
@@ -174,69 +181,93 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    function goToSlide(index) {
-      if (!slides.length) return;
+    function setActive(index) {
+      cards.forEach((c, i) => c.classList.toggle("active", i === index));
+      dots.forEach((d, i) => d.classList.toggle("active", i === index));
       const prevVid = currentVideo();
-      if (prevVid) prevVid.pause();
-      slides[currentSlide].classList.remove("active");
-      dots[currentSlide].classList.remove("active");
-      currentSlide = (index + slides.length) % slides.length;
-      slides[currentSlide].classList.add("active");
-      dots[currentSlide].classList.add("active");
+      currentSlide = index;
       const vid = currentVideo();
+      if (prevVid && prevVid !== vid) prevVid.pause();
       if (vid) playVideoSlide(vid); else updateMuteBtn();
     }
-    // Image slides auto-advance on a timer. Video slides auto-advance only once
-    // the video actually finishes playing, via the 'ended' listener in renderSlides.
+
+    function scrollToIndex(index, behavior) {
+      if (!cards.length) return;
+      index = (index + cards.length) % cards.length;
+      track.scrollTo({ left: index * cardStep(), behavior: behavior || "smooth" });
+      setActive(index);
+    }
+
     function scheduleNext() {
       clearTimeout(sliderTimer);
-      if (slides.length <= 1) return;
+      if (cards.length <= 1) return;
       const cur = slideItems[currentSlide];
       if (cur && cur.type === "video") return; // wait for 'ended' event instead
-      sliderTimer = setTimeout(() => { goToSlide(currentSlide + 1); scheduleNext(); }, 5500);
+      sliderTimer = setTimeout(() => { scrollToIndex(currentSlide + 1); scheduleNext(); }, 5500);
     }
     function resetSlider() { scheduleNext(); }
 
+    // Detect manual swipes/scrolls and sync the active card + dots
+    track.addEventListener("scroll", () => {
+      clearTimeout(scrollDebounce);
+      scrollDebounce = setTimeout(() => {
+        const step = cardStep();
+        if (!step) return;
+        const idx = Math.round(track.scrollLeft / step);
+        if (idx !== currentSlide && idx >= 0 && idx < cards.length) {
+          setActive(idx);
+          resetSlider();
+        }
+      }, 120);
+    }, { passive: true });
+
     function renderSlides(items) {
-      // items: array of { url, type: 'image'|'video' }
-      heroSlider.querySelectorAll(".slide").forEach(el => el.remove());
-      const overlay = heroSlider.querySelector(".slider-overlay");
+      track.innerHTML = "";
       slideItems = items;
       items.forEach((item, i) => {
-        const div = document.createElement("div");
-        const isVideo = item.type === "video";
-        div.className = "slide" + (isVideo ? " slide-video" : "") + (i === 0 ? " active" : "");
-        if (isVideo) {
+        const card = document.createElement("div");
+        card.className = "hero-card" + (i === 0 ? " active" : "");
+        if (item.type === "video") {
           const video = document.createElement("video");
-          video.className = "slide-video-el";
           video.src = item.url;
           video.playsInline = true;
+          video.muted = true;
           video.autoplay = (i === 0);
-          video.muted = true; // required for the very first automatic play; playVideoSlide()/goToSlide() will re-evaluate real sound state
           video.addEventListener("ended", () => {
-            if (slides[currentSlide] === div) { goToSlide(currentSlide + 1); scheduleNext(); }
+            if (currentSlide === i) { scrollToIndex(currentSlide + 1); scheduleNext(); }
           });
-          div.appendChild(video);
+          card.appendChild(video);
         } else {
-          div.style.backgroundImage = `url('${item.url}')`;
+          const img = document.createElement("img");
+          img.src = item.url;
+          img.loading = i === 0 ? "eager" : "lazy";
+          img.alt = "";
+          card.appendChild(img);
         }
-        heroSlider.insertBefore(div, overlay);
+        const fade = document.createElement("div");
+        fade.className = "hero-card-fade";
+        card.appendChild(fade);
+        track.appendChild(card);
       });
-      slides = Array.from(heroSlider.querySelectorAll(".slide"));
+      cards = Array.from(track.children);
 
       dotsWrap.innerHTML = "";
-      slides.forEach((_, i) => {
+      cards.forEach((_, i) => {
         const dot = document.createElement("button");
         dot.classList.add("dot");
         if (i === 0) dot.classList.add("active");
-        dot.addEventListener("click", () => { goToSlide(i); resetSlider(); });
+        dot.addEventListener("click", () => { scrollToIndex(i); resetSlider(); });
         dotsWrap.appendChild(dot);
       });
       dots = Array.from(dotsWrap.querySelectorAll(".dot"));
+
       currentSlide = 0;
-      const firstVid = currentVideo();
-      if (firstVid) playVideoSlide(firstVid); else updateMuteBtn();
-      scheduleNext();
+      requestAnimationFrame(() => {
+        track.scrollTo({ left: 0, behavior: "auto" });
+        const firstVid = currentVideo();
+        if (firstVid) playVideoSlide(firstVid); else updateMuteBtn();
+        scheduleNext();
+      });
     }
 
     // Fallback slides (used if admin panel has none yet, or Firebase not ready)
@@ -246,8 +277,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const nextBtn = document.getElementById("nextSlide");
     const prevBtn = document.getElementById("prevSlide");
-    if (nextBtn) nextBtn.addEventListener("click", () => { goToSlide(currentSlide + 1); resetSlider(); });
-    if (prevBtn) prevBtn.addEventListener("click", () => { goToSlide(currentSlide - 1); resetSlider(); });
+    if (nextBtn) nextBtn.addEventListener("click", () => { scrollToIndex(currentSlide + 1); resetSlider(); });
+    if (prevBtn) prevBtn.addEventListener("click", () => { scrollToIndex(currentSlide - 1); resetSlider(); });
+
+    let resizeDebounce;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeDebounce);
+      resizeDebounce = setTimeout(() => scrollToIndex(currentSlide, "auto"), 200);
+    });
 
     // Load real slides from admin panel (Firestore) once available
     function loadAdminSlides() {
