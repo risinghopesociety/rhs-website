@@ -838,31 +838,45 @@ function loadSlidesList(){
   wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
   RHS.getSlides().then(res=>{
     if(!res.slides||!res.slides.length){wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:20px">No slides yet.</p>';return;}
-    let html='<div style="display:flex;flex-direction:column;gap:12px;margin-top:12px">';
+    const listEl=document.createElement("div");
+    listEl.style.cssText="display:flex;flex-direction:column;gap:12px;margin-top:12px";
     res.slides.forEach(s=>{
-      html+=`<div style="background:#F5F9F8;border:1.5px solid #D8E8E5;border-radius:12px;padding:14px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start">
-        ${s.imageUrl
+      const title = s.title||s.heading||"";
+      const order = s.order||1;
+      const type = s.type||"image";
+      const imageUrl = s.imageUrl||"";
+
+      const row=document.createElement("div");
+      row.style.cssText="background:#F5F9F8;border:1.5px solid #D8E8E5;border-radius:12px;padding:14px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start";
+
+      row.innerHTML=`
+        ${imageUrl
           ?`<div style="position:relative;width:90px;height:60px;flex-shrink:0">
-              <img src="${RHS.imgUrl?RHS.imgUrl(s.imageUrl,220):s.imageUrl}" style="width:90px;height:60px;border-radius:8px;object-fit:cover;display:block">
-              ${s.type==='video'?`<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25);border-radius:8px"><i class="fa fa-circle-play" style="color:#fff;font-size:1.3rem"></i></span>`:""}
+              <img src="${RHS.imgUrl?RHS.imgUrl(imageUrl,220):imageUrl}" style="width:90px;height:60px;border-radius:8px;object-fit:cover;display:block">
+              ${type==='video'?`<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25);border-radius:8px"><i class="fa fa-circle-play" style="color:#fff;font-size:1.3rem"></i></span>`:""}
             </div>`
           :`<div style="width:90px;height:60px;background:#E7DFD2;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa fa-image" style="color:#8A9A96;font-size:1.5rem"></i></div>`}
         <div style="flex:1;min-width:160px">
           <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:flex-start">
             <div>
-              <strong style="color:#14534F">${escHtml(s.title||s.heading||"No Title")}</strong>
-              <span style="display:block;color:#8A9A96;font-size:.78rem;margin-top:2px"><i class="fa fa-sort-numeric-asc"></i> Order: ${s.order||1} ${s.type==='video'?' · <i class="fa fa-video"></i> Video':' · <i class=\"fa fa-image\"></i> Image'}</span>
+              <strong style="color:#14534F">${escHtml(title||"No Title")}</strong>
+              <span style="display:block;color:#8A9A96;font-size:.78rem;margin-top:2px"><i class="fa fa-sort-numeric-asc"></i> Order: ${order} ${type==='video'?' · <i class="fa fa-video"></i> Video':' · <i class="fa fa-image"></i> Image'}</span>
             </div>
             <div style="display:flex;gap:6px">
-              <button class="btn btn-sm" style="background:#14534F;color:#fff;border:none" onclick="openEditSlide('${s.id}','${escHtml(s.title||s.heading||"")}','${s.order||1}','${s.imageUrl||""}','${s.type||"image"}')"><i class="fa fa-edit"></i></button>
-              <button class="btn btn-sm btn-reject" onclick="deleteSlideItem('${s.id}')"><i class="fa fa-trash"></i></button>
+              <button class="btn btn-sm slide-edit-btn" style="background:#14534F;color:#fff;border:none"><i class="fa fa-edit"></i></button>
+              <button class="btn btn-sm btn-reject slide-delete-btn"><i class="fa fa-trash"></i></button>
             </div>
           </div>
-        </div>
-      </div>`;
+        </div>`;
+
+      // Attach handlers directly (avoids breaking on titles/URLs containing quotes)
+      row.querySelector(".slide-edit-btn").addEventListener("click", () => openEditSlide(s.id, title, order, imageUrl, type));
+      row.querySelector(".slide-delete-btn").addEventListener("click", () => deleteSlideItem(s.id));
+
+      listEl.appendChild(row);
     });
-    html+='</div>';
-    wrap.innerHTML=html;
+    wrap.innerHTML="";
+    wrap.appendChild(listEl);
   }).catch(()=>{wrap.innerHTML='<p style="color:#D9483A;text-align:center;padding:20px">Failed to load.</p>';});
 }
 
@@ -886,11 +900,11 @@ function openEditSlide(id,title,order,imageUrl,type){
   modal.innerHTML=`<div style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
       <h3 style="color:#14534F;margin:0"><i class="fa fa-edit"></i> Edit Slide</h3>
-      <button onclick="document.getElementById('slideEditModal').remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#8A9A96">✕</button>
+      <button id="slideEditCloseBtn" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#8A9A96">✕</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:14px">
       <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Title</label>
-        <input id="edit-slide-title" value="${title}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
+        <input id="edit-slide-title" value="${escHtml(title)}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
       <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Order No</label>
         <input id="edit-slide-order" type="number" value="${order}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
       <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:6px">Image/Video (change optional)</label>
@@ -900,12 +914,15 @@ function openEditSlide(id,title,order,imageUrl,type){
       </div>
       <p id="editSlideMsg" style="margin:0;font-size:.85rem;color:#D9483A"></p>
       <div style="display:flex;gap:10px">
-        <button id="editSlideSaveBtn" class="btn btn-primary" style="flex:1" onclick="saveEditSlide('${id}','${imageUrl}','${type}')"><i class="fa fa-save"></i> Save</button>
-        <button class="btn btn-ghost" onclick="document.getElementById('slideEditModal').remove()">Cancel</button>
+        <button id="editSlideSaveBtn" class="btn btn-primary" style="flex:1"><i class="fa fa-save"></i> Save</button>
+        <button id="slideEditCancelBtn" class="btn btn-ghost">Cancel</button>
       </div>
     </div>
   </div>`;
   document.body.appendChild(modal);
+  document.getElementById("slideEditCloseBtn").addEventListener("click", () => modal.remove());
+  document.getElementById("slideEditCancelBtn").addEventListener("click", () => modal.remove());
+  document.getElementById("editSlideSaveBtn").addEventListener("click", () => saveEditSlide(id, imageUrl, type));
   document.getElementById("edit-slide-image").addEventListener("change",function(){
     const file=this.files[0]; if(!file) return;
     const isVideo = file.type && file.type.startsWith("video/");
