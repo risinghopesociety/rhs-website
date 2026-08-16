@@ -194,7 +194,9 @@ document.addEventListener("DOMContentLoaded", () => {
     function scrollToIndex(index, behavior) {
       if (!cards.length) return;
       index = (index + cards.length) % cards.length;
-      track.scrollTo({ left: index * cardStep(), behavior: behavior || "smooth" });
+      // heroSlider (not track) is the actual overflow-x:auto scroll container —
+      // track is just the inner flex wrapper, so it must never be the scroll target.
+      heroSlider.scrollTo({ left: index * cardStep(), behavior: behavior || "smooth" });
       setActive(index);
     }
 
@@ -208,12 +210,12 @@ document.addEventListener("DOMContentLoaded", () => {
     function resetSlider() { scheduleNext(); }
 
     // Detect manual swipes/scrolls and sync the active card + dots
-    track.addEventListener("scroll", () => {
+    heroSlider.addEventListener("scroll", () => {
       clearTimeout(scrollDebounce);
       scrollDebounce = setTimeout(() => {
         const step = cardStep();
         if (!step) return;
-        const idx = Math.round(track.scrollLeft / step);
+        const idx = Math.round(heroSlider.scrollLeft / step);
         if (idx !== currentSlide && idx >= 0 && idx < cards.length) {
           setActive(idx);
           resetSlider();
@@ -263,7 +265,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       currentSlide = 0;
       requestAnimationFrame(() => {
-        track.scrollTo({ left: 0, behavior: "auto" });
+        heroSlider.scrollTo({ left: 0, behavior: "auto" });
         const firstVid = currentVideo();
         if (firstVid) playVideoSlide(firstVid); else updateMuteBtn();
         scheduleNext();
