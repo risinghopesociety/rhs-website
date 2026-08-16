@@ -780,8 +780,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const isActive = status === "ACTIVE";
     const isBanned = status === "BANNED";
     const isExpired = status === "EXPIRED";
-    const badgeColor = isActive ? "#2E9E5B" : isBanned ? "#D9483A" : isExpired ? "#E07B2A" : "#E8A33D";
-    const statusIcon = isActive ? "✅" : isBanned ? "🚫" : isExpired ? "🕐" : "•";
+    const badgeColor = isActive ? "#5FD98A" : isBanned ? "#F08A7E" : isExpired ? "#F5B57A" : "#F0D98A";
     const photoBlock = member.photo
       ? `<img src="${RHS.imgUrl ? RHS.imgUrl(member.photo, 220) : member.photo}" style="width:58px;height:58px;border-radius:50%;object-fit:cover;border:2px solid #14534F;flex-shrink:0">`
       : `<div style="width:58px;height:58px;border-radius:50%;background:#EEF8F1;border:2px solid #14534F;flex-shrink:0;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-user" style="color:#8A9A96"></i></div>`;
@@ -808,8 +807,9 @@ document.addEventListener("DOMContentLoaded", () => {
             <div style="color:#fff;font-size:14px;font-weight:700;line-height:1.25">${window.NGO.name}</div>
             <div style="color:#E8A33D;font-size:9.5px;letter-spacing:.06em;line-height:1.4">MEMBERSHIP SMART CARD</div>
           </div>
-          <div style="flex-shrink:0;text-align:center;background:rgba(255,255,255,.12);border:1px solid ${badgeColor};border-radius:20px;padding:3px 9px">
-            <span style="font-size:9px;font-weight:700;color:#fff;white-space:nowrap">${statusIcon} ${status}</span>
+          <div style="flex-shrink:0;display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.35);border-radius:20px;padding:4px 10px 4px 8px">
+            <span style="width:7px;height:7px;border-radius:50%;background:${badgeColor};flex-shrink:0;display:inline-block"></span>
+            <span style="font-size:9px;font-weight:600;color:#fff;letter-spacing:.03em;white-space:nowrap">${status}</span>
           </div>
         </div>
         <div style="height:3px;background:linear-gradient(90deg,#E8A33D,#F5C76A,#E8A33D)"></div>
