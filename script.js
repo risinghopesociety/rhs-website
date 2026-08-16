@@ -779,58 +779,76 @@ document.addEventListener("DOMContentLoaded", () => {
     const status = (member.status || "Active").toUpperCase();
     const isActive = status === "ACTIVE";
     const isBanned = status === "BANNED";
-    const badgeColor = isActive ? "#2E9E5B" : isBanned ? "#D9483A" : "#E8A33D";
-    const badgeBg = isActive ? "#EEF8F1" : isBanned ? "#FEF2F2" : "#FEF9EC";
+    const isExpired = status === "EXPIRED";
+    const badgeColor = isActive ? "#2E9E5B" : isBanned ? "#D9483A" : isExpired ? "#E07B2A" : "#E8A33D";
+    const statusIcon = isActive ? "✅" : isBanned ? "🚫" : isExpired ? "🕐" : "•";
     const photoBlock = member.photo
-      ? `<img src="${RHS.imgUrl ? RHS.imgUrl(member.photo, 220) : member.photo}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid #14534F;flex-shrink:0">`
-      : `<div style="width:56px;height:56px;border-radius:50%;background:#EEF8F1;border:2px solid #14534F;flex-shrink:0;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-user" style="color:#8A9A96"></i></div>`;
+      ? `<img src="${RHS.imgUrl ? RHS.imgUrl(member.photo, 220) : member.photo}" style="width:58px;height:58px;border-radius:50%;object-fit:cover;border:2px solid #14534F;flex-shrink:0">`
+      : `<div style="width:58px;height:58px;border-radius:50%;background:#EEF8F1;border:2px solid #14534F;flex-shrink:0;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-user" style="color:#8A9A96"></i></div>`;
     const verifyUrl = `${location.origin}${location.pathname}#verify`;
 
+    // Issue date, based on the member's registration date (same logic as the full certificate)
+    const issueDateRaw = member.timestamp || "";
+    let issueDate = "";
+    if (issueDateRaw && /^\d{2}-\d{2}-\d{4}$/.test(issueDateRaw)) {
+      const [dd, mm, yyyy] = issueDateRaw.split("-");
+      issueDate = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd))
+        .toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
+    } else {
+      issueDate = issueDateRaw || "—";
+    }
+
+    const field = (label, value) => `<div><div style="color:#8A9A96;font-size:8px;letter-spacing:.05em">${label}</div><div style="font-weight:700;color:#1C2B29;font-size:10.5px;margin-top:1px">${value || "—"}</div></div>`;
+
     pa.innerHTML = `
-      <div id="smartCardInner" style="width:380px;border-radius:16px;overflow:hidden;background:#FAFAF8;font-family:Arial,sans-serif;border:1px solid #E7DFD2">
-        <div style="background:#14534F;padding:14px 16px;display:flex;align-items:center;gap:10px">
-          <img src="${logoSrc}" style="width:34px;height:34px;border-radius:50%;object-fit:contain;background:#fff;padding:3px">
-          <div style="flex:1">
-            <div style="color:#fff;font-size:13px;font-weight:700">${window.NGO.name}</div>
-            <div style="color:#E8A33D;font-size:10px;letter-spacing:.06em">MEMBERSHIP SMART CARD</div>
+      <div id="smartCardInner" style="width:400px;border-radius:14px;overflow:hidden;background:#FAFAF8;font-family:Arial,sans-serif;border:1px solid #E7DFD2">
+        <div style="background:#14534F;padding:12px 16px;display:flex;align-items:center;gap:10px;box-sizing:border-box">
+          <img src="${logoSrc}" style="width:40px;height:40px;border-radius:50%;object-fit:contain;background:#fff;padding:3px;flex-shrink:0;display:block">
+          <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+            <div style="color:#fff;font-size:14px;font-weight:700;line-height:1.25">${window.NGO.name}</div>
+            <div style="color:#E8A33D;font-size:9.5px;letter-spacing:.06em;line-height:1.4">MEMBERSHIP SMART CARD</div>
+          </div>
+          <div style="flex-shrink:0;text-align:center;background:rgba(255,255,255,.12);border:1px solid ${badgeColor};border-radius:20px;padding:3px 9px">
+            <span style="font-size:9px;font-weight:700;color:#fff;white-space:nowrap">${statusIcon} ${status}</span>
           </div>
         </div>
         <div style="height:3px;background:linear-gradient(90deg,#E8A33D,#F5C76A,#E8A33D)"></div>
-        <div style="padding:16px;display:flex;gap:12px;align-items:center">
+        <div style="padding:14px 16px 10px;display:flex;gap:12px;align-items:center">
           ${photoBlock}
           <div>
-            <div style="font-size:15px;font-weight:700;color:#14534F">${member.fullName || "—"}</div>
-            <div style="font-size:11px;color:#8A9A96">${member.designation || "General Member"}</div>
-            <div style="margin-top:4px;display:inline-flex;align-items:center;background:${badgeBg};border:1.5px solid ${badgeColor}55;border-radius:20px;padding:2px 10px">
-              <div style="width:6px;height:6px;border-radius:50%;background:${badgeColor}"></div>
-              <span style="font-size:9.5px;font-weight:700;color:${badgeColor};letter-spacing:.04em;margin-left:5px">${status}</span>
-            </div>
+            <div style="font-size:15px;font-weight:700;color:#14534F;line-height:1.25">${member.fullName || "—"}</div>
+            <div style="font-size:10.5px;color:#8A9A96;line-height:1.4">${member.designation || "General Member"}</div>
+            <div style="font-size:10.5px;color:#4A6B60;font-weight:600;line-height:1.4">${member.membershipType || "General Member"}</div>
           </div>
         </div>
-        <div style="padding:0 16px 14px;display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;font-size:11px">
-          <div><div style="color:#8A9A96;font-size:9px;letter-spacing:.05em">CNIC</div><div style="font-weight:700;color:#1C2B29">${member.cnic || "—"}</div></div>
-          <div><div style="color:#8A9A96;font-size:9px;letter-spacing:.05em">REG NO</div><div style="font-weight:700;color:#1C2B29">${member.registrationNo || "—"}</div></div>
-          <div><div style="color:#8A9A96;font-size:9px;letter-spacing:.05em">VALID UPTO</div><div style="font-weight:700;color:#1C2B29">${member.validUpto || "—"}</div></div>
-          <div><div style="color:#8A9A96;font-size:9px;letter-spacing:.05em">PROVINCE</div><div style="font-weight:700;color:#1C2B29">${member.province || "—"}</div></div>
+        <div style="padding:4px 16px 12px;display:grid;grid-template-columns:1fr 1fr;gap:9px 12px">
+          ${field("REG NO", member.registrationNo)}
+          ${field("VALID UPTO", member.validUpto)}
+          ${field("GENDER", member.gender)}
+          ${field("PROFESSION", member.profession)}
+          ${field("MOBILE", member.mobile)}
+          ${field("EMAIL", member.email)}
+          <div style="grid-column:1/-1">${field("ADDRESS", member.address)}</div>
         </div>
         <div style="border-top:1px dashed #E7DFD2"></div>
-        <div style="padding:12px 16px;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+        <div style="padding:10px 16px;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
           <div>
-            <div style="height:40px;width:120px;display:flex;align-items:flex-end">
-              ${window.NGO.signatureUrl ? `<img src="${window.NGO.signatureUrl}" style="max-width:120px;max-height:38px;object-fit:contain">` : ""}
+            <div style="height:36px;width:120px;display:flex;align-items:flex-end">
+              ${window.NGO.signatureUrl ? `<img src="${window.NGO.signatureUrl}" style="max-width:120px;max-height:34px;object-fit:contain">` : ""}
             </div>
-            <div style="border-top:1.5px solid #14534F;padding-top:3px;font-size:9px;color:#8A9A96;width:120px">Authorized Signature</div>
+            <div style="border-top:1.5px solid #14534F;padding-top:3px;font-size:8.5px;color:#8A9A96;width:120px">Authorized Signature</div>
+            <div style="font-size:8.5px;color:#8A9A96;margin-top:4px">Issued: <strong style="color:#1C2B29">${issueDate}</strong></div>
           </div>
-          <div id="smartCardQR" style="width:56px;height:56px;background:#fff;border:1px solid #E7DFD2;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0"></div>
+          <div id="smartCardQR" style="width:54px;height:54px;background:#fff;border:1px solid #E7DFD2;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0"></div>
         </div>
-        <div style="background:#EEF8F1;padding:8px 16px;text-align:center">
-          <div style="font-size:9px;color:#4A6B60">Scan or visit to verify · ${verifyUrl}</div>
+        <div style="background:#EEF8F1;padding:7px 16px;text-align:center">
+          <div style="font-size:8.5px;color:#4A6B60">Scan or visit to verify · ${verifyUrl}</div>
         </div>
       </div>`;
 
     if (window.QRCode) {
       new QRCode(document.getElementById("smartCardQR"), {
-        text: verifyUrl, width: 50, height: 50,
+        text: verifyUrl, width: 48, height: 48,
         colorDark: "#14534F", colorLight: "#ffffff"
       });
     }
