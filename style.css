@@ -139,12 +139,12 @@ img, video { max-width: 100%; display: block; }
 
 /* ===================== HERO / SLIDER ===================== */
 .hero {
-  padding: 88px 0 20px;
+  padding: 80px 0 16px;
   overflow: hidden;
 }
 .carousel-heading {
   text-align: center;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 .carousel-heading h2 {
   font-size: clamp(1.2rem, 2.6vw, 1.7rem);
@@ -192,7 +192,8 @@ img, video { max-width: 100%; display: block; }
 .hero-card {
   position: relative;
   flex: 0 0 100%;
-  height: clamp(220px, 42vh, 420px);
+  height: clamp(260px, 48vh, 480px);
+  height: clamp(260px, 48dvh, 480px);
   border-radius: 16px;
   overflow: hidden;
   scroll-snap-align: start;
@@ -273,23 +274,23 @@ img, video { max-width: 100%; display: block; }
 .slider-mute-btn:hover { background: rgba(20,40,38,.7); }
 .slider-mute-btn.hidden { display: none; }
 @media (max-width: 720px) {
-  .hero { padding: 74px 0 14px; }
-  .carousel-heading { margin-bottom: 8px; }
+  .hero { padding: 68px 0 12px; }
+  .carousel-heading { margin-bottom: 6px; }
   .carousel-heading h2 { font-size: 1.15rem; }
-  .hero-card { height: clamp(200px, 40vh, 360px); border-radius: 14px; }
+  .hero-card { height: clamp(240px, 46vh, 420px); height: clamp(240px, 46dvh, 420px); border-radius: 14px; }
   .hero-card-title { padding: 8px 10px; font-size: .82rem; text-align: center; }
-  .hero-carousel-controls { margin-top: 8px; gap: 12px; }
+  .hero-carousel-controls { margin-top: 6px; gap: 12px; }
   .carousel-arrow { width: 34px; height: 34px; }
   .slider-dots .dot { width: 6px; height: 6px; }
 }
 
 /* Extra-short viewports (landscape phones, small laptops) */
 @media (max-height: 640px) {
-  .hero { padding-top: 66px; padding-bottom: 10px; }
-  .carousel-heading { margin-bottom: 6px; }
+  .hero { padding-top: 60px; padding-bottom: 8px; }
+  .carousel-heading { margin-bottom: 5px; }
   .carousel-heading h2 { font-size: 1.05rem; }
-  .hero-card { height: clamp(150px, 34vh, 280px); }
-  .hero-carousel-controls { margin-top: 6px; }
+  .hero-card { height: clamp(160px, 38vh, 300px); height: clamp(160px, 38dvh, 300px); }
+  .hero-carousel-controls { margin-top: 5px; }
   .carousel-arrow { width: 30px; height: 30px; }
 }
 
