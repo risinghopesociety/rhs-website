@@ -139,12 +139,6 @@ document.addEventListener("DOMContentLoaded", () => {
     let scrollDebounce;
     const muteBtn = document.getElementById("sliderMuteBtn");
 
-    function cardStep() {
-      if (!cards.length) return 0;
-      const gap = parseFloat(getComputedStyle(track).columnGap || getComputedStyle(track).gap || "16") || 16;
-      return cards[0].getBoundingClientRect().width + gap;
-    }
-
     function currentVideo() {
       return cards[currentSlide] ? cards[currentSlide].querySelector("video") : null;
     }
@@ -181,6 +175,31 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
+    // Reel/coverflow curve: cards dip down + tilt the further they sit from center
+    let curveRaf;
+    function updateCurve() {
+      curveRaf = null;
+      if (!cards.length) return;
+      const trackRect = track.getBoundingClientRect();
+      const centerX = trackRect.left + trackRect.width / 2;
+      const half = trackRect.width / 2 || 1;
+      cards.forEach(c => {
+        const r = c.getBoundingClientRect();
+        const cardCenter = r.left + r.width / 2;
+        const dist = Math.max(-1.3, Math.min(1.3, (cardCenter - centerX) / half));
+        const dip = Math.abs(dist) * 30;
+        const rotate = dist * -5;
+        const scale = 1 - Math.abs(dist) * 0.1;
+        const opacity = 1 - Math.abs(dist) * 0.4;
+        c.style.transform = `translateY(${dip}px) rotate(${rotate}deg) scale(${scale})`;
+        c.style.opacity = Math.max(0.35, opacity);
+      });
+    }
+    function queueCurveUpdate() {
+      if (curveRaf) return;
+      curveRaf = requestAnimationFrame(updateCurve);
+    }
+
     function setActive(index) {
       cards.forEach((c, i) => c.classList.toggle("active", i === index));
       dots.forEach((d, i) => d.classList.toggle("active", i === index));
@@ -191,12 +210,24 @@ document.addEventListener("DOMContentLoaded", () => {
       if (vid) playVideoSlide(vid); else updateMuteBtn();
     }
 
+    function closestCardIndex() {
+      const trackRect = track.getBoundingClientRect();
+      const centerX = trackRect.left + trackRect.width / 2;
+      let closest = 0, minDist = Infinity;
+      cards.forEach((c, i) => {
+        const r = c.getBoundingClientRect();
+        const dist = Math.abs((r.left + r.width / 2) - centerX);
+        if (dist < minDist) { minDist = dist; closest = i; }
+      });
+      return closest;
+    }
+
+    // scrollIntoView respects the real scroll-snap-align:center geometry (padding etc.),
+    // unlike computing a manual pixel offset, which was the cause of the "stuck" bug.
     function scrollToIndex(index, behavior) {
       if (!cards.length) return;
       index = (index + cards.length) % cards.length;
-      // heroSlider (not track) is the actual overflow-x:auto scroll container —
-      // track is just the inner flex wrapper, so it must never be the scroll target.
-      heroSlider.scrollTo({ left: index * cardStep(), behavior: behavior || "smooth" });
+      cards[index].scrollIntoView({ behavior: behavior || "smooth", inline: "center", block: "nearest" });
       setActive(index);
     }
 
@@ -209,13 +240,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     function resetSlider() { scheduleNext(); }
 
-    // Detect manual swipes/scrolls and sync the active card + dots
-    heroSlider.addEventListener("scroll", () => {
+    // Detect manual swipes/scrolls and sync the active card + dots + curve
+    track.addEventListener("scroll", () => {
+      queueCurveUpdate();
       clearTimeout(scrollDebounce);
       scrollDebounce = setTimeout(() => {
-        const step = cardStep();
-        if (!step) return;
-        const idx = Math.round(heroSlider.scrollLeft / step);
+        const idx = closestCardIndex();
         if (idx !== currentSlide && idx >= 0 && idx < cards.length) {
           setActive(idx);
           resetSlider();
@@ -265,7 +295,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       currentSlide = 0;
       requestAnimationFrame(() => {
-        heroSlider.scrollTo({ left: 0, behavior: "auto" });
+        track.scrollTo({ left: 0, behavior: "auto" });
+        updateCurve();
         const firstVid = currentVideo();
         if (firstVid) playVideoSlide(firstVid); else updateMuteBtn();
         scheduleNext();
@@ -285,7 +316,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let resizeDebounce;
     window.addEventListener("resize", () => {
       clearTimeout(resizeDebounce);
-      resizeDebounce = setTimeout(() => scrollToIndex(currentSlide, "auto"), 200);
+      resizeDebounce = setTimeout(() => { scrollToIndex(currentSlide, "auto"); updateCurve(); }, 200);
     });
 
     // Load real slides from admin panel (Firestore) once available

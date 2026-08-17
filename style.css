@@ -164,19 +164,6 @@ img, video { max-width: 100%; display: block; }
 .hero-content p { font-size: 1.05rem; max-width: 540px; color: #5A6B67; margin: 0 auto 26px; }
 .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
 
-/* ---- Slider section heading (OpenArt style) ---- */
-.hero-slider-heading {
-  text-align: center;
-  font-size: clamp(1.8rem, 4.2vw, 3rem);
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  margin: 0 0 22px;
-  background: linear-gradient(90deg, var(--coral), var(--gold));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
 /* ---- Boxed peek-carousel (OpenArt style) ---- */
 .hero-carousel-wrap { position: relative; }
 .hero-carousel {
@@ -186,14 +173,6 @@ img, video { max-width: 100%; display: block; }
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   border-radius: 20px;
-}
-/* Curve the slides inward at the edges (desktop): fade left/right so
-   off-screen cards appear to bend away from the centered active card. */
-@media (min-width: 860px) {
-  .hero-carousel {
-    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
-    mask-image: linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
-  }
 }
 .hero-carousel::-webkit-scrollbar { display: none; }
 .hero-track {
@@ -209,11 +188,10 @@ img, video { max-width: 100%; display: block; }
   overflow: hidden;
   scroll-snap-align: center;
   background: #14534F;
-  opacity: .45;
-  transform: scale(.94);
-  transition: opacity .35s ease, transform .35s ease;
+  opacity: .6;
+  transition: opacity .2s linear, transform .2s linear;
+  will-change: transform, opacity;
 }
-.hero-card.active { opacity: 1; transform: scale(1); }
 .hero-card img, .hero-card video {
   position: absolute; inset: 0;
   width: 100%; height: 100%;
