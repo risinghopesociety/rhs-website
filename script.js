@@ -175,31 +175,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // Reel/coverflow curve: cards dip down + tilt the further they sit from center
-    let curveRaf;
-    function updateCurve() {
-      curveRaf = null;
-      if (!cards.length) return;
-      const trackRect = track.getBoundingClientRect();
-      const centerX = trackRect.left + trackRect.width / 2;
-      const half = trackRect.width / 2 || 1;
-      cards.forEach(c => {
-        const r = c.getBoundingClientRect();
-        const cardCenter = r.left + r.width / 2;
-        const dist = Math.max(-1.3, Math.min(1.3, (cardCenter - centerX) / half));
-        const dip = Math.abs(dist) * 30;
-        const rotate = dist * -5;
-        const scale = 1 - Math.abs(dist) * 0.1;
-        const opacity = 1 - Math.abs(dist) * 0.4;
-        c.style.transform = `translateY(${dip}px) rotate(${rotate}deg) scale(${scale})`;
-        c.style.opacity = Math.max(0.35, opacity);
-      });
-    }
-    function queueCurveUpdate() {
-      if (curveRaf) return;
-      curveRaf = requestAnimationFrame(updateCurve);
-    }
-
     function setActive(index) {
       cards.forEach((c, i) => c.classList.toggle("active", i === index));
       dots.forEach((d, i) => d.classList.toggle("active", i === index));
@@ -210,24 +185,24 @@ document.addEventListener("DOMContentLoaded", () => {
       if (vid) playVideoSlide(vid); else updateMuteBtn();
     }
 
+    // With scroll-snap-align:start, the "active"/leading card is whichever one
+    // sits closest to the left edge of the visible track.
     function closestCardIndex() {
       const trackRect = track.getBoundingClientRect();
-      const centerX = trackRect.left + trackRect.width / 2;
       let closest = 0, minDist = Infinity;
       cards.forEach((c, i) => {
-        const r = c.getBoundingClientRect();
-        const dist = Math.abs((r.left + r.width / 2) - centerX);
+        const dist = Math.abs(c.getBoundingClientRect().left - trackRect.left);
         if (dist < minDist) { minDist = dist; closest = i; }
       });
       return closest;
     }
 
-    // scrollIntoView respects the real scroll-snap-align:center geometry (padding etc.),
-    // unlike computing a manual pixel offset, which was the cause of the "stuck" bug.
+    // scrollIntoView respects the real scroll-snap-align geometry,
+    // unlike computing a manual pixel offset (which was the cause of an earlier "stuck" bug).
     function scrollToIndex(index, behavior) {
       if (!cards.length) return;
       index = (index + cards.length) % cards.length;
-      cards[index].scrollIntoView({ behavior: behavior || "smooth", inline: "center", block: "nearest" });
+      cards[index].scrollIntoView({ behavior: behavior || "smooth", inline: "start", block: "nearest" });
       setActive(index);
     }
 
@@ -240,9 +215,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     function resetSlider() { scheduleNext(); }
 
-    // Detect manual swipes/scrolls and sync the active card + dots + curve
+    // Detect manual swipes/scrolls and sync the active card + dots
     track.addEventListener("scroll", () => {
-      queueCurveUpdate();
       clearTimeout(scrollDebounce);
       scrollDebounce = setTimeout(() => {
         const idx = closestCardIndex();
@@ -273,12 +247,18 @@ document.addEventListener("DOMContentLoaded", () => {
           const img = document.createElement("img");
           img.src = item.url;
           img.loading = i === 0 ? "eager" : "lazy";
-          img.alt = "";
+          img.alt = item.title || "";
           card.appendChild(img);
         }
-        const fade = document.createElement("div");
-        fade.className = "hero-card-fade";
-        card.appendChild(fade);
+        if (item.title) {
+          const fade = document.createElement("div");
+          fade.className = "hero-card-fade";
+          card.appendChild(fade);
+          const titleEl = document.createElement("div");
+          titleEl.className = "hero-card-title";
+          titleEl.textContent = item.title;
+          card.appendChild(titleEl);
+        }
         track.appendChild(card);
       });
       cards = Array.from(track.children);
@@ -296,7 +276,6 @@ document.addEventListener("DOMContentLoaded", () => {
       currentSlide = 0;
       requestAnimationFrame(() => {
         track.scrollTo({ left: 0, behavior: "auto" });
-        updateCurve();
         const firstVid = currentVideo();
         if (firstVid) playVideoSlide(firstVid); else updateMuteBtn();
         scheduleNext();
@@ -305,7 +284,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Fallback slides (used if admin panel has none yet, or Firebase not ready)
     const fallbackImages = ["images/slide1.jpg", "images/slide2.jpg", "images/slide3.jpg", "images/slide4.jpg"]
-      .map(url => ({ url, type: "image" }));
+      .map(url => ({ url, type: "image", title: "" }));
     renderSlides(fallbackImages);
 
     const nextBtn = document.getElementById("nextSlide");
@@ -316,7 +295,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let resizeDebounce;
     window.addEventListener("resize", () => {
       clearTimeout(resizeDebounce);
-      resizeDebounce = setTimeout(() => { scrollToIndex(currentSlide, "auto"); updateCurve(); }, 200);
+      resizeDebounce = setTimeout(() => scrollToIndex(currentSlide, "auto"), 200);
     });
 
     // Load real slides from admin panel (Firestore) once available
@@ -332,7 +311,8 @@ document.addEventListener("DOMContentLoaded", () => {
               url: (s.type === "video")
                 ? s.imageUrl
                 : (RHS.imgUrl ? RHS.imgUrl(s.imageUrl, 1600) : s.imageUrl),
-              type: s.type === "video" ? "video" : "image"
+              type: s.type === "video" ? "video" : "image",
+              title: s.title || s.heading || ""
             }));
           if (items.length) renderSlides(items);
         }
