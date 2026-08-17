@@ -139,8 +139,17 @@ img, video { max-width: 100%; display: block; }
 
 /* ===================== HERO / SLIDER ===================== */
 .hero {
-  padding: 20px 0 56px;
+  padding: 92px 0 56px;
   overflow: hidden;
+}
+.carousel-heading {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.carousel-heading h2 {
+  font-size: clamp(1.5rem, 3.5vw, 2.1rem);
+  font-weight: 700;
+  color: var(--ink);
 }
 .hero-content {
   text-align: center;
@@ -183,7 +192,7 @@ img, video { max-width: 100%; display: block; }
 .hero-card {
   position: relative;
   flex: 0 0 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 1 / 2;
   border-radius: 16px;
   overflow: hidden;
   scroll-snap-align: start;
@@ -263,8 +272,8 @@ img, video { max-width: 100%; display: block; }
 .slider-mute-btn:hover { background: rgba(20,40,38,.7); }
 .slider-mute-btn.hidden { display: none; }
 @media (max-width: 720px) {
-  .hero { padding: 12px 0 44px; }
-  .hero-card { aspect-ratio: 4 / 5; border-radius: 14px; }
+  .hero { padding: 82px 0 44px; }
+  .hero-card { aspect-ratio: 2 / 5; border-radius: 14px; }
 }
 
 /* ===================== BUTTONS ===================== */
