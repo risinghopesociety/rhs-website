@@ -197,12 +197,13 @@ document.addEventListener("DOMContentLoaded", () => {
       return closest;
     }
 
-    // scrollIntoView respects the real scroll-snap-align geometry,
-    // unlike computing a manual pixel offset (which was the cause of an earlier "stuck" bug).
+    // Manual horizontal scroll (NOT scrollIntoView) so the page never
+    // jumps vertically when a slide changes — only the track scrolls sideways.
     function scrollToIndex(index, behavior) {
       if (!cards.length) return;
       index = (index + cards.length) % cards.length;
-      cards[index].scrollIntoView({ behavior: behavior || "smooth", inline: "start", block: "nearest" });
+      const target = cards[index];
+      track.scrollTo({ left: target.offsetLeft, behavior: behavior || "smooth" });
       setActive(index);
     }
 
