@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en" id="htmlRoot">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Membership & Certificate Verification — Rising Hope Society</title>
+<meta name="description" content="Register as a member of Rising Hope Society or verify your existing membership certificate and donation history.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://rhsbwp.netlify.app/member.html">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Membership & Certificate Verification — Rising Hope Society">
+<meta property="og:description" content="Register as a member of Rising Hope Society or verify your existing membership certificate and donation history.">
+<meta property="og:image" content="https://rhsbwp.netlify.app/images/logo.png">
+<meta property="og:site_name" content="Rising Hope Society">
+
+<!-- Fonts & Icons -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===== PAGE LOADER ===== -->
+<div id="pageLoader">
+  <div class="loader-inner">
+    <img src="images/logo.png" alt="Rising Hope Society" style="width:70px;height:70px;object-fit:contain;border-radius:50%">
+    <div class="loader-bar"><div class="loader-fill"></div></div>
+    <p>Rising Hope Society</p>
+  </div>
+</div>
+
+<!-- ===== WHATSAPP FLOAT BUTTON ===== -->
+<a href="https://wa.me/923088919628?text=Assalam-u-Alaikum%2C%20I%20want%20to%20know%20about%20Rising%20Hope%20Society."
+   class="whatsapp-float" target="_blank" rel="noopener" title="Chat on WhatsApp" aria-label="WhatsApp">
+  <i class="fa-brands fa-whatsapp"></i>
+  <span class="wa-tooltip">Chat with us!</span>
+</a>
+<script>window.PAGE_ID = "member";</script>
+<!-- ===== NAVIGATION (shared) ===== -->
+<div id="site-header"></div>
+<!-- ===== PAGE BANNER ===== -->
+<section class="donate-hero">
+  <div class="container">
+    <span class="eyebrow">Rising Hope Society</span>
+    <h1>Membership & Verification</h1>
+    <p class="donate-subheading">Join Rising Hope Society or verify your membership certificate and donation record.</p>
+  </div>
+</section>
+<!-- ===== MEMBER PORTAL (Registration + Verification) ===== -->
+<section class="member-portal" id="memberSection">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Member Portal</span>
+      <h2>Registration & Certificate Verification</h2>
+      <p>Join as a new member or verify your existing membership and donation history.</p>
+    </div>
+    <div class="helpdesk-btns" id="memberPortalBtns">
+      <button class="btn btn-primary" onclick="showMemberSection('registration')">
+        <i class="fa-solid fa-user-plus"></i> New Member Registration
+      </button>
+      <button class="btn btn-ghost" onclick="showMemberSection('verify')">
+        <i class="fa-solid fa-shield-halved"></i> Certificate & Donation Verify
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== REGISTRATION FORM ===== -->
+<section class="registration" id="registration" style="display:none">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Join Us</span>
+      <h2>Become a Member</h2>
+      <p>Register as an official member of Rising Hope Society. After approval, you'll receive a digital membership certificate.</p>
+    </div>
+    <div class="form-card" id="formCard">
+      <form id="regForm" novalidate autocomplete="off">
+        <div class="form-grid two-col">
+          <div class="field">
+            <label for="regCnic">CNIC <span class="req">*</span></label>
+            <input type="text" id="regCnic" placeholder="00000-0000000-0" maxlength="15" inputmode="numeric" required autocomplete="off" autocorrect="off" spellcheck="false">
+          </div>
+          <div class="field">
+            <label for="regDob">Date of Birth <span class="req">*</span></label>
+            <input type="text" id="regDob" placeholder="dd-mm-yyyy" maxlength="10" inputmode="numeric" required autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="regName">Full Name <span class="req">*</span></label>
+            <input type="text" id="regName" placeholder="As on CNIC" required autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="regFather">Father / Husband Name <span class="req">*</span></label>
+            <input type="text" id="regFather" placeholder="Father or husband name" required autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="regGender">Gender <span class="req">*</span></label>
+            <select id="regGender" required autocomplete="off">
+              <option value="">Select gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="regProfession">Profession <span class="req">*</span></label>
+            <input type="text" id="regProfession" placeholder="e.g. Teacher, Farmer…" required autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="regMobile">Mobile Number <span class="req">*</span></label>
+            <input type="text" id="regMobile" placeholder="0300-0000000" maxlength="12" inputmode="numeric" required autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="regEmail">Email <small>(optional)</small></label>
+            <input type="email" id="regEmail" placeholder="you@example.com" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="regProvince">Province <span class="req">*</span></label>
+            <select id="regProvince" required autocomplete="off">
+              <option value="">Select province</option>
+              <option value="Punjab" selected>Punjab</option>
+              <option value="Sindh">Sindh</option>
+              <option value="KPK">KPK</option>
+              <option value="Balochistan">Balochistan</option>
+              <option value="AJK">AJK</option>
+              <option value="GB">GB</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="regMembership">Membership Type <span class="req">*</span></label>
+            <select id="regMembership" required autocomplete="off">
+              <option value="">Select type</option>
+              <option value="General Member">General Member</option>
+              <option value="Life Member">Life Member</option>
+              <option value="Honorary Member">Honorary Member</option>
+              <option value="Patron Member">Patron Member</option>
+            </select>
+          </div>
+          <div class="field full-col">
+            <label for="regAddress">Full Address <span class="req">*</span></label>
+            <textarea id="regAddress" rows="2" placeholder="House no, street, area, city…" required autocomplete="off"></textarea>
+          </div>
+          <div class="field full-col">
+            <label for="regPhoto">Passport Size Photo <span class="req">*</span></label>
+            <input type="file" id="regPhoto" accept="image/*"
+              style="display:block;width:100%;padding:12px;border:2px dashed #4CAF8A;border-radius:8px;background:#F5F9F8;font-size:1rem;cursor:pointer;box-sizing:border-box;margin-top:4px">
+            <div id="regPhotoPreview" style="margin-top:8px"></div>
+            <p class="form-msg" id="photoMsg"></p>
+          </div>
+        </div>
+        <div class="form-actions reg-form-actions">
+          <button type="submit" class="btn btn-primary" id="submitBtn">
+            <i class="fa-solid fa-paper-plane"></i> Submit Registration
+          </button>
+          <button type="reset" class="btn btn-ghost">
+            <i class="fa-solid fa-rotate-left"></i> Clear
+          </button>
+          <button type="button" class="btn btn-ghost" onclick="hideMemberSection()">
+            <i class="fa-solid fa-arrow-left"></i> Back
+          </button>
+        </div>
+        <p class="form-msg" id="formMsg"></p>
+      </form>
+      <div id="formResult" hidden class="result-card"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CERTIFICATE VERIFICATION ===== -->
+<section class="verify-section" id="verify" style="display:none">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Verification Portal</span>
+      <h2>Verify your membership certificate</h2>
+      <p>Enter your CNIC and Date of Birth to verify your certificate or view your charity donation record.</p>
+    </div>
+    <div class="form-card narrow">
+      <form id="verifyForm" novalidate autocomplete="off">
+        <div class="form-grid two-col">
+          <div class="field">
+            <label for="vCnic">CNIC <span class="req">*</span></label>
+            <input type="text" id="vCnic" placeholder="00000-0000000-0" maxlength="15" inputmode="numeric" required autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="vDob">Date of Birth <span class="req">*</span></label>
+            <input type="text" id="vDob" placeholder="dd-mm-yyyy" maxlength="10" inputmode="numeric" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-actions wrap">
+          <button type="submit" class="btn btn-primary" id="verifyBtn">
+            <i class="fa-solid fa-shield-halved"></i> Verify Certificate
+          </button>
+          <button type="button" class="btn btn-secondary" id="verifyCharityBtn">
+            <i class="fa-solid fa-hand-holding-heart"></i> Verify Charity Record
+          </button>
+          <button type="button" class="btn btn-ghost" id="verifyClearBtn">
+            <i class="fa-solid fa-rotate-left"></i> Clear
+          </button>
+          <button type="button" class="btn btn-ghost" onclick="hideMemberSection()">
+            <i class="fa-solid fa-arrow-left"></i> Back
+          </button>
+        </div>
+        <p class="form-msg" id="verifyMsg"></p>
+      </form>
+      <div id="certResult" hidden></div>
+      <div id="donationResult" style="margin-top:24px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER (shared) ===== -->
+<div id="site-footer"></div>
+
+<!-- Auto-open a form if linked here with ?open=registration or ?open=verify -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const want = new URLSearchParams(location.search).get("open");
+    if (!want) return;
+    const tryOpen = () => {
+      if (typeof window.showMemberSection === "function") window.showMemberSection(want);
+      else setTimeout(tryOpen, 200);
+    };
+    tryOpen();
+  });
+</script>
+
+<!-- Hidden print area -->
+<div id="printCert" class="print-cert"></div>
+<div id="printArea" style="display:none"></div>
+
+<!-- PDF generation libraries (used instead of window.print()/"Save as PDF",
+     which produces blank/empty files on many Android browsers) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script type="module" src="firebase-db.js"></script>
+<script type="module" src="include.js"></script>
+<script src="script.js" defer></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyArd3DU3G4thncYaGuKSEseusduNSMORzs",
+    authDomain: "rising-hope-society-pk.firebaseapp.com",
+    projectId: "rising-hope-society-pk",
+    storageBucket: "rising-hope-society-pk.firebasestorage.app",
+    messagingSenderId: "371234102504",
+    appId: "1:371234102504:web:a8bf7d8cc51d1fd797fd5d"
+  };
+
+  const app = initializeApp(FIREBASE_CONFIG);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  window.__db = db;
+  window.__auth = auth;
+  window.__fs = { collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy, limit, serverTimestamp };
+  window.__fbReady = true;
+  window.dispatchEvent(new Event('firebaseReady'));
+</script>
+
+</body>
+</html>

@@ -40,38 +40,10 @@
   <span class="wa-tooltip">Chat with us!</span>
 </a>
 
-<!-- ===== NAVIGATION ===== -->
-<header class="navbar" id="navbar">
-  <div class="nav-inner">
-    <a href="index.html" class="brand">
-      <img src="images/logo.png" alt="Rising Hope Society Logo" class="brand-mark">
-      <span class="brand-text">
-        <span class="brand-name">Rising Hope <em>Society</em></span>
-        <small>Khairpur Tamewali · Bahawalpur</small>
-      </span>
-    </a>
+<script>window.PAGE_ID = "donate";</script>
 
-    <!-- Language Toggle -->
-    <button class="lang-btn" id="langToggle" onclick="toggleLang()" title="اردو / English">
-      <i class="fa-solid fa-language"></i> <span id="langLabel">اردو</span>
-    </button>
-
-    <nav class="nav-links" id="navLinks">
-      <a href="index.html" data-en="Home" data-ur="ہوم">Home</a>
-      <a href="index.html#memberSection" data-en="Members" data-ur="رکنیت">Members</a>
-      <a href="donate.html" class="active" data-en="Donate Us" data-ur="عطیہ کریں">Donate Us</a>
-      <a href="index.html#charityDesk" data-en="Charity Help" data-ur="امداد">Charity Help</a>
-      <a href="index.html#news" data-en="News" data-ur="خبریں">News</a>
-      <a href="index.html#stories" data-en="Stories" data-ur="کہانیاں">Stories</a>
-      <a href="index.html#team" data-en="Our Team" data-ur="ٹیم">Our Team</a>
-      <a href="index.html#contact" data-en="Contact" data-ur="رابطہ">Contact</a>
-      <a href="admin.html" style="color:var(--coral);font-weight:700"><i class="fa-solid fa-user-shield"></i> Admin</a>
-    </nav>
-    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
-      <span></span><span></span><span></span>
-    </button>
-  </div>
-</header>
+<!-- ===== NAVIGATION (shared) ===== -->
+<div id="site-header"></div>
 
 <!-- ===== DONATE HERO ===== -->
 <section class="donate-hero">
@@ -101,31 +73,11 @@
   </div>
 </section>
 
-<!-- ===== FOOTER ===== -->
-<footer class="footer">
-  <div class="container footer-inner">
-    <div class="brand footer-brand">
-      <img src="images/logo.png" alt="Rising Hope Society" class="brand-mark">
-      <span class="brand-text">
-        <span class="brand-name">Rising Hope <em>Society</em></span>
-        <small>Khairpur Tamewali · Bahawalpur</small>
-      </span>
-    </div>
-    <nav class="footer-links">
-      <a href="index.html">Home</a>
-      <a href="index.html#memberSection">Members</a>
-      <a href="donate.html">Donate Us</a>
-      <a href="index.html#charityDesk">Charity Help</a>
-      <a href="index.html#news">News</a>
-      <a href="index.html#stories">Stories</a>
-      <a href="index.html#team">Our Team</a>
-      <a href="index.html#contact">Contact</a>
-    </nav>
-    <p class="copyright">© <span id="year"></span> Rising Hope Society — Khairpur Tamewali, Bahawalpur. All rights reserved.</p>
-  </div>
-</footer>
+<!-- ===== FOOTER (shared) ===== -->
+<div id="site-footer"></div>
 
 <script type="module" src="firebase-db.js"></script>
+<script type="module" src="include.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -158,10 +110,11 @@
     if (loader) setTimeout(() => { loader.style.opacity = "0"; loader.style.visibility = "hidden"; }, 250);
   });
 
-  document.getElementById("year").textContent = new Date().getFullYear();
-
-  // ===== Mobile nav toggle =====
+  // ===== Mobile nav toggle + footer year (runs after shared header/footer are injected) =====
   document.addEventListener("DOMContentLoaded", () => {
+    const yearEl = document.getElementById("year");
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
+
     const navToggle = document.getElementById("navToggle");
     const navLinks  = document.getElementById("navLinks");
     if (navToggle && navLinks) {

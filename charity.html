@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en" id="htmlRoot">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Charity Help Desk — Rising Hope Society</title>
+<meta name="description" content="Apply for charity assistance from Rising Hope Society or check the status of an existing request.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://rhsbwp.netlify.app/charity.html">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Charity Help Desk — Rising Hope Society">
+<meta property="og:description" content="Apply for charity assistance from Rising Hope Society or check the status of an existing request.">
+<meta property="og:image" content="https://rhsbwp.netlify.app/images/logo.png">
+<meta property="og:site_name" content="Rising Hope Society">
+
+<!-- Fonts & Icons -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===== PAGE LOADER ===== -->
+<div id="pageLoader">
+  <div class="loader-inner">
+    <img src="images/logo.png" alt="Rising Hope Society" style="width:70px;height:70px;object-fit:contain;border-radius:50%">
+    <div class="loader-bar"><div class="loader-fill"></div></div>
+    <p>Rising Hope Society</p>
+  </div>
+</div>
+
+<!-- ===== WHATSAPP FLOAT BUTTON ===== -->
+<a href="https://wa.me/923088919628?text=Assalam-u-Alaikum%2C%20I%20want%20to%20know%20about%20Rising%20Hope%20Society."
+   class="whatsapp-float" target="_blank" rel="noopener" title="Chat on WhatsApp" aria-label="WhatsApp">
+  <i class="fa-brands fa-whatsapp"></i>
+  <span class="wa-tooltip">Chat with us!</span>
+</a>
+<script>window.PAGE_ID = "charity";</script>
+<!-- ===== NAVIGATION (shared) ===== -->
+<div id="site-header"></div>
+<!-- ===== PAGE BANNER ===== -->
+<section class="donate-hero">
+  <div class="container">
+    <span class="eyebrow">Rising Hope Society</span>
+    <h1>Charity Help Desk</h1>
+    <p class="donate-subheading">Apply for charity assistance or check the status of your existing request.</p>
+  </div>
+</section>
+<!-- ===== CHARITY HELP DESK ===== -->
+<section class="help-desk" id="charityDesk">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Charity Help Desk</span>
+      <h2>Need Help? We're Here.</h2>
+      <p>Apply for charity assistance or check the status of your existing request.</p>
+    </div>
+    <div class="helpdesk-btns" id="helpdeskBtns">
+      <button class="btn btn-primary" onclick="showHelpSection('grant')">
+        <i class="fa-solid fa-hand-holding-heart"></i> Apply for Charity Help
+      </button>
+      <button class="btn btn-ghost" onclick="showHelpSection('status')">
+        <i class="fa-solid fa-magnifying-glass"></i> Check Request Status
+      </button>
+    </div>
+
+    <!-- GRANT FORM -->
+    <div class="form-card" id="grantFormWrap" style="display:none;margin-top:32px">
+      <h3 style="font-family:'Fraunces',serif;color:var(--teal);margin-bottom:24px;font-size:1.3rem">
+        <i class="fa-solid fa-hand-holding-heart"></i> Charity Help Request Form
+      </h3>
+      <form id="grantForm" novalidate autocomplete="off">
+        <div class="form-grid two-col">
+          <div class="field">
+            <label for="gCnic">CNIC <span class="req">*</span></label>
+            <input type="text" id="gCnic" placeholder="00000-0000000-0" maxlength="15" inputmode="numeric" required autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="gDob">Date of Birth <span class="req">*</span></label>
+            <input type="text" id="gDob" placeholder="dd-mm-yyyy" maxlength="10" required autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="gName">Full Name <span class="req">*</span></label>
+            <input type="text" id="gName" placeholder="Your full name" required autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="gFather">Father / Husband Name <span class="req">*</span></label>
+            <input type="text" id="gFather" placeholder="Father or husband name" required autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="gGender">Gender <span class="req">*</span></label>
+            <select id="gGender" required autocomplete="off">
+              <option value="">Select gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="gEmail">Email <small>(optional)</small></label>
+            <input type="email" id="gEmail" placeholder="you@example.com" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="gMobile">Mobile Number <span class="req">*</span></label>
+            <input type="text" id="gMobile" placeholder="0300-0000000" maxlength="12" inputmode="numeric" required autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="gHelpType">What Help You Need <span class="req">*</span></label>
+            <select id="gHelpType" required autocomplete="off">
+              <option value="">Select type</option>
+              <option value="Food Packages">Food Packages</option>
+              <option value="Medical Help">Medical Help</option>
+              <option value="Shelter / House">Shelter / House</option>
+              <option value="Education Support">Education Support</option>
+              <option value="Wheel Chair">Wheel Chair</option>
+              <option value="Water Project Grant">Water Project Grant</option>
+              <option value="Business Support">Business Support</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="gAmount">Amount Required (Rs.) <span class="req">*</span></label>
+            <input type="number" id="gAmount" placeholder="e.g. 25000" min="1" required autocomplete="off">
+          </div>
+          <div class="field full-col">
+            <label for="gAddress">Full Address <span class="req">*</span></label>
+            <textarea id="gAddress" rows="2" placeholder="Complete address" required autocomplete="off"></textarea>
+          </div>
+        </div>
+        <div class="form-actions wrap">
+          <button type="submit" class="btn btn-primary" id="grantSubmitBtn">
+            Submit Request <i class="fa-solid fa-paper-plane"></i>
+          </button>
+          <button type="reset" class="btn btn-ghost">Clear Form</button>
+          <button type="button" class="btn btn-ghost" onclick="hideHelpSection()">Back</button>
+        </div>
+        <p class="form-msg" id="grantMsg"></p>
+      </form>
+      <div id="grantResult" style="margin-top:24px"></div>
+    </div>
+
+    <!-- GRANT STATUS CHECK -->
+    <div class="form-card narrow" id="grantStatusWrap" style="display:none;margin-top:32px">
+      <h3 style="font-family:'Fraunces',serif;color:var(--teal);margin-bottom:24px;font-size:1.3rem">
+        <i class="fa-solid fa-magnifying-glass"></i> Check Charity Request Status
+      </h3>
+      <form id="grantStatusForm" novalidate autocomplete="off">
+        <div class="form-grid two-col">
+          <div class="field">
+            <label for="gsCnic">CNIC <span class="req">*</span></label>
+            <input type="text" id="gsCnic" placeholder="00000-0000000-0" maxlength="15" inputmode="numeric" required autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="gsDob">Date of Birth <span class="req">*</span></label>
+            <input type="text" id="gsDob" placeholder="dd-mm-yyyy" maxlength="10" inputmode="numeric" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-actions wrap">
+          <button type="submit" class="btn btn-primary">Check Status <i class="fa-solid fa-search"></i></button>
+          <button type="reset" class="btn btn-ghost">Clear</button>
+          <button type="button" class="btn btn-ghost" onclick="hideHelpSection()">Back</button>
+        </div>
+        <p class="form-msg" id="gsMsg"></p>
+      </form>
+      <div id="grantStatusResult" style="margin-top:24px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER (shared) ===== -->
+<div id="site-footer"></div>
+
+<!-- Auto-open a form if linked here with ?open=grant or ?open=status -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const want = new URLSearchParams(location.search).get("open");
+    if (!want) return;
+    const tryOpen = () => {
+      if (typeof window.showHelpSection === "function") window.showHelpSection(want);
+      else setTimeout(tryOpen, 200);
+    };
+    tryOpen();
+  });
+</script>
+
+<script type="module" src="firebase-db.js"></script>
+<script type="module" src="include.js"></script>
+<script src="script.js" defer></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyArd3DU3G4thncYaGuKSEseusduNSMORzs",
+    authDomain: "rising-hope-society-pk.firebaseapp.com",
+    projectId: "rising-hope-society-pk",
+    storageBucket: "rising-hope-society-pk.firebasestorage.app",
+    messagingSenderId: "371234102504",
+    appId: "1:371234102504:web:a8bf7d8cc51d1fd797fd5d"
+  };
+
+  const app = initializeApp(FIREBASE_CONFIG);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  window.__db = db;
+  window.__auth = auth;
+  window.__fs = { collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy, limit, serverTimestamp };
+  window.__fbReady = true;
+  window.dispatchEvent(new Event('firebaseReady'));
+</script>
+
+</body>
+</html>
