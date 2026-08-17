@@ -77,6 +77,14 @@ window.setupAll = async function() {
     });
     status.innerHTML += "<br>✅ Content created";
 
+    // Donate Us page content
+    await setDoc(doc(db, "settings", "donate"), {
+      heading: "Support Our Cause",
+      subheading: "Your generosity changes lives",
+      detail: "Every donation, big or small, helps us provide food, shelter, healthcare and education to deserving families in Khairpur Tamewali. Choose any bank below and donate directly — your support reaches those who need it most."
+    });
+    status.innerHTML += "<br>✅ Donate Us content created";
+
     // Firestore Security Rules reminder
     status.innerHTML += `
     <br><br><strong>✅ All collections ready!</strong>
@@ -117,6 +125,10 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
     match /validationRules/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /bankAccounts/{doc} {
       allow read: if true;
       allow write: if request.auth != null;
     }

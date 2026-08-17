@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en" id="htmlRoot">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Donate Us — Rising Hope Society</title>
+<meta name="description" content="Support Rising Hope Society's welfare work in Khairpur Tamewali, Bahawalpur. Donate directly through any of our bank accounts.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://rhsbwp.netlify.app/donate.html">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Donate Us — Rising Hope Society">
+<meta property="og:description" content="Support Rising Hope Society's welfare work in Khairpur Tamewali, Bahawalpur.">
+<meta property="og:image" content="https://rhsbwp.netlify.app/images/logo.png">
+<meta property="og:site_name" content="Rising Hope Society">
+
+<!-- Fonts & Icons -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===== PAGE LOADER ===== -->
+<div id="pageLoader">
+  <div class="loader-inner">
+    <img src="images/logo.png" alt="Rising Hope Society" style="width:70px;height:70px;object-fit:contain;border-radius:50%">
+    <div class="loader-bar"><div class="loader-fill"></div></div>
+    <p>Rising Hope Society</p>
+  </div>
+</div>
+
+<!-- ===== WHATSAPP FLOAT BUTTON ===== -->
+<a href="https://wa.me/923088919628?text=Assalam-u-Alaikum%2C%20I%20want%20to%20donate%20to%20Rising%20Hope%20Society."
+   class="whatsapp-float" target="_blank" rel="noopener" title="Chat on WhatsApp" aria-label="WhatsApp">
+  <i class="fa-brands fa-whatsapp"></i>
+  <span class="wa-tooltip">Chat with us!</span>
+</a>
+
+<!-- ===== NAVIGATION ===== -->
+<header class="navbar" id="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="brand">
+      <img src="images/logo.png" alt="Rising Hope Society Logo" class="brand-mark">
+      <span class="brand-text">
+        <span class="brand-name">Rising Hope <em>Society</em></span>
+        <small>Khairpur Tamewali · Bahawalpur</small>
+      </span>
+    </a>
+
+    <!-- Language Toggle -->
+    <button class="lang-btn" id="langToggle" onclick="toggleLang()" title="اردو / English">
+      <i class="fa-solid fa-language"></i> <span id="langLabel">اردو</span>
+    </button>
+
+    <nav class="nav-links" id="navLinks">
+      <a href="index.html" data-en="Home" data-ur="ہوم">Home</a>
+      <a href="index.html#memberSection" data-en="Members" data-ur="رکنیت">Members</a>
+      <a href="donate.html" class="active" data-en="Donate Us" data-ur="عطیہ کریں">Donate Us</a>
+      <a href="index.html#charityDesk" data-en="Charity Help" data-ur="امداد">Charity Help</a>
+      <a href="index.html#news" data-en="News" data-ur="خبریں">News</a>
+      <a href="index.html#stories" data-en="Stories" data-ur="کہانیاں">Stories</a>
+      <a href="index.html#team" data-en="Our Team" data-ur="ٹیم">Our Team</a>
+      <a href="index.html#contact" data-en="Contact" data-ur="رابطہ">Contact</a>
+      <a href="admin.html" style="color:var(--coral);font-weight:700"><i class="fa-solid fa-user-shield"></i> Admin</a>
+    </nav>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<!-- ===== DONATE HERO ===== -->
+<section class="donate-hero">
+  <div class="container">
+    <span class="eyebrow" data-en="Rising Hope Society" data-ur="رائزنگ ہوپ سوسائٹی">Rising Hope Society</span>
+    <h1 id="donateHeading">Support Our Cause</h1>
+    <p class="donate-subheading" id="donateSubheading">Your generosity changes lives</p>
+    <p class="donate-detail" id="donateDetail">Loading...</p>
+  </div>
+</section>
+
+<!-- ===== BANK ACCOUNTS ===== -->
+<section class="donate-banks">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow" data-en="Bank Details" data-ur="بینک تفصیلات">Bank Details</span>
+      <h2 data-en="Choose any bank to donate" data-ur="عطیہ کے لیے کوئی بھی بینک منتخب کریں">Choose any bank to donate</h2>
+      <p data-en="All accounts are held in the name of Rising Hope Society and monitored transparently." data-ur="تمام اکاؤنٹس رائزنگ ہوپ سوسائٹی کے نام پر ہیں اور شفاف طریقے سے مانیٹر کیے جاتے ہیں۔">All accounts are held in the name of Rising Hope Society and monitored transparently.</p>
+    </div>
+    <div id="bankGrid" class="bank-grid">
+      <div class="donate-empty"><i class="fa-solid fa-spinner fa-spin"></i>Loading bank accounts...</div>
+    </div>
+    <div class="donate-note">
+      <i class="fa-solid fa-circle-info"></i>
+      <span data-en="After donating, please share your payment slip / screenshot on WhatsApp so we can send you a thank-you receipt." data-ur="عطیہ کرنے کے بعد، براہ کرم اپنی رسید / اسکرین شاٹ واٹس ایپ پر بھیجیں تاکہ ہم آپ کو رسید بھیج سکیں۔">After donating, please share your payment slip / screenshot on WhatsApp so we can send you a thank-you receipt.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+  <div class="container footer-inner">
+    <div class="brand footer-brand">
+      <img src="images/logo.png" alt="Rising Hope Society" class="brand-mark">
+      <span class="brand-text">
+        <span class="brand-name">Rising Hope <em>Society</em></span>
+        <small>Khairpur Tamewali · Bahawalpur</small>
+      </span>
+    </div>
+    <nav class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="index.html#memberSection">Members</a>
+      <a href="donate.html">Donate Us</a>
+      <a href="index.html#charityDesk">Charity Help</a>
+      <a href="index.html#news">News</a>
+      <a href="index.html#stories">Stories</a>
+      <a href="index.html#team">Our Team</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
+    <p class="copyright">© <span id="year"></span> Rising Hope Society — Khairpur Tamewali, Bahawalpur. All rights reserved.</p>
+  </div>
+</footer>
+
+<script type="module" src="firebase-db.js"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyArd3DU3G4thncYaGuKSEseusduNSMORzs",
+    authDomain: "rising-hope-society-pk.firebaseapp.com",
+    projectId: "rising-hope-society-pk",
+    storageBucket: "rising-hope-society-pk.firebasestorage.app",
+    messagingSenderId: "371234102504",
+    appId: "1:371234102504:web:a8bf7d8cc51d1fd797fd5d"
+  };
+
+  const app = initializeApp(FIREBASE_CONFIG);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  window.__db = db;
+  window.__auth = auth;
+  window.__fs = { collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy, limit, serverTimestamp };
+  window.__fbReady = true;
+  window.dispatchEvent(new Event('firebaseReady'));
+</script>
+
+<script>
+  // ===== Page loader =====
+  window.addEventListener("load", () => {
+    const loader = document.getElementById("pageLoader");
+    if (loader) setTimeout(() => { loader.style.opacity = "0"; loader.style.visibility = "hidden"; }, 250);
+  });
+
+  document.getElementById("year").textContent = new Date().getFullYear();
+
+  // ===== Mobile nav toggle =====
+  document.addEventListener("DOMContentLoaded", () => {
+    const navToggle = document.getElementById("navToggle");
+    const navLinks  = document.getElementById("navLinks");
+    if (navToggle && navLinks) {
+      navToggle.addEventListener("click", () => {
+        navToggle.classList.toggle("open");
+        navLinks.classList.toggle("open");
+      });
+      navLinks.querySelectorAll("a").forEach(link => {
+        link.addEventListener("click", () => {
+          navToggle.classList.remove("open");
+          navLinks.classList.remove("open");
+        });
+      });
+    }
+  });
+
+  // ===== Language toggle (EN/UR) =====
+  let isUrdu = false;
+  window.toggleLang = function () {
+    isUrdu = !isUrdu;
+    const label  = document.getElementById("langLabel");
+    const htmlEl = document.getElementById("htmlRoot");
+    if (label) label.textContent = isUrdu ? "English" : "اردو";
+    if (htmlEl) {
+      htmlEl.setAttribute("lang", isUrdu ? "ur" : "en");
+      if (isUrdu) htmlEl.setAttribute("dir", "rtl"); else htmlEl.removeAttribute("dir");
+    }
+    document.querySelectorAll("[data-ur]").forEach(el => {
+      if (isUrdu) { el._origText = el.textContent; el.textContent = el.getAttribute("data-ur"); }
+      else if (el._origText) { el.textContent = el._origText; }
+    });
+  };
+
+  // ===== Copy bank field to clipboard =====
+  window.copyBankField = function (btn, text) {
+    navigator.clipboard.writeText(text).then(() => {
+      const icon = btn.querySelector("i");
+      const prevClass = icon.className;
+      icon.className = "fa-solid fa-check";
+      btn.classList.add("copied");
+      setTimeout(() => { icon.className = prevClass; btn.classList.remove("copied"); }, 1500);
+    }).catch(() => {});
+  };
+
+  function escHtml(s) {
+    const d = document.createElement("div");
+    d.appendChild(document.createTextNode(s || ""));
+    return d.innerHTML;
+  }
+
+  // ===== Load donate content + bank accounts from Firestore =====
+  function waitForRHS() {
+    return new Promise(resolve => {
+      if (window.RHS) return resolve();
+      const iv = setInterval(() => { if (window.RHS) { clearInterval(iv); resolve(); } }, 150);
+    });
+  }
+
+  waitForRHS().then(async () => {
+    try {
+      const res = await RHS.getDonateContent();
+      document.getElementById("donateHeading").textContent = res.heading || "Support Our Cause";
+      document.getElementById("donateSubheading").textContent = res.subheading || "";
+      document.getElementById("donateDetail").textContent = res.detail || "";
+    } catch (e) {
+      document.getElementById("donateDetail").textContent = "";
+    }
+
+    const grid = document.getElementById("bankGrid");
+    try {
+      const res = await RHS.getBankAccounts();
+      if (!res.banks || !res.banks.length) {
+        grid.innerHTML = `<div class="donate-empty"><i class="fa-solid fa-building-columns"></i>Bank details will be added here soon. Please contact us on WhatsApp to donate.</div>`;
+        return;
+      }
+      grid.innerHTML = res.banks.map(b => `
+        <div class="bank-card">
+          <div class="bank-card-icon"><i class="fa-solid fa-building-columns"></i></div>
+          <h3>${escHtml(b.bankName || "")}</h3>
+          <div class="bank-card-row">
+            <span class="label">Title of Account</span>
+            <span class="value">${escHtml(b.accountTitle || "")}</span>
+          </div>
+          <div class="bank-card-row">
+            <span class="label">Account No</span>
+            <span class="value">
+              <span>${escHtml(b.accountNo || "")}</span>
+              <button class="bank-copy-btn" title="Copy" onclick="copyBankField(this,'${(b.accountNo || "").replace(/'/g, "\\'")}')"><i class="fa-solid fa-copy"></i></button>
+            </span>
+          </div>
+        </div>
+      `).join("");
+    } catch (e) {
+      grid.innerHTML = `<div class="donate-empty"><i class="fa-solid fa-triangle-exclamation"></i>Could not load bank details. Please try again later.</div>`;
+    }
+  });
+</script>
+
+</body>
+</html>

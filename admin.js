@@ -176,10 +176,11 @@ function switchTab(name){
   }
   const navEl = document.getElementById("nav-"+name);
   if(navEl) navEl.classList.add("active");
-  const titles={home:"Dashboard",members:"Members Management",charity:"Charity Entry",grants:"Grant Cases (CRN)",cashbook:"Cash Book",adminexp:"Admin Expenses",reports:"Reports",messages:"Messages",setup:"Setup"};
+  const titles={home:"Dashboard",members:"Members Management",charity:"Charity Entry",donate:"Donate Us",grants:"Grant Cases (CRN)",cashbook:"Cash Book",adminexp:"Admin Expenses",reports:"Reports",messages:"Messages",setup:"Setup"};
   document.getElementById("pageTitle").textContent=titles[name]||"Dashboard";
   if(name==="members") loadMembers("all");
   if(name==="charity"){loadCharityList();setDefaultDates();}
+  if(name==="donate") loadDonateAdmin();
   if(name==="grants") loadGrants("all");
   if(name==="cashbook"){loadCashBook();setDefaultDates();}
   if(name==="adminexp"){loadAdminExpenses();setDefaultDates();}
@@ -936,6 +937,142 @@ async function saveEditSlide(id,existingImage,existingType){
   RHS.updateSlide(id,{title,imageUrl,type,order}).then(()=>{
     setLoading(saveBtn,false);document.getElementById("slideEditModal")?.remove();
     showMsg("slideMsg","✅ Slide updated!","success");loadSlidesList();
+  }).catch(()=>{setLoading(saveBtn,false);if(msgEl)msgEl.textContent="⚠️ Failed.";});
+}
+
+// ====== DONATE US (Content + Bank Accounts) ======
+function loadDonateAdmin(){
+  if(!window.RHS){setTimeout(loadDonateAdmin,500);return;}
+  RHS.getDonateContent().then(res=>{
+    if(!res) return;
+    const h=document.getElementById("donate-heading"); if(h) h.value=res.heading||"";
+    const s=document.getElementById("donate-subheading"); if(s) s.value=res.subheading||"";
+    const d=document.getElementById("donate-detail"); if(d) d.value=res.detail||"";
+  }).catch(()=>{});
+  loadBankAccountsAdmin();
+}
+
+function saveDonateContentAdmin(){
+  if(!window.RHS) return;
+  const heading=document.getElementById("donate-heading")?.value.trim()||"";
+  const subheading=document.getElementById("donate-subheading")?.value.trim()||"";
+  const detail=document.getElementById("donate-detail")?.value.trim()||"";
+  const btn=document.querySelector('#tab-donate .card:nth-child(1) .btn-primary');
+  setLoading(btn,true,"Saving...");
+  RHS.saveDonateContent({heading,subheading,detail}).then(()=>{
+    setLoading(btn,false);
+    showMsg("donateContentMsg","✅ Donate page content saved!","success");
+  }).catch(()=>{
+    setLoading(btn,false);
+    showMsg("donateContentMsg","❌ Failed to save.","error");
+  });
+}
+
+function clearBankForm(){
+  ["bank-name","bank-title","bank-accno"].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value="";
+  });
+  showMsg("bankMsg","","");
+}
+
+function addBankAccountAdmin(){
+  if(!window.RHS) return;
+  const bankName=document.getElementById("bank-name")?.value.trim()||"";
+  const accountTitle=document.getElementById("bank-title")?.value.trim()||"";
+  const accountNo=document.getElementById("bank-accno")?.value.trim()||"";
+  if(!bankName||!accountTitle||!accountNo){
+    showMsg("bankMsg","⚠️ Bank Name, Title of Account and Account No are required.","error");
+    return;
+  }
+  const btn=document.querySelector('#tab-donate .card:nth-child(2) .btn-primary');
+  setLoading(btn,true,"Adding...");
+  RHS.addBankAccount({bankName,accountTitle,accountNo}).then(()=>{
+    setLoading(btn,false);
+    showMsg("bankMsg","✅ Bank account added!","success");
+    clearBankForm();loadBankAccountsAdmin();
+  }).catch(()=>{
+    setLoading(btn,false);
+    showMsg("bankMsg","❌ Failed to add.","error");
+  });
+}
+
+function loadBankAccountsAdmin(){
+  if(!window.RHS) return;
+  const wrap=document.getElementById("bankListWrap"); if(!wrap) return;
+  wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
+  RHS.getBankAccounts().then(res=>{
+    if(!res.banks||!res.banks.length){
+      wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:20px">No bank accounts added yet.</p>';
+      return;
+    }
+    let html='<div style="display:flex;flex-direction:column;gap:12px;margin-top:12px">';
+    res.banks.forEach(b=>{
+      html+=`<div style="background:#F5F9F8;border:1.5px solid #D8E8E5;border-radius:12px;padding:14px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:44px;height:44px;border-radius:10px;background:#14534F;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa fa-building-columns"></i></div>
+          <div>
+            <strong style="color:#14534F;display:block">${escHtml(b.bankName||"")}</strong>
+            <span style="display:block;color:#4A5C58;font-size:.82rem;margin-top:2px">${escHtml(b.accountTitle||"")}</span>
+            <span style="display:block;color:#8A9A96;font-size:.8rem;margin-top:2px"><i class="fa fa-hashtag"></i> ${escHtml(b.accountNo||"")}</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm" style="background:#14534F;color:#fff;border:none" onclick="openEditBank('${b.id}','${escHtml(b.bankName||"")}','${escHtml(b.accountTitle||"")}','${escHtml(b.accountNo||"")}')"><i class="fa fa-edit"></i></button>
+          <button class="btn btn-sm btn-reject" onclick="deleteBankAccountAdmin('${b.id}')"><i class="fa fa-trash"></i></button>
+        </div>
+      </div>`;
+    });
+    html+='</div>';
+    wrap.innerHTML=html;
+  }).catch(()=>{wrap.innerHTML='<p style="color:#D9483A;text-align:center;padding:20px">Failed to load.</p>';});
+}
+
+function deleteBankAccountAdmin(id){
+  if(!confirm("Delete this bank account?")) return;
+  RHS.deleteBankAccount(id).then(()=>{
+    loadBankAccountsAdmin();
+    showMsg("bankMsg","✅ Bank account deleted.","success");
+  }).catch(()=>showMsg("bankMsg","❌ Failed to delete.","error"));
+}
+
+function openEditBank(id,bankName,accountTitle,accountNo){
+  const old=document.getElementById("bankEditModal"); if(old) old.remove();
+  const modal=document.createElement("div");
+  modal.id="bankEditModal";
+  modal.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box";
+  modal.innerHTML=`<div style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h3 style="color:#14534F;margin:0"><i class="fa fa-edit"></i> Edit Bank Account</h3>
+      <button onclick="document.getElementById('bankEditModal').remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#8A9A96">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Bank Name</label>
+        <input id="edit-bank-name" value="${bankName}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
+      <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Title of Account</label>
+        <input id="edit-bank-title" value="${accountTitle}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
+      <div><label style="font-size:.82rem;font-weight:600;color:#555;display:block;margin-bottom:4px">Account No</label>
+        <input id="edit-bank-accno" value="${accountNo}" style="width:100%;padding:10px;border:1px solid #E7DFD2;border-radius:8px;box-sizing:border-box"></div>
+      <p id="editBankMsg" style="margin:0;font-size:.85rem;color:#D9483A"></p>
+      <div style="display:flex;gap:10px">
+        <button id="editBankSaveBtn" class="btn btn-primary" style="flex:1" onclick="saveEditBank('${id}')"><i class="fa fa-save"></i> Save</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('bankEditModal').remove()">Cancel</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+function saveEditBank(id){
+  const bankName=document.getElementById("edit-bank-name")?.value.trim()||"";
+  const accountTitle=document.getElementById("edit-bank-title")?.value.trim()||"";
+  const accountNo=document.getElementById("edit-bank-accno")?.value.trim()||"";
+  const msgEl=document.getElementById("editBankMsg");
+  const saveBtn=document.getElementById("editBankSaveBtn");
+  if(!bankName||!accountTitle||!accountNo){ if(msgEl) msgEl.textContent="⚠️ All fields are required."; return; }
+  setLoading(saveBtn,true,"Saving...");if(msgEl)msgEl.textContent="";
+  RHS.updateBankAccount(id,{bankName,accountTitle,accountNo}).then(()=>{
+    setLoading(saveBtn,false);document.getElementById("bankEditModal")?.remove();
+    showMsg("bankMsg","✅ Bank account updated!","success");loadBankAccountsAdmin();
   }).catch(()=>{setLoading(saveBtn,false);if(msgEl)msgEl.textContent="⚠️ Failed.";});
 }
 

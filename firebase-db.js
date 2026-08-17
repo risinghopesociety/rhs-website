@@ -1043,6 +1043,67 @@ async function deleteContactMessage(id) {
   return { success: true };
 }
 
+// ============================================================
+// DONATE US PAGE — Content + Bank Accounts
+// ============================================================
+async function getDonateContent() {
+  await waitForFB();
+  const defaults = {
+    heading: "Support Our Cause",
+    subheading: "Your generosity changes lives",
+    detail: "Every donation, big or small, helps us provide food, shelter, healthcare and education to deserving families in Khairpur Tamewali. Choose any bank below and donate directly — your support reaches those who need it most."
+  };
+  try {
+    const snap = await fs().getDoc(fs().doc(db(), "settings", "donate"));
+    if (snap.exists()) return { success: true, ...defaults, ...snap.data() };
+    return { success: true, ...defaults };
+  } catch(e) {
+    return { success: true, ...defaults };
+  }
+}
+
+async function saveDonateContent(data) {
+  await waitForFB();
+  await fs().setDoc(fs().doc(db(), "settings", "donate"), data, { merge: true });
+  return { success: true };
+}
+
+async function getBankAccounts() {
+  await waitForFB();
+  try {
+    const q = fs().query(fs().collection(db(), "bankAccounts"), fs().orderBy("createdAt", "asc"));
+    const snaps = await fs().getDocs(q);
+    const banks = [];
+    snaps.forEach(d => banks.push({ id: d.id, ...d.data() }));
+    return { success: true, banks };
+  } catch(e) {
+    try {
+      const snaps = await fs().getDocs(fs().collection(db(), "bankAccounts"));
+      const banks = [];
+      snaps.forEach(d => banks.push({ id: d.id, ...d.data() }));
+      return { success: true, banks };
+    } catch(e2) { return { success: true, banks: [] }; }
+  }
+}
+
+async function addBankAccount(data) {
+  await waitForFB();
+  const ref = await fs().addDoc(fs().collection(db(), "bankAccounts"), { ...data, createdAt: fs().serverTimestamp() });
+  return { success: true, id: ref.id };
+}
+
+async function updateBankAccount(id, data) {
+  await waitForFB();
+  await fs().updateDoc(fs().doc(db(), "bankAccounts", id), data);
+  return { success: true };
+}
+
+async function deleteBankAccount(id) {
+  await waitForFB();
+  await fs().deleteDoc(fs().doc(db(), "bankAccounts", id));
+  return { success: true };
+}
+
 // Add all new functions to RHS exports
 window.RHS.addNews               = addNews;
 window.RHS.updateNews            = updateNews;
@@ -1055,5 +1116,11 @@ window.RHS.addSlide              = addSlide;
 window.RHS.updateSlide           = updateSlide;
 window.RHS.deleteSlide           = deleteSlide;
 window.RHS.deleteContactMessage  = deleteContactMessage;
+window.RHS.getDonateContent      = getDonateContent;
+window.RHS.saveDonateContent     = saveDonateContent;
+window.RHS.getBankAccounts       = getBankAccounts;
+window.RHS.addBankAccount        = addBankAccount;
+window.RHS.updateBankAccount     = updateBankAccount;
+window.RHS.deleteBankAccount     = deleteBankAccount;
 
 console.log("✅ All RHS functions ready!");

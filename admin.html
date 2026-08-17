@@ -97,6 +97,9 @@
       <button class="nav-item" onclick="switchTab('charity')" id="nav-charity">
         <i class="fa fa-hand-holding-heart"></i><span>Charity Entry</span>
       </button>
+      <button class="nav-item" onclick="switchTab('donate')" id="nav-donate">
+        <i class="fa fa-hand-holding-dollar"></i><span>Donate Us</span>
+      </button>
       <button class="nav-item" onclick="switchTab('grants')" id="nav-grants">
         <i class="fa fa-file-alt"></i><span>Grant Cases</span>
         <span class="badge badge-red" id="grantBadge">0</span>
@@ -301,6 +304,57 @@
         <div id="charityListWrap" class="table-wrap">
           <div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>
         </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB: DONATE US ===== -->
+    <div class="tab-content hidden" id="tab-donate">
+      <div class="card">
+        <h3 class="card-title"><i class="fa fa-hand-holding-dollar"></i> Donate Page Content</h3>
+        <p style="color:#8A9A96;font-size:.88rem;margin-bottom:16px">This text appears at the top of the public "Donate Us" page.</p>
+        <div class="charity-form-grid">
+          <div class="field" style="grid-column:1/-1">
+            <label>Heading</label>
+            <input type="text" id="donate-heading" placeholder="e.g. Support Our Cause">
+          </div>
+          <div class="field" style="grid-column:1/-1">
+            <label>Sub Heading</label>
+            <input type="text" id="donate-subheading" placeholder="e.g. Your generosity changes lives">
+          </div>
+          <div class="field" style="grid-column:1/-1">
+            <label>Detail</label>
+            <textarea id="donate-detail" rows="4" placeholder="Describe how donations are used, and why people should give..."></textarea>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="saveDonateContentAdmin()"><i class="fa fa-save"></i> Save Content</button>
+        </div>
+        <p class="form-msg" id="donateContentMsg"></p>
+      </div>
+
+      <div class="card" style="margin-top:24px">
+        <h3 class="card-title"><i class="fa fa-building-columns"></i> Bank Accounts</h3>
+        <p style="color:#8A9A96;font-size:.88rem;margin-bottom:16px">Add the bank accounts that will be shown to donors on the Donate Us page.</p>
+        <div class="charity-form-grid">
+          <div class="field">
+            <label>Bank Name <span class="req">*</span></label>
+            <input type="text" id="bank-name" placeholder="e.g. Faysal Bank" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Title of Account <span class="req">*</span></label>
+            <input type="text" id="bank-title" placeholder="e.g. Rising Hope Society" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Account No <span class="req">*</span></label>
+            <input type="text" id="bank-accno" placeholder="e.g. PK55FAYS3695525000002905" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="addBankAccountAdmin()"><i class="fa fa-plus"></i> Add Bank</button>
+          <button class="btn btn-ghost" onclick="clearBankForm()"><i class="fa fa-rotate-left"></i> Clear</button>
+        </div>
+        <p class="form-msg" id="bankMsg"></p>
+        <div id="bankListWrap" style="margin-top:20px"></div>
       </div>
     </div>
 
@@ -847,7 +901,7 @@
 <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, setDoc, query, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import { getAuth, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     const FIREBASE_CONFIG = {
       apiKey: "AIzaSyArd3DU3G4thncYaGuKSEseusduNSMORzs",
@@ -862,7 +916,7 @@
     const auth = getAuth(app);
     window.__db = db; window.__auth = auth;
     window.__fauth = { signInWithEmailAndPassword, signOut, sendPasswordResetEmail, onAuthStateChanged };
-    window.__fs = { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, serverTimestamp };
+    window.__fs = { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, setDoc, query, where, orderBy, limit, serverTimestamp };
     window.__fbReady = true;
     window.dispatchEvent(new Event('firebaseReady'));
   </script>
