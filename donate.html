@@ -95,33 +95,6 @@
 </script>
 
 <script>
-  // ===== Page loader =====
-  window.addEventListener("load", () => {
-    const loader = document.getElementById("pageLoader");
-    if (loader) setTimeout(() => { loader.style.opacity = "0"; loader.style.visibility = "hidden"; }, 250);
-  });
-
-  // ===== Mobile nav toggle + footer year (runs after shared header/footer are injected) =====
-  document.addEventListener("DOMContentLoaded", () => {
-    const yearEl = document.getElementById("year");
-    if (yearEl) yearEl.textContent = new Date().getFullYear();
-
-    const navToggle = document.getElementById("navToggle");
-    const navLinks  = document.getElementById("navLinks");
-    if (navToggle && navLinks) {
-      navToggle.addEventListener("click", () => {
-        navToggle.classList.toggle("open");
-        navLinks.classList.toggle("open");
-      });
-      navLinks.querySelectorAll("a").forEach(link => {
-        link.addEventListener("click", () => {
-          navToggle.classList.remove("open");
-          navLinks.classList.remove("open");
-        });
-      });
-    }
-  });
-
   // ===== Language toggle (EN/UR) =====
   let isUrdu = false;
   window.toggleLang = function () {

@@ -747,7 +747,7 @@ img, video { max-width: 100%; display: block; }
 
 /* ===== PAGE LOADER ===== */
 #pageLoader{position:fixed;inset:0;background:var(--teal);z-index:9999;display:flex;align-items:center;justify-content:center;transition:opacity .5s,visibility .5s;}
-#pageLoader.done{opacity:0;visibility:hidden;}
+#pageLoader.done{opacity:0;visibility:hidden;pointer-events:none;}
 .loader-inner{text-align:center;color:#fff;}
 .loader-inner p{margin-top:12px;font-family:'Fraunces',serif;font-size:1.1rem;opacity:.9;}
 .loader-bar{width:160px;height:4px;background:rgba(255,255,255,.3);border-radius:4px;margin:12px auto 0;overflow:hidden;}

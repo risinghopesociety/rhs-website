@@ -77,10 +77,8 @@ function loadNGOSettings() {
 
 /* ===================== PAGE LOADER ===================== */
 window.addEventListener("load", () => {
-  setTimeout(() => {
-    const loader = document.getElementById("pageLoader");
-    if (loader) loader.classList.add("done");
-  }, 1200);
+  const loader = document.getElementById("pageLoader");
+  if (loader) loader.classList.add("done");
 });
 
 /* ===================== INIT AFTER DOM ===================== */
