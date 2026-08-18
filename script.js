@@ -90,22 +90,29 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* ===================== NAVBAR ===================== */
-  const navToggle = document.getElementById("navToggle");
-  const navLinks  = document.getElementById("navLinks");
-  if (navToggle && navLinks) {
-    navToggle.addEventListener("click", () => {
-      navToggle.classList.toggle("open");
-      navLinks.classList.toggle("open");
-    });
-    navLinks.querySelectorAll("a").forEach(link => {
-      link.addEventListener("click", () => {
-        navToggle.classList.remove("open");
-        navLinks.classList.remove("open");
-        navLinks.querySelectorAll("a").forEach(a => a.classList.remove("active"));
-        link.classList.add("active");
-      });
-    });
-  }
+  // Delegated on document so it works no matter when header.html finishes
+  // loading (include.js fetches it in), instead of binding directly to
+  // #navToggle/#navLinks which may not exist yet at DOMContentLoaded time.
+  document.addEventListener("click", (e) => {
+    const toggleBtn = e.target.closest("#navToggle");
+    if (toggleBtn) {
+      const links = document.getElementById("navLinks");
+      toggleBtn.classList.toggle("open");
+      if (links) links.classList.toggle("open");
+      return;
+    }
+    const navLink = e.target.closest("#navLinks a");
+    if (navLink) {
+      const toggle = document.getElementById("navToggle");
+      const links  = document.getElementById("navLinks");
+      if (toggle) toggle.classList.remove("open");
+      if (links) {
+        links.classList.remove("open");
+        links.querySelectorAll("a").forEach(a => a.classList.remove("active"));
+      }
+      navLink.classList.add("active");
+    }
+  });
 
   /* SCROLL ACTIVE NAV */
   const sections = document.querySelectorAll("section[id]");
@@ -114,6 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
     sections.forEach(sec => {
       if (window.scrollY >= sec.offsetTop - 120) current = sec.id;
     });
+    const navLinks = document.getElementById("navLinks");
     if (navLinks) {
       navLinks.querySelectorAll("a").forEach(a => {
         a.classList.toggle("active", a.getAttribute("href") === "#" + current);
