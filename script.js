@@ -325,8 +325,11 @@ document.addEventListener("DOMContentLoaded", () => {
               title: s.title || s.heading || ""
             }));
           if (items.length) {
-            renderSlides(items);
+            // Show the wrapper BEFORE rendering/measuring slides — while
+            // display:none, offsetLeft/getBoundingClientRect all read 0,
+            // which broke scrollToIndex and made the track look "stuck".
             showCarousel(true);
+            renderSlides(items);
           }
         }
       }).catch(() => {});
