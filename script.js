@@ -281,11 +281,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // Fallback slides (used if admin panel has none yet, or Firebase not ready)
-    const fallbackImages = ["images/slide1.jpg", "images/slide2.jpg", "images/slide3.jpg", "images/slide4.jpg"]
-      .map(url => ({ url, type: "image", title: "" }));
-    renderSlides(fallbackImages);
-
     const nextBtn = document.getElementById("nextSlide");
     const prevBtn = document.getElementById("prevSlide");
     if (nextBtn) nextBtn.addEventListener("click", () => { scrollToIndex(currentSlide + 1); resetSlider(); });
@@ -297,7 +292,15 @@ document.addEventListener("DOMContentLoaded", () => {
       resizeDebounce = setTimeout(() => scrollToIndex(currentSlide, "auto"), 200);
     });
 
-    // Load real slides from admin panel (Firestore) once available
+    // Slides come exclusively from the admin dashboard (Firestore) — no hardcoded/code-based slides.
+    const carouselWrap = document.querySelector(".hero-carousel-wrap");
+    const carouselHeading = document.querySelector(".carousel-heading");
+    function showCarousel(show) {
+      if (carouselWrap) carouselWrap.style.display = show ? "" : "none";
+      if (carouselHeading) carouselHeading.style.display = show ? "" : "none";
+    }
+    showCarousel(false); // hidden until admin slides actually load
+
     function loadAdminSlides() {
       if (!window.RHS || !RHS.getSlides) { setTimeout(loadAdminSlides, 500); return; }
       RHS.getSlides().then(res => {
@@ -313,7 +316,10 @@ document.addEventListener("DOMContentLoaded", () => {
               type: s.type === "video" ? "video" : "image",
               title: s.title || s.heading || ""
             }));
-          if (items.length) renderSlides(items);
+          if (items.length) {
+            renderSlides(items);
+            showCarousel(true);
+          }
         }
       }).catch(() => {});
     }
