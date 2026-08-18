@@ -12,7 +12,7 @@ async function loadPartial(placeholderId, url) {
   const el = document.getElementById(placeholderId);
   if (!el) return;
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, { cache: "no-store" });
     el.innerHTML = await res.text();
   } catch (e) {
     console.error("Failed to load " + url, e);
