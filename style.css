@@ -177,17 +177,20 @@ img, video { max-width: 100%; display: block; }
 .hero-carousel-wrap { position: relative; }
 .hero-carousel {
   position: relative;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+  overflow: hidden;
   border-radius: 18px;
 }
-.hero-carousel::-webkit-scrollbar { display: none; }
 .hero-track {
   display: flex;
   gap: 16px;
+  will-change: transform;
+  transition: transform .45s cubic-bezier(.22,.61,.36,1);
+  touch-action: pan-y; /* let vertical page-scroll pass through; we own horizontal drag */
+  cursor: grab;
+}
+.hero-track.dragging {
+  transition: none;
+  cursor: grabbing;
 }
 .hero-card {
   position: relative;
@@ -196,10 +199,10 @@ img, video { max-width: 100%; display: block; }
   height: clamp(280px, 54dvh, 560px);
   border-radius: 16px;
   overflow: hidden;
-  scroll-snap-align: start;
   background: #14534F;
   box-shadow: 0 0 0 0 transparent;
   transition: box-shadow .2s ease;
+  user-select: none;
 }
 .hero-card.active { box-shadow: 0 0 0 3px var(--gold) inset; }
 .hero-card img, .hero-card video {

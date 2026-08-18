@@ -142,8 +142,13 @@ document.addEventListener("DOMContentLoaded", () => {
     let slideItems = [];
     let dots = [];
     let userAllowedSound = false; // becomes true once the user taps the mute button to unmute
-    let scrollDebounce;
     const muteBtn = document.getElementById("sliderMuteBtn");
+
+    // ---- Drag/swipe state (pointer events, works on touch + mouse) ----
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragBaseOffset = 0; // px offset (positive) the track was translated by when drag began
+    let dragDeltaX = 0;
 
     function currentVideo() {
       return cards[currentSlide] ? cards[currentSlide].querySelector("video") : null;
@@ -191,25 +196,32 @@ document.addEventListener("DOMContentLoaded", () => {
       if (vid) playVideoSlide(vid); else updateMuteBtn();
     }
 
-    // With scroll-snap-align:start, the "active"/leading card is whichever one
-    // sits closest to the left edge of the visible track.
-    function closestCardIndex() {
-      const trackRect = track.getBoundingClientRect();
-      let closest = 0, minDist = Infinity;
-      cards.forEach((c, i) => {
-        const dist = Math.abs(c.getBoundingClientRect().left - trackRect.left);
-        if (dist < minDist) { minDist = dist; closest = i; }
-      });
-      return closest;
+    // Pixel offset needed to bring a given card's left edge flush with the
+    // track's left edge — same math the old scrollLeft/offsetLeft approach
+    // used, just applied as a CSS transform instead of a native scroll.
+    function offsetForIndex(index) {
+      const target = cards[index];
+      return target ? target.offsetLeft : 0;
     }
 
-    // Manual horizontal scroll (NOT scrollIntoView) so the page never
-    // jumps vertically when a slide changes — only the track scrolls sideways.
+    // Transform-based positioning: works identically on every browser
+    // (desktop + mobile Safari/Chrome), unlike scroll-snap + scrollTo()
+    // which mobile browsers frequently ignore or half-apply.
+    function applyTransform(px, animate) {
+      track.style.transition = animate ? "" : "none";
+      track.style.transform = `translate3d(${-px}px, 0, 0)`;
+      if (!animate) {
+        // Force reflow so the "none" transition actually takes effect
+        // before we hand control back (prevents a stray animated jump).
+        void track.offsetHeight;
+        track.style.transition = "";
+      }
+    }
+
     function scrollToIndex(index, behavior) {
       if (!cards.length) return;
       index = (index + cards.length) % cards.length;
-      const target = cards[index];
-      track.scrollTo({ left: target.offsetLeft, behavior: behavior || "smooth" });
+      applyTransform(offsetForIndex(index), behavior !== "auto");
       setActive(index);
     }
 
@@ -222,17 +234,51 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     function resetSlider() { scheduleNext(); }
 
-    // Detect manual swipes/scrolls and sync the active card + dots
-    track.addEventListener("scroll", () => {
-      clearTimeout(scrollDebounce);
-      scrollDebounce = setTimeout(() => {
-        const idx = closestCardIndex();
-        if (idx !== currentSlide && idx >= 0 && idx < cards.length) {
-          setActive(idx);
-          resetSlider();
-        }
-      }, 120);
-    }, { passive: true });
+    // ---- Drag / swipe support (replaces native touch-scroll) ----
+    function getPointerX(e) {
+      return e.touches ? e.touches[0].clientX : e.clientX;
+    }
+
+    function onDragStart(e) {
+      if (!cards.length) return;
+      isDragging = true;
+      dragDeltaX = 0;
+      dragStartX = getPointerX(e);
+      dragBaseOffset = offsetForIndex(currentSlide);
+      clearTimeout(sliderTimer);
+      track.style.transition = "none";
+      track.classList.add("dragging");
+    }
+
+    function onDragMove(e) {
+      if (!isDragging) return;
+      dragDeltaX = getPointerX(e) - dragStartX;
+      applyTransform(dragBaseOffset - dragDeltaX, false);
+    }
+
+    function onDragEnd() {
+      if (!isDragging) return;
+      isDragging = false;
+      track.classList.remove("dragging");
+      const threshold = Math.max(40, track.clientWidth * 0.12);
+      if (dragDeltaX <= -threshold) {
+        scrollToIndex(currentSlide + 1);
+      } else if (dragDeltaX >= threshold) {
+        scrollToIndex(currentSlide - 1);
+      } else {
+        scrollToIndex(currentSlide); // snap back
+      }
+      dragDeltaX = 0;
+      resetSlider();
+    }
+
+    track.addEventListener("pointerdown", onDragStart);
+    track.addEventListener("pointermove", onDragMove);
+    track.addEventListener("pointerup", onDragEnd);
+    track.addEventListener("pointercancel", onDragEnd);
+    track.addEventListener("pointerleave", () => { if (isDragging) onDragEnd(); });
+    // Prevent the browser's own image/link drag ghost from fighting our drag.
+    track.addEventListener("dragstart", (e) => e.preventDefault());
 
     function renderSlides(items) {
       track.innerHTML = "";
@@ -245,6 +291,7 @@ document.addEventListener("DOMContentLoaded", () => {
           video.src = item.url;
           video.playsInline = true;
           video.muted = true;
+          video.draggable = false;
           video.autoplay = (i === 0);
           video.addEventListener("ended", () => {
             if (currentSlide === i) { scrollToIndex(currentSlide + 1); scheduleNext(); }
@@ -255,6 +302,7 @@ document.addEventListener("DOMContentLoaded", () => {
           img.src = item.url;
           img.loading = i === 0 ? "eager" : "lazy";
           img.alt = item.title || "";
+          img.draggable = false;
           card.appendChild(img);
         }
         if (item.title) {
@@ -282,7 +330,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       currentSlide = 0;
       requestAnimationFrame(() => {
-        track.scrollTo({ left: 0, behavior: "auto" });
+        applyTransform(0, false);
         const firstVid = currentVideo();
         if (firstVid) playVideoSlide(firstVid); else updateMuteBtn();
         scheduleNext();
