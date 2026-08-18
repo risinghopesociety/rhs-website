@@ -45,16 +45,6 @@
 <!-- ===== NAVIGATION (shared) ===== -->
 <div id="site-header"></div>
 
-<!-- ===== DONATE HERO ===== -->
-<section class="donate-hero">
-  <div class="container">
-    <span class="eyebrow" data-en="Rising Hope Society" data-ur="رائزنگ ہوپ سوسائٹی">Rising Hope Society</span>
-    <h1 id="donateHeading">Support Our Cause</h1>
-    <p class="donate-subheading" id="donateSubheading">Your generosity changes lives</p>
-    <p class="donate-detail" id="donateDetail">Loading...</p>
-  </div>
-</section>
-
 <!-- ===== BANK ACCOUNTS ===== -->
 <section class="donate-banks">
   <div class="container">
@@ -177,11 +167,15 @@
   waitForRHS().then(async () => {
     try {
       const res = await RHS.getDonateContent();
-      document.getElementById("donateHeading").textContent = res.heading || "Support Our Cause";
-      document.getElementById("donateSubheading").textContent = res.subheading || "";
-      document.getElementById("donateDetail").textContent = res.detail || "";
+      const hEl = document.getElementById("donateHeading");
+      const sEl = document.getElementById("donateSubheading");
+      const dEl = document.getElementById("donateDetail");
+      if (hEl) hEl.textContent = res.heading || "Support Our Cause";
+      if (sEl) sEl.textContent = res.subheading || "";
+      if (dEl) dEl.textContent = res.detail || "";
     } catch (e) {
-      document.getElementById("donateDetail").textContent = "";
+      const dEl = document.getElementById("donateDetail");
+      if (dEl) dEl.textContent = "";
     }
 
     const grid = document.getElementById("bankGrid");

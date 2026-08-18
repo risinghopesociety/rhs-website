@@ -575,7 +575,7 @@ img, video { max-width: 100%; display: block; }
 .status-msg.status-yellow .status-title { color: #8A6A1F; }
 
 /* ===================== TEAM ===================== */
-.team { padding: 90px 0; }
+.team { padding: 110px 0 90px; }
 .team-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -605,6 +605,8 @@ img, video { max-width: 100%; display: block; }
 
 /* ===================== CONTACT ===================== */
 .contact { padding: 90px 0 110px; background: #F4ECE0; }
+.help-desk { padding: 110px 0 90px; }
+.contact-section { padding: 110px 0 90px; }
 .contact-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 56px; align-items: start; }
 .contact-info h2 { font-size: clamp(1.8rem, 3.5vw, 2.6rem); color: var(--teal); margin: 6px 0 18px; }
 .contact-info .address, .contact-info .phone {
@@ -659,7 +661,7 @@ img, video { max-width: 100%; display: block; }
 }
 
 /* ===================== MEMBER PORTAL ===================== */
-.member-portal { padding: 80px 0; background: #fff; }
+.member-portal { padding: 110px 0 80px; background: #fff; }
 .member-portal .helpdesk-btns {
   display: flex !important;
   gap: 16px;
@@ -768,7 +770,7 @@ img, video { max-width: 100%; display: block; }
 .about-badges span{background:#F5F9F8;color:var(--teal);padding:6px 14px;border-radius:20px;font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:6px;border:1px solid #D5E8E5;}
 
 /* ===== NEWS SECTION ===== */
-.news-section{padding:80px 0;background:var(--cream);}
+.news-section{padding:110px 0 80px;background:var(--cream);}
 .news-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;margin-top:8px;}
 .news-card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06);transition:.2s;border:1px solid var(--line);}
 .news-card:hover{transform:translateY(-4px);box-shadow:0 8px 28px rgba(0,0,0,.12);}
@@ -781,7 +783,7 @@ img, video { max-width: 100%; display: block; }
 .news-loading{text-align:center;padding:40px;color:#8A9A96;grid-column:1/-1;}
 
 /* ===== IMPACT STORIES ===== */
-.stories-section{padding:80px 0;background:#fff;}
+.stories-section{padding:110px 0 80px;background:#fff;}
 .stories-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px;}
 .story-card{border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.08);transition:.3s;position:relative;}
 .story-card:hover{transform:translateY(-4px);box-shadow:0 10px 32px rgba(0,0,0,.14);}
@@ -878,7 +880,7 @@ img, video { max-width: 100%; display: block; }
 }
 
 .donate-banks {
-  padding: 50px 0 90px;
+  padding: 110px 0 90px;
 }
 .donate-banks .section-head { text-align: center; margin: 0 auto 34px; }
 .donate-banks .section-head h2 {
@@ -969,7 +971,6 @@ img, video { max-width: 100%; display: block; }
 .donate-note i { color: var(--coral); margin-right: 6px; }
 
 @media (max-width: 720px) {
-  .donate-hero { padding: 96px 0 30px; }
-  .donate-banks { padding: 34px 0 60px; }
+  .donate-banks { padding: 100px 0 60px; }
   .bank-grid { grid-template-columns: 1fr; }
 }
