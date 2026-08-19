@@ -49,16 +49,16 @@
 <section class="donate-banks">
   <div class="container">
     <div class="section-head">
-      <span class="eyebrow" data-en="Bank Details" data-ur="بینک تفصیلات">Bank Details</span>
-      <h2 data-en="Choose any bank to donate" data-ur="عطیہ کے لیے کوئی بھی بینک منتخب کریں">Choose any bank to donate</h2>
-      <p data-en="All accounts are held in the name of Rising Hope Society and monitored transparently." data-ur="تمام اکاؤنٹس رائزنگ ہوپ سوسائٹی کے نام پر ہیں اور شفاف طریقے سے مانیٹر کیے جاتے ہیں۔">All accounts are held in the name of Rising Hope Society and monitored transparently.</p>
+      <span class="eyebrow" id="donateEyebrow" data-en="Bank Details" data-ur="بینک تفصیلات">Bank Details</span>
+      <h2 id="donateHeading" data-en="Choose any bank to donate" data-ur="عطیہ کے لیے کوئی بھی بینک منتخب کریں">Choose any bank to donate</h2>
+      <p id="donateSubheading" data-en="All accounts are held in the name of Rising Hope Society and monitored transparently." data-ur="تمام اکاؤنٹس رائزنگ ہوپ سوسائٹی کے نام پر ہیں اور شفاف طریقے سے مانیٹر کیے جاتے ہیں۔">All accounts are held in the name of Rising Hope Society and monitored transparently.</p>
     </div>
     <div id="bankGrid" class="bank-grid">
       <div class="donate-empty"><i class="fa-solid fa-spinner fa-spin"></i>Loading bank accounts...</div>
     </div>
     <div class="donate-note">
       <i class="fa-solid fa-circle-info"></i>
-      <span data-en="After donating, please share your payment slip / screenshot on WhatsApp so we can send you a thank-you receipt." data-ur="عطیہ کرنے کے بعد، براہ کرم اپنی رسید / اسکرین شاٹ واٹس ایپ پر بھیجیں تاکہ ہم آپ کو رسید بھیج سکیں۔">After donating, please share your payment slip / screenshot on WhatsApp so we can send you a thank-you receipt.</span>
+      <span id="donateDetail" data-en="After donating, please share your payment slip / screenshot on WhatsApp so we can send you a thank-you receipt." data-ur="عطیہ کرنے کے بعد، براہ کرم اپنی رسید / اسکرین شاٹ واٹس ایپ پر بھیجیں تاکہ ہم آپ کو رسید بھیج سکیں۔">After donating, please share your payment slip / screenshot on WhatsApp so we can send you a thank-you receipt.</span>
     </div>
   </div>
 </section>
@@ -140,15 +140,16 @@
   waitForRHS().then(async () => {
     try {
       const res = await RHS.getDonateContent();
+      const eEl = document.getElementById("donateEyebrow");
       const hEl = document.getElementById("donateHeading");
       const sEl = document.getElementById("donateSubheading");
       const dEl = document.getElementById("donateDetail");
-      if (hEl) hEl.textContent = res.heading || "Support Our Cause";
-      if (sEl) sEl.textContent = res.subheading || "";
-      if (dEl) dEl.textContent = res.detail || "";
+      if (eEl && res.eyebrow) eEl.textContent = res.eyebrow;
+      if (hEl && res.heading) hEl.textContent = res.heading;
+      if (sEl && res.subheading) sEl.textContent = res.subheading;
+      if (dEl && res.detail) dEl.textContent = res.detail;
     } catch (e) {
-      const dEl = document.getElementById("donateDetail");
-      if (dEl) dEl.textContent = "";
+      // Firestore fetch failed — leave the default text already in the HTML.
     }
 
     const grid = document.getElementById("bankGrid");

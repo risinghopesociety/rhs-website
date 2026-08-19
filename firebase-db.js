@@ -1049,9 +1049,10 @@ async function deleteContactMessage(id) {
 async function getDonateContent() {
   await waitForFB();
   const defaults = {
-    heading: "Support Our Cause",
-    subheading: "Your generosity changes lives",
-    detail: "Every donation, big or small, helps us provide food, shelter, healthcare and education to deserving families in Khairpur Tamewali. Choose any bank below and donate directly — your support reaches those who need it most."
+    eyebrow: "Bank Details",
+    heading: "Choose any bank to donate",
+    subheading: "All accounts are held in the name of Rising Hope Society and monitored transparently.",
+    detail: "After donating, please share your payment slip / screenshot on WhatsApp so we can send you a thank-you receipt."
   };
   try {
     const snap = await fs().getDoc(fs().doc(db(), "settings", "donate"));

@@ -977,6 +977,7 @@ function loadDonateAdmin(){
   if(!window.RHS){setTimeout(loadDonateAdmin,500);return;}
   RHS.getDonateContent().then(res=>{
     if(!res) return;
+    const e=document.getElementById("donate-eyebrow"); if(e) e.value=res.eyebrow||"";
     const h=document.getElementById("donate-heading"); if(h) h.value=res.heading||"";
     const s=document.getElementById("donate-subheading"); if(s) s.value=res.subheading||"";
     const d=document.getElementById("donate-detail"); if(d) d.value=res.detail||"";
@@ -986,12 +987,13 @@ function loadDonateAdmin(){
 
 function saveDonateContentAdmin(){
   if(!window.RHS) return;
+  const eyebrow=document.getElementById("donate-eyebrow")?.value.trim()||"";
   const heading=document.getElementById("donate-heading")?.value.trim()||"";
   const subheading=document.getElementById("donate-subheading")?.value.trim()||"";
   const detail=document.getElementById("donate-detail")?.value.trim()||"";
   const btn=document.querySelector('#tab-donate .card:nth-child(1) .btn-primary');
   setLoading(btn,true,"Saving...");
-  RHS.saveDonateContent({heading,subheading,detail}).then(()=>{
+  RHS.saveDonateContent({eyebrow,heading,subheading,detail}).then(()=>{
     setLoading(btn,false);
     showMsg("donateContentMsg","✅ Donate page content saved!","success");
   }).catch(()=>{
