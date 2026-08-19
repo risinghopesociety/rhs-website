@@ -29,14 +29,14 @@
 html { scroll-behavior: smooth; }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', 'Noto Nastaliq Urdu', sans-serif;
   color: var(--ink);
   background: var(--cream);
-  line-height: 1.6;
+  line-height: 1.75;
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3 { font-family: 'Fraunces', serif; line-height: 1.15; letter-spacing: -0.01em; }
+h1, h2, h3 { font-family: 'Fraunces', 'Noto Nastaliq Urdu', serif; line-height: 1.25; letter-spacing: -0.01em; }
 
 .container { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
 

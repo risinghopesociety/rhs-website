@@ -95,6 +95,33 @@ function loadHomeContent() {
   }).catch(() => {});
 }
 
+/* ===================== AUTO URDU FONT/DIRECTION FIX =====================
+   Whenever Urdu/Arabic script text appears anywhere on the site (typed
+   into any admin field — hero text, news, stories, team bios, etc.),
+   automatically mark that element as RTL so numbers/punctuation order
+   correctly and the Noto Nastaliq Urdu font (added as a fallback in
+   style.css) renders it properly — without touching the site's manual
+   "اردو" language-toggle feature. */
+(function () {
+  const RTL_RE = /[\u0600-\u06FF\u0750-\u077F]/;
+  function fixEl(el) {
+    if (!el || el.nodeType !== 1 || el.children.length) return;
+    const t = (el.textContent || "").trim();
+    if (!t) return;
+    const rtlCount = (t.match(new RegExp(RTL_RE, "g")) || []).length;
+    if (rtlCount > t.length * 0.3) el.setAttribute("dir", "rtl");
+  }
+  function scan(root) {
+    if (!root || root.nodeType !== 1) return;
+    if (!root.children.length) { fixEl(root); return; }
+    root.querySelectorAll("p,h1,h2,h3,h4,h5,span,li,td,a,button,div,label").forEach(fixEl);
+  }
+  document.addEventListener("DOMContentLoaded", () => scan(document.body));
+  new MutationObserver(muts => {
+    muts.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) scan(n); }));
+  }).observe(document.documentElement, { childList: true, subtree: true });
+})();
+
 /* ===================== PAGE LOADER ===================== */
 window.addEventListener("load", () => {
   const loader = document.getElementById("pageLoader");
