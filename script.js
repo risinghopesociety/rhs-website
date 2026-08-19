@@ -46,8 +46,8 @@ window.NGO = {
 };
 
 function loadNGOSettings() {
-  if (!window.RHS) { setTimeout(loadNGOSettings, 500); return; }
-  RHS.getNGOSettings().then(res => {
+  if (!window.RHS) { return new Promise(resolve => setTimeout(() => resolve(loadNGOSettings()), 500)); }
+  return RHS.getNGOSettings().then(res => {
     window.NGO = {
       name:          res.ngoName        || window.NGO.name,
       phone:         res.ngoPhone       || window.NGO.phone,
@@ -77,8 +77,8 @@ function loadNGOSettings() {
 
 /* ===================== HOME PAGE CONTENT (from Admin Dashboard) ===================== */
 function loadHomeContent() {
-  if (!window.RHS) { setTimeout(loadHomeContent, 500); return; }
-  RHS.getContent().then(res => {
+  if (!window.RHS) { return new Promise(resolve => setTimeout(() => resolve(loadHomeContent()), 500)); }
+  return RHS.getContent().then(res => {
     if (!res) return;
     const map = {
       slidesHeading: "slidesHeading",
@@ -122,14 +122,15 @@ function loadHomeContent() {
   }).observe(document.documentElement, { childList: true, subtree: true });
 })();
 
-/* ===================== PAGE LOADER ===================== */
-window.addEventListener("load", () => {
-  const loader = document.getElementById("pageLoader");
-  if (loader) loader.classList.add("done");
-});
-
 /* ===================== INIT AFTER DOM ===================== */
 document.addEventListener("DOMContentLoaded", () => {
+
+  /* Collects the promises from every admin-dashboard data fetch this page
+     kicks off (NGO settings, home content, stats, team, news, stories).
+     The page loader stays visible until every one of these has actually
+     resolved (data arrived from Firestore) — not just until the static
+     HTML/CSS/JS/images have finished downloading. */
+  window.__rhsPageLoads = [];
 
   /* AUTOCOMPLETE OFF */
   document.querySelectorAll("input, textarea, select, form").forEach(el => {
@@ -522,8 +523,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function loadStatistics() {
-    if (!window.RHS) { setTimeout(loadStatistics, 500); return; }
-    RHS.getPublicStats().then(res => {
+    if (!window.RHS) { return new Promise(resolve => setTimeout(() => resolve(loadStatistics()), 500)); }
+    return RHS.getPublicStats().then(res => {
       if (!res || !res.success) return;
       const map = {
         "pub-pending":   res.pendingMembers  || 0,
@@ -543,7 +544,7 @@ document.addEventListener("DOMContentLoaded", () => {
       runStatsAnimation();
     }).catch(() => {});
   }
-  loadStatistics();
+  window.__rhsPageLoads.push(loadStatistics());
 
   const statsEl = document.getElementById("stats");
   if (statsEl) {
@@ -1320,10 +1321,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ===================== TEAM ===================== */
   function loadTeam() {
-    if (!window.RHS) { setTimeout(loadTeam, 500); return; }
+    if (!window.RHS) { return new Promise(resolve => setTimeout(() => resolve(loadTeam()), 500)); }
     const teamGrid = document.getElementById("teamGrid");
-    if (!teamGrid) return;
-    RHS.getTeam().then(res => {
+    if (!teamGrid) return Promise.resolve();
+    return RHS.getTeam().then(res => {
       if (!res.success || !res.team || !res.team.length) {
         teamGrid.innerHTML = '<div class="news-loading">No team members added yet.</div>';
         return;
@@ -1340,7 +1341,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }).catch(() => {});
   }
-  loadTeam();
+  window.__rhsPageLoads.push(loadTeam());
 
   /* ===================== CONTACT FORM ===================== */
   const contactForm = document.getElementById("contactForm");
@@ -1892,10 +1893,10 @@ document.addEventListener("DOMContentLoaded", () => {
   window._newsDataCache = {};
   function loadNews() {
     const grid = document.getElementById("newsGrid");
-    if (!grid) return;
+    if (!grid) return Promise.resolve();
     grid.innerHTML = '<div class="news-loading"><i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem"></i><p>Loading news...</p></div>';
-    if (!window.RHS) { setTimeout(loadNews, 800); return; }
-    RHS.getNews()
+    if (!window.RHS) { return new Promise(resolve => setTimeout(() => resolve(loadNews()), 800)); }
+    return RHS.getNews()
       .then(res => {
         if (!res.news || !res.news.length) {
           grid.innerHTML = '<div class="news-loading"><i class="fa-solid fa-newspaper" style="font-size:2rem;display:block;margin-bottom:8px"></i>No news yet. Check back soon!</div>';
@@ -1930,10 +1931,10 @@ document.addEventListener("DOMContentLoaded", () => {
   window._storiesDataCache = {};
   function loadStories() {
     const grid = document.getElementById("storiesGrid");
-    if (!grid) return;
+    if (!grid) return Promise.resolve();
     grid.innerHTML = '<div class="news-loading"><i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem"></i><p>Loading stories...</p></div>';
-    if (!window.RHS) { setTimeout(loadStories, 800); return; }
-    RHS.getStories()
+    if (!window.RHS) { return new Promise(resolve => setTimeout(() => resolve(loadStories()), 800)); }
+    return RHS.getStories()
       .then(res => {
         if (!res.stories || !res.stories.length) {
           grid.innerHTML = '<div class="news-loading"><i class="fa-solid fa-heart" style="font-size:2rem;display:block;margin-bottom:8px;color:var(--coral)"></i>Stories coming soon!</div>';
@@ -2008,9 +2009,34 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDetailModal(); });
 
   /* ===================== LOAD ALL ===================== */
-  loadNGOSettings();
-  loadHomeContent();
-  loadNews();
-  loadStories();
+  window.__rhsPageLoads.push(loadNGOSettings());
+  window.__rhsPageLoads.push(loadHomeContent());
+  window.__rhsPageLoads.push(loadNews());
+  window.__rhsPageLoads.push(loadStories());
+
+  /* ===================== PAGE LOADER =====================
+     Keep the logo/loading screen visible until every admin-dashboard
+     data fetch above has actually finished (i.e. the real content is
+     on screen), not just when the static page has downloaded. A safety
+     timeout still applies so the loader can never get stuck forever if
+     Firestore is slow or the visitor is offline. */
+  (function () {
+    const loader = document.getElementById("pageLoader");
+    if (!loader) return;
+
+    const windowReady = new Promise(resolve => {
+      if (document.readyState === "complete") resolve();
+      else window.addEventListener("load", resolve, { once: true });
+    });
+
+    const dataReady = Promise.race([
+      Promise.all(window.__rhsPageLoads),
+      new Promise(resolve => setTimeout(resolve, 9000)) // safety cap
+    ]);
+
+    Promise.all([windowReady, dataReady]).then(() => {
+      loader.classList.add("done");
+    });
+  })();
 
 }); // END DOMContentLoaded
