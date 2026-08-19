@@ -251,6 +251,33 @@ document.addEventListener("DOMContentLoaded", () => {
       return target ? target.offsetLeft : 0;
     }
 
+    // How many cards are visible at once at the current viewport width —
+    // must match the CSS breakpoints in .hero-card's media queries.
+    function getVisibleCount() {
+      const w = window.innerWidth;
+      if (w >= 1300) return 4;
+      if (w >= 960) return 3;
+      if (w >= 600) return 2;
+      return 1;
+    }
+    // Highest "start" index that still shows a full window of cards with
+    // no empty slot trailing off the end.
+    function maxStartIndex() {
+      return Math.max(0, cards.length - getVisibleCount());
+    }
+    function rebuildDots() {
+      const span = maxStartIndex() + 1;
+      dotsWrap.innerHTML = "";
+      for (let i = 0; i < span; i++) {
+        const dot = document.createElement("button");
+        dot.classList.add("dot");
+        if (i === currentSlide) dot.classList.add("active");
+        dot.addEventListener("click", () => { scrollToIndex(i); resetSlider(); });
+        dotsWrap.appendChild(dot);
+      }
+      dots = Array.from(dotsWrap.querySelectorAll(".dot"));
+    }
+
     // Transform-based positioning: works identically on every browser
     // (desktop + mobile Safari/Chrome), unlike scroll-snap + scrollTo()
     // which mobile browsers frequently ignore or half-apply.
@@ -267,7 +294,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function scrollToIndex(index, behavior) {
       if (!cards.length) return;
-      index = (index + cards.length) % cards.length;
+      // Only ever land on a "start" position that fills the whole visible
+      // window — this is what stops empty slots from appearing near the
+      // end, and makes it loop straight back to the first slide(s) after
+      // the last full group instead of stalling on a half-empty row.
+      const span = maxStartIndex() + 1;
+      index = ((index % span) + span) % span;
       applyTransform(offsetForIndex(index), behavior !== "auto");
       setActive(index);
     }
@@ -365,15 +397,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       cards = Array.from(track.children);
 
-      dotsWrap.innerHTML = "";
-      cards.forEach((_, i) => {
-        const dot = document.createElement("button");
-        dot.classList.add("dot");
-        if (i === 0) dot.classList.add("active");
-        dot.addEventListener("click", () => { scrollToIndex(i); resetSlider(); });
-        dotsWrap.appendChild(dot);
-      });
-      dots = Array.from(dotsWrap.querySelectorAll(".dot"));
+      rebuildDots();
 
       currentSlide = 0;
       requestAnimationFrame(() => {
@@ -392,7 +416,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let resizeDebounce;
     window.addEventListener("resize", () => {
       clearTimeout(resizeDebounce);
-      resizeDebounce = setTimeout(() => scrollToIndex(currentSlide, "auto"), 200);
+      resizeDebounce = setTimeout(() => { rebuildDots(); scrollToIndex(currentSlide, "auto"); }, 200);
     });
 
     // Slides come exclusively from the admin dashboard (Firestore) — no hardcoded/code-based slides.
