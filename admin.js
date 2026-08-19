@@ -176,7 +176,7 @@ function switchTab(name){
   }
   const navEl = document.getElementById("nav-"+name);
   if(navEl) navEl.classList.add("active");
-  const titles={home:"Dashboard",members:"Members Management",charity:"Charity Entry",donate:"Donate Us",grants:"Grant Cases (CRN)",cashbook:"Cash Book",adminexp:"Admin Expenses",reports:"Reports",messages:"Messages",setup:"Setup"};
+  const titles={home:"Dashboard",members:"Members Management",charity:"Charity Entry",donate:"Donate Us",grants:"Charity Help",cashbook:"Cash Book",adminexp:"Admin Expenses",reports:"Reports",messages:"Messages",setup:"Setup"};
   document.getElementById("pageTitle").textContent=titles[name]||"Dashboard";
   if(name==="members") loadMembers("all");
   if(name==="charity"){loadCharityList();setDefaultDates();}
@@ -198,7 +198,7 @@ function showSetupSection(section, btn){
   if(btn) btn.classList.add("active");
   if(section==="stories") loadStoriesList();
   if(section==="news") loadNewsList();
-  if(section==="slides") loadSlidesList();
+  if(section==="home") loadSlidesList();
   if(section==="team") loadTeamList();
 }
 
@@ -237,6 +237,38 @@ function loadSetupData(){
   }).catch(()=>{});
   // Load Team list
   loadTeamList();
+  // Load Home Page Content (hero + slides heading + about)
+  RHS.getContent().then(res=>{
+    if(!res) return;
+    const fields = {
+      "set-heroEyebrow":res.heroEyebrow||"","set-heroHeading":res.heroHeading||"",
+      "set-heroText":res.heroText||"","set-slidesHeading":res.slidesHeading||"",
+      "set-aboutTitle":res.aboutTitle||"","set-aboutText":res.aboutText||""
+    };
+    Object.entries(fields).forEach(([id,val])=>{
+      const el=document.getElementById(id);
+      if(el) el.value=val;
+    });
+  }).catch(()=>{});
+}
+
+// ====== SAVE HOME PAGE CONTENT ======
+function saveContent(){
+  if(!window.RHS){return;}
+  const data={
+    heroEyebrow:document.getElementById("set-heroEyebrow")?.value||"",
+    heroHeading:document.getElementById("set-heroHeading")?.value||"",
+    heroText:document.getElementById("set-heroText")?.value||"",
+    slidesHeading:document.getElementById("set-slidesHeading")?.value||"",
+    aboutTitle:document.getElementById("set-aboutTitle")?.value||"",
+    aboutText:document.getElementById("set-aboutText")?.value||""
+  };
+  const btn=document.querySelector('#setup-home .btn-primary[onclick="saveContent()"]');
+  setLoading(btn,true,"Saving...");
+  RHS.saveContent(data).then(()=>{
+    setLoading(btn,false);
+    showMsg("contentMsg","✅ Home page content saved!","success");
+  }).catch(()=>{setLoading(btn,false);showMsg("contentMsg","Failed to save.","error");});
 }
 
 // ====== LOGO / SIGNATURE UPLOAD (Cloudinary) ======

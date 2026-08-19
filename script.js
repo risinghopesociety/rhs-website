@@ -75,6 +75,26 @@ function loadNGOSettings() {
   }).catch(() => {});
 }
 
+/* ===================== HOME PAGE CONTENT (from Admin Dashboard) ===================== */
+function loadHomeContent() {
+  if (!window.RHS) { setTimeout(loadHomeContent, 500); return; }
+  RHS.getContent().then(res => {
+    if (!res) return;
+    const map = {
+      slidesHeading: "slidesHeading",
+      heroEyebrow: "heroEyebrow",
+      heroHeading: "heroHeading",
+      heroText: "heroText"
+    };
+    Object.entries(map).forEach(([key, id]) => {
+      const el = document.getElementById(id);
+      // Only overwrite the default text if admin has actually saved a value —
+      // otherwise keep the existing fallback text already in the HTML.
+      if (el && res[key]) el.textContent = res[key];
+    });
+  }).catch(() => {});
+}
+
 /* ===================== PAGE LOADER ===================== */
 window.addEventListener("load", () => {
   const loader = document.getElementById("pageLoader");
@@ -1938,6 +1958,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ===================== LOAD ALL ===================== */
   loadNGOSettings();
+  loadHomeContent();
   loadNews();
   loadStories();
 

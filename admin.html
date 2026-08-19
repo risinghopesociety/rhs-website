@@ -101,7 +101,7 @@
         <i class="fa fa-hand-holding-dollar"></i><span>Donate Us</span>
       </button>
       <button class="nav-item" onclick="switchTab('grants')" id="nav-grants">
-        <i class="fa fa-file-alt"></i><span>Grant Cases</span>
+        <i class="fa fa-file-alt"></i><span>Charity Help</span>
         <span class="badge badge-red" id="grantBadge">0</span>
       </button>
       <button class="nav-item" onclick="switchTab('cashbook')" id="nav-cashbook">
@@ -589,96 +589,40 @@
     <!-- ===== TAB: SETUP ===== -->
     <div class="tab-content hidden" id="tab-setup">
 
-      <!-- SETUP TOP MENU -->
+      <!-- SETUP TOP MENU (organized page-wise, matching the website pages) -->
       <div class="setup-top-menu-wrap">
-        <button class="filter-btn active" onclick="showSetupSection('adminSettings', this)">
-          <i class="fa fa-cog"></i> Admin Settings
-        </button>
-        <button class="filter-btn" onclick="showSetupSection('content', this)">
-          <i class="fa fa-edit"></i> Content
-        </button>
-        <button class="filter-btn" onclick="showSetupSection('slides', this)">
-          <i class="fa fa-images"></i> Slides
+        <button class="filter-btn active" onclick="showSetupSection('home', this)">
+          <i class="fa fa-house"></i> Home
         </button>
         <button class="filter-btn" onclick="showSetupSection('news', this)">
-          <i class="fa fa-newspaper"></i> News Feed
+          <i class="fa fa-newspaper"></i> News
         </button>
         <button class="filter-btn" onclick="showSetupSection('stories', this)">
-          <i class="fa fa-heart"></i> Impact Stories
+          <i class="fa fa-heart"></i> Stories
         </button>
         <button class="filter-btn" onclick="showSetupSection('team', this)">
-          <i class="fa fa-users"></i> Team
+          <i class="fa fa-users"></i> Our Team
         </button>
         <button class="filter-btn" onclick="showSetupSection('contact', this)">
-          <i class="fa fa-address-book"></i> Contact
+          <i class="fa fa-address-book"></i> Contact Us
+        </button>
+        <button class="filter-btn" onclick="showSetupSection('adminSettings', this)">
+          <i class="fa fa-cog"></i> General Settings
         </button>
         <button class="filter-btn" onclick="showSetupSection('validationRules', this)">
           <i class="fa fa-shield-halved"></i> Validation Rules
         </button>
       </div>
 
-      <!-- ADMIN SETTINGS -->
-      <div class="setup-section" id="setup-adminSettings">
+      <!-- ===== HOME PAGE (Content + Slides together) ===== -->
+      <div class="setup-section" id="setup-home">
         <div class="card" style="margin-top:16px">
-          <h3 class="card-title"><i class="fa fa-cog"></i> Admin Settings</h3>
+          <h3 class="card-title"><i class="fa fa-edit"></i> Home Page Content</h3>
           <div class="charity-form-grid">
-            <div class="field"><label>NGO Name</label><input type="text" id="set-ngoName" placeholder="Rising Hope Society"></div>
-            <div class="field"><label>Phone</label><input type="text" id="set-ngoPhone" placeholder="0308-8919628"></div>
-            <div class="field"><label>Email</label><input type="email" id="set-ngoEmail" placeholder="email@example.com"></div>
-            <div class="field"><label>Alert Number</label><input type="text" id="set-alertNumber" placeholder="0308-8919628"></div>
-            <div class="field" style="grid-column:1/-1"><label>Address</label><input type="text" id="set-ngoAddress" placeholder="Full Address"></div>
-            <div class="field"><label>Bank Account</label><input type="text" id="set-bankAccount" placeholder="Bank Account No"></div>
-            <div class="field" style="grid-column:1/-1"><label>Copyright Text</label><input type="text" id="set-copyrightText" placeholder="Rising Hope Society — Khairpur Tamewali. All rights reserved."></div>
-            <div class="field" style="grid-column:1/-1">
-              <label>NGO Logo</label>
-              <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:6px">
-                <img id="currentLogoPreview" src="images/logo.png" style="width:70px;height:70px;object-fit:contain;border-radius:50%;border:2px solid #4CAF8A;background:#F5F9F8">
-                <div style="flex:1">
-                  <label for="set-logoFile" style="display:block;padding:10px 16px;background:#F5F9F8;border:2px dashed #4CAF8A;border-radius:8px;cursor:pointer;text-align:center;font-size:.9rem;color:#14534F">
-                    <i class="fa fa-upload"></i> Click to select new logo
-                    <input type="file" id="set-logoFile" accept="image/*" style="display:none" onchange="previewLogo(this)">
-                  </label>
-                  <p style="font-size:.78rem;color:#8A9A96;margin-top:4px">Recommended: Square image, PNG/JPG, max 2MB</p>
-                </div>
-              </div>
-            </div>
-            <div class="field" style="grid-column:1/-1">
-              <label>President / Authorized Signatory Signature</label>
-              <p style="font-size:.78rem;color:#8A9A96;margin:4px 0 8px">Used on the Digital Membership Certificate. Upload a scanned or photographed signature on a plain/white background — any size or shape is fine, it will be auto-fitted on the certificate.</p>
-              <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-                <div style="width:150px;height:60px;background:#fff;border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">
-                  <img id="currentSignaturePreview" src="" alt="Signature preview" style="max-width:140px;max-height:52px;width:auto;height:auto;object-fit:contain;display:none">
-                </div>
-                <div style="flex:1;min-width:200px">
-                  <label for="set-signatureFile" style="display:block;padding:10px 16px;background:#F5F9F8;border:2px dashed #4CAF8A;border-radius:8px;cursor:pointer;text-align:center;font-size:.9rem;color:#14534F">
-                    <i class="fa fa-signature"></i> Click to upload signature
-                    <input type="file" id="set-signatureFile" accept="image/*" style="display:none" onchange="previewSignature(this)">
-                  </label>
-                  <p style="font-size:.78rem;color:#8A9A96;margin-top:4px">
-                    PNG with transparent background works best, max 2MB.
-                    <a href="javascript:void(0)" onclick="removeSignature()" style="color:#D9483A;font-weight:600">Remove signature</a>
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="field"><label>Team Section Title</label><input type="text" id="set-ourTeamTitle" placeholder="Our Team"></div>
-            <div class="field" style="grid-column:1/-1"><label>Team Section Text</label><textarea id="set-ourTeamMatter" rows="2" placeholder="Description..."></textarea></div>
-          </div>
-          <div class="form-actions">
-            <button class="btn btn-primary" onclick="saveAdminSettings()"><i class="fa fa-save"></i> Save Settings</button>
-          </div>
-          <p class="form-msg" id="adminSettingsMsg"></p>
-        </div>
-      </div>
-
-      <!-- CONTENT -->
-      <div class="setup-section hidden" id="setup-content">
-        <div class="card" style="margin-top:16px">
-          <h3 class="card-title"><i class="fa fa-edit"></i> Website Content</h3>
-          <div class="charity-form-grid">
-            <div class="field"><label>Hero Eyebrow Text</label><input type="text" id="set-heroEyebrow" placeholder="e.g. Serving Humanity"></div>
-            <div class="field"><label>Hero Heading</label><input type="text" id="set-heroHeading" placeholder="Main heading"></div>
-            <div class="field" style="grid-column:1/-1"><label>Hero Description</label><textarea id="set-heroText" rows="2" placeholder="Hero description..."></textarea></div>
+            <div class="field"><label>Slides Heading</label><input type="text" id="set-slidesHeading" placeholder="e.g. Current Activities"></div>
+            <div class="field"><label>Intro (Hero Eyebrow)</label><input type="text" id="set-heroEyebrow" placeholder="e.g. Rising Hope Society"></div>
+            <div class="field"><label>Heading</label><input type="text" id="set-heroHeading" placeholder="e.g. Real help, real change."></div>
+            <div class="field" style="grid-column:1/-1"><label>Detail</label><textarea id="set-heroText" rows="2" placeholder="Hero description..."></textarea></div>
             <div class="field"><label>About Title</label><input type="text" id="set-aboutTitle" placeholder="About Us"></div>
             <div class="field" style="grid-column:1/-1"><label>About Text</label><textarea id="set-aboutText" rows="3" placeholder="About us description..."></textarea></div>
           </div>
@@ -687,10 +631,7 @@
           </div>
           <p class="form-msg" id="contentMsg"></p>
         </div>
-      </div>
 
-      <!-- SLIDES -->
-      <div class="setup-section hidden" id="setup-slides">
         <div class="card" style="margin-top:16px">
           <h3 class="card-title"><i class="fa fa-images"></i> Home Page Slides</h3>
           <p style="color:#8A9A96;font-size:.88rem;margin-bottom:16px">Add unlimited slides — these will show on the home page hero section.</p>
@@ -772,6 +713,18 @@
       <!-- TEAM -->
       <div class="setup-section hidden" id="setup-team">
         <div class="card" style="margin-top:16px">
+          <h3 class="card-title"><i class="fa fa-users"></i> Team Section Heading</h3>
+          <div class="charity-form-grid">
+            <div class="field"><label>Team Section Title</label><input type="text" id="set-ourTeamTitle" placeholder="Our Team"></div>
+            <div class="field" style="grid-column:1/-1"><label>Team Section Text</label><textarea id="set-ourTeamMatter" rows="2" placeholder="Description..."></textarea></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="saveAdminSettings()"><i class="fa fa-save"></i> Save</button>
+          </div>
+          <p class="form-msg" id="teamHeadingMsg"></p>
+        </div>
+
+        <div class="card" style="margin-top:16px">
           <h3 class="card-title"><i class="fa fa-users"></i> Team Members</h3>
           <div class="charity-form-grid">
             <div class="field"><label>Name *</label><input type="text" id="team-name" placeholder="Full Name"></div>
@@ -812,7 +765,58 @@
         </div>
       </div>
 
-      <!-- STATISTICS -->
+      <!-- GENERAL SETTINGS -->
+      <div class="setup-section hidden" id="setup-adminSettings">
+        <div class="card" style="margin-top:16px">
+          <h3 class="card-title"><i class="fa fa-cog"></i> General Settings</h3>
+          <div class="charity-form-grid">
+            <div class="field"><label>NGO Name</label><input type="text" id="set-ngoName" placeholder="Rising Hope Society"></div>
+            <div class="field"><label>Phone</label><input type="text" id="set-ngoPhone" placeholder="0308-8919628"></div>
+            <div class="field"><label>Email</label><input type="email" id="set-ngoEmail" placeholder="email@example.com"></div>
+            <div class="field"><label>Alert Number</label><input type="text" id="set-alertNumber" placeholder="0308-8919628"></div>
+            <div class="field" style="grid-column:1/-1"><label>Address</label><input type="text" id="set-ngoAddress" placeholder="Full Address"></div>
+            <div class="field"><label>Bank Account</label><input type="text" id="set-bankAccount" placeholder="Bank Account No"></div>
+            <div class="field" style="grid-column:1/-1"><label>Copyright Text</label><input type="text" id="set-copyrightText" placeholder="Rising Hope Society — Khairpur Tamewali. All rights reserved."></div>
+            <div class="field" style="grid-column:1/-1">
+              <label>NGO Logo</label>
+              <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:6px">
+                <img id="currentLogoPreview" src="images/logo.png" style="width:70px;height:70px;object-fit:contain;border-radius:50%;border:2px solid #4CAF8A;background:#F5F9F8">
+                <div style="flex:1">
+                  <label for="set-logoFile" style="display:block;padding:10px 16px;background:#F5F9F8;border:2px dashed #4CAF8A;border-radius:8px;cursor:pointer;text-align:center;font-size:.9rem;color:#14534F">
+                    <i class="fa fa-upload"></i> Click to select new logo
+                    <input type="file" id="set-logoFile" accept="image/*" style="display:none" onchange="previewLogo(this)">
+                  </label>
+                  <p style="font-size:.78rem;color:#8A9A96;margin-top:4px">Recommended: Square image, PNG/JPG, max 2MB</p>
+                </div>
+              </div>
+            </div>
+            <div class="field" style="grid-column:1/-1">
+              <label>President / Authorized Signatory Signature</label>
+              <p style="font-size:.78rem;color:#8A9A96;margin:4px 0 8px">Used on the Digital Membership Certificate. Upload a scanned or photographed signature on a plain/white background — any size or shape is fine, it will be auto-fitted on the certificate.</p>
+              <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+                <div style="width:150px;height:60px;background:#fff;border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">
+                  <img id="currentSignaturePreview" src="" alt="Signature preview" style="max-width:140px;max-height:52px;width:auto;height:auto;object-fit:contain;display:none">
+                </div>
+                <div style="flex:1;min-width:200px">
+                  <label for="set-signatureFile" style="display:block;padding:10px 16px;background:#F5F9F8;border:2px dashed #4CAF8A;border-radius:8px;cursor:pointer;text-align:center;font-size:.9rem;color:#14534F">
+                    <i class="fa fa-signature"></i> Click to upload signature
+                    <input type="file" id="set-signatureFile" accept="image/*" style="display:none" onchange="previewSignature(this)">
+                  </label>
+                  <p style="font-size:.78rem;color:#8A9A96;margin-top:4px">
+                    PNG with transparent background works best, max 2MB.
+                    <a href="javascript:void(0)" onclick="removeSignature()" style="color:#D9483A;font-weight:600">Remove signature</a>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="saveAdminSettings()"><i class="fa fa-save"></i> Save Settings</button>
+          </div>
+          <p class="form-msg" id="adminSettingsMsg"></p>
+        </div>
+      </div>
+
       <!-- VALIDATION RULES -->
       <div class="setup-section hidden" id="setup-validationRules">
         <div class="card" style="margin-top:16px">
