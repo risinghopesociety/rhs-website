@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Work History — Rising Hope Society</title>
+<meta name="description" content="Full details, video and photo gallery of a Rising Hope Society project.">
+<meta property="og:site_name" content="Rising Hope Society">
+<meta property="og:image" content="https://rhsbwp.netlify.app/images/logo.png">
+<link rel="icon" href="images/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="style.css?v=4">
+</head>
+<body class="wd-body">
+
+<!-- Top bar: brand + Close -->
+<div class="wd-topbar">
+  <div class="wd-topbar-inner">
+    <a href="index.html" class="brand">
+      <img src="images/logo.png" alt="Rising Hope Society" class="brand-mark">
+      <span class="brand-text">
+        <span class="brand-name">Rising Hope <em>Society</em></span>
+        <small>Our Work History</small>
+      </span>
+    </a>
+    <button class="wd-close" onclick="closeWork()"><i class="fa-solid fa-xmark"></i> Close</button>
+  </div>
+</div>
+
+<main class="wd-wrap" id="wdRoot">
+  <div class="wd-state"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading work details...</p></div>
+</main>
+
+<!-- Photo viewer -->
+<div class="wd-lightbox" id="wdLightbox" aria-hidden="true">
+  <button class="wd-lb-btn wd-lb-close" id="lbClose" aria-label="Close photo"><i class="fa-solid fa-xmark"></i></button>
+  <button class="wd-lb-btn wd-lb-prev" id="lbPrev" aria-label="Previous photo"><i class="fa-solid fa-chevron-left"></i></button>
+  <img id="lbImg" alt="">
+  <button class="wd-lb-btn wd-lb-next" id="lbNext" aria-label="Next photo"><i class="fa-solid fa-chevron-right"></i></button>
+  <span class="wd-lb-count" id="lbCount"></span>
+</div>
+
+<script type="module" src="firebase-db.js?v=2"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, doc, getDoc, getDocs, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyArd3DU3G4thncYaGuKSEseusduNSMORzs",
+    authDomain: "rising-hope-society-pk.firebaseapp.com",
+    projectId: "rising-hope-society-pk",
+    storageBucket: "rising-hope-society-pk.firebasestorage.app",
+    messagingSenderId: "371234102504",
+    appId: "1:371234102504:web:a8bf7d8cc51d1fd797fd5d"
+  };
+  const app = initializeApp(FIREBASE_CONFIG);
+  window.__db = getFirestore(app);
+  window.__fs = { collection, doc, getDoc, getDocs, query, where, orderBy, limit };
+  window.__fbReady = true;
+  window.dispatchEvent(new Event('firebaseReady'));
+</script>
+<script type="module" src="work-detail.js?v=1"></script>
+</body>
+</html>

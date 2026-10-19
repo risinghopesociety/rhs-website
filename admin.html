@@ -604,6 +604,9 @@
         <button class="filter-btn" onclick="showSetupSection('stories', this)">
           <i class="fa fa-heart"></i> Stories
         </button>
+        <button class="filter-btn" onclick="showSetupSection('work', this)">
+          <i class="fa fa-briefcase"></i> Our Work
+        </button>
         <button class="filter-btn" onclick="showSetupSection('team', this)">
           <i class="fa fa-users"></i> Our Team
         </button>
@@ -711,6 +714,63 @@
           </div>
           <p class="form-msg" id="storyMsg"></p>
           <div id="storiesListWrap" style="margin-top:20px"></div>
+        </div>
+      </div>
+
+      <!-- ===== OUR WORK (Work History) ===== -->
+      <div class="setup-section hidden" id="setup-work">
+
+        <div class="card" style="margin-top:16px">
+          <h3 class="card-title"><i class="fa fa-heading"></i> Our Work Page Heading</h3>
+          <div class="charity-form-grid">
+            <div class="field"><label>Small Heading (Eyebrow)</label><input type="text" id="work-pg-eyebrow" placeholder="Our Work"></div>
+            <div class="field"><label>Main Heading</label><input type="text" id="work-pg-heading" placeholder="Our Work History"></div>
+            <div class="field" style="grid-column:1/-1"><label>Sub Heading</label><textarea id="work-pg-sub" rows="2" placeholder="Short intro shown under the heading..."></textarea></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="saveWorkPageHeading()"><i class="fa fa-save"></i> Save Heading</button>
+          </div>
+          <p class="form-msg" id="workPgMsg"></p>
+        </div>
+
+        <div class="card" style="margin-top:16px" id="work-form-card">
+          <h3 class="card-title"><i class="fa fa-briefcase"></i> <span id="workFormTitle">Add Work History</span></h3>
+          <p style="color:#8A9A96;font-size:.88rem;margin-bottom:16px">Every work you add is saved permanently and shown on the public <b>Our Work</b> page. Deleting it removes it from the website.</p>
+          <div class="charity-form-grid">
+            <div class="field" style="grid-column:1/-1"><label>Heading <span style="color:#D9483A">*</span></label><input type="text" id="work-title" maxlength="120" placeholder="e.g. Ration Distribution — Ramadan 2024"></div>
+            <div class="field"><label>Location of Project <span style="color:#D9483A">*</span></label><input type="text" id="work-location" maxlength="80" placeholder="e.g. Khairpur Tamewali, Bahawalpur"></div>
+            <div class="field"><label>Year <small>(optional)</small></label><input type="number" id="work-year" min="1990" max="2100" placeholder="e.g. 2024"></div>
+            <div class="field" style="grid-column:1/-1"><label>Detail Text <span style="color:#D9483A">*</span></label><textarea id="work-detail" rows="6" placeholder="Full detail of this work — what was done, who benefited, how many people, etc."></textarea></div>
+
+            <div class="field" style="grid-column:1/-1">
+              <label>YouTube Video Link <small>(optional — only 1 video)</small></label>
+              <input type="url" id="work-youtube" placeholder="https://www.youtube.com/watch?v=..." oninput="onWorkYouTubeInput()">
+              <div id="workYtPreview" style="margin-top:8px"></div>
+            </div>
+
+            <div class="field" style="grid-column:1/-1">
+              <label>Images <small>(multiple — uploaded to Cloudinary, first image is the cover)</small></label>
+              <label for="work-images" style="display:block;padding:18px;background:#F5F9F8;border:2px dashed #4CAF8A;border-radius:8px;cursor:pointer;text-align:center;position:relative">
+                <input type="file" id="work-images" accept="image/*" multiple style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer" onchange="addWorkImages(this)">
+                <i class="fa fa-images" style="font-size:1.8rem;color:#4CAF8A;display:block;margin-bottom:6px"></i>
+                <span style="color:#14534F;font-size:.9rem">Tap to select one or more photos</span>
+              </label>
+              <div id="workImgGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-top:12px"></div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button id="saveWorkBtn" class="btn btn-primary" onclick="saveWork()"><i class="fa fa-plus"></i> Add Work</button>
+            <button class="btn btn-ghost" id="cancelWorkBtn" onclick="clearWorkForm()"><i class="fa fa-rotate-left"></i> Clear</button>
+          </div>
+          <p class="form-msg" id="workMsg"></p>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+            <h3 class="card-title" style="margin:0"><i class="fa fa-list"></i> All Work History <span id="workCount" style="font-size:.85rem;color:#8A9A96;font-weight:500"></span></h3>
+            <a class="btn btn-sm btn-ghost" href="our-work.html" target="_blank"><i class="fa fa-up-right-from-square"></i> Open Public Page</a>
+          </div>
+          <div id="workListWrap" style="margin-top:16px"></div>
         </div>
       </div>
 
@@ -929,6 +989,6 @@
     window.dispatchEvent(new Event('firebaseReady'));
   </script>
   <script type="module" src="firebase-db.js?v=2"></script>
-  <script src="admin.js?v=2" defer></script>
+  <script src="admin.js?v=3" defer></script>
 </body>
 </html>

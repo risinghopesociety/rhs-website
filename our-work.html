@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" id="htmlRoot">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Our Work — Rising Hope Society</title>
+<meta name="description" content="Explore the work history of Rising Hope Society — projects, photos, videos and locations of our charity work.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://rhsbwp.netlify.app/our-work.html">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Our Work — Rising Hope Society">
+<meta property="og:description" content="Explore the work history of Rising Hope Society — projects, photos, videos and locations of our charity work.">
+<meta property="og:image" content="https://rhsbwp.netlify.app/images/logo.png">
+<meta property="og:site_name" content="Rising Hope Society">
+
+<!-- Fonts & Icons -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="style.css?v=4">
+</head>
+<body>
+
+<!-- ===== PAGE LOADER ===== -->
+<div id="pageLoader">
+  <div class="loader-spark s1"></div>
+  <div class="loader-spark s2"></div>
+  <div class="loader-spark s3"></div>
+  <div class="loader-spark s4"></div>
+  <div class="loader-spark s5"></div>
+  <div class="loader-inner">
+    <div class="ring-wrap">
+      <div class="loader-glow"></div>
+      <div class="loader-ring"></div>
+      <div class="loader-ring reverse"></div>
+      <div class="loader-arc"></div>
+      <div class="loader-badge">
+        <img src="images/logo.png" alt="Rising Hope Society" width="118" height="118">
+      </div>
+    </div>
+    <div class="loader-text">
+      <h1>Rising Hope <span>Society</span></h1>
+      <p>Empower · Educate · Elevate</p>
+    </div>
+    <div class="loader-bar"><div class="loader-fill"></div></div>
+  </div>
+</div>
+
+<!-- ===== WHATSAPP FLOAT BUTTON ===== -->
+<a href="https://wa.me/923088919628?text=Assalam-u-Alaikum%2C%20I%20want%20to%20know%20about%20Rising%20Hope%20Society."
+   class="whatsapp-float" target="_blank" rel="noopener" title="Chat on WhatsApp" aria-label="WhatsApp">
+  <i class="fa-brands fa-whatsapp"></i>
+  <span class="wa-tooltip">Chat with us!</span>
+</a>
+<script>window.PAGE_ID = "work";</script>
+<!-- ===== NAVIGATION (shared) ===== -->
+<div id="site-header"></div>
+<!-- ===== OUR WORK ===== -->
+<section class="work-section" id="work">
+  <div class="container">
+    <div class="work-head">
+      <span class="eyebrow" id="workEyebrow">Our Work</span>
+      <h2 id="workHeading">Our Work History</h2>
+      <p id="workSub">A permanent record of the projects Rising Hope Society has carried out for our communities — with photos, videos and full details.</p>
+    </div>
+
+    <div class="work-stats" id="workStats" style="display:none"></div>
+
+    <div class="work-toolbar" id="workToolbar" style="display:none">
+      <div class="work-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="search" id="workSearch" placeholder="Search work history..." aria-label="Search work history">
+      </div>
+      <div class="work-filters" id="workFilters"></div>
+    </div>
+
+    <div class="work-grid" id="workGrid">
+      <div class="work-skel"></div><div class="work-skel"></div><div class="work-skel"></div><div class="work-skel"></div>
+    </div>
+    <div class="work-more-wrap" id="workMoreWrap" style="display:none">
+      <button class="btn btn-donate" id="workMoreBtn"><i class="fa-solid fa-angles-down"></i> Show more</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER (shared) ===== -->
+<div id="site-footer"></div>
+
+<script type="module" src="firebase-db.js?v=2"></script>
+<script type="module" src="include.js?v=2"></script>
+<script src="script.js?v=5" defer></script>
+<script type="module" src="our-work.js?v=1"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyArd3DU3G4thncYaGuKSEseusduNSMORzs",
+    authDomain: "rising-hope-society-pk.firebaseapp.com",
+    projectId: "rising-hope-society-pk",
+    storageBucket: "rising-hope-society-pk.firebasestorage.app",
+    messagingSenderId: "371234102504",
+    appId: "1:371234102504:web:a8bf7d8cc51d1fd797fd5d"
+  };
+
+  const app = initializeApp(FIREBASE_CONFIG);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  window.__db = db;
+  window.__auth = auth;
+  window.__fs = { collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy, limit, serverTimestamp };
+  window.__fbReady = true;
+  window.dispatchEvent(new Event('firebaseReady'));
+</script>
+</body>
+</html>

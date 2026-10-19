@@ -1125,3 +1125,102 @@ window.RHS.updateBankAccount     = updateBankAccount;
 window.RHS.deleteBankAccount     = deleteBankAccount;
 
 console.log("✅ All RHS functions ready!");
+
+// ============================================================
+// OUR WORK (Work History) — Firestore collection: "workHistory"
+// Fields: title, detail, youtubeUrl, youtubeId, images[], location, year
+// Page heading text lives in settings/work
+// ============================================================
+function parseYouTubeId(url) {
+  if (!url) return "";
+  const s = String(url).trim();
+  if (/^[\w-]{11}$/.test(s)) return s;
+  try {
+    const u = new URL(s.startsWith("http") ? s : "https://" + s);
+    const host = u.hostname.replace(/^www\.|^m\./, "");
+    let id = "";
+    if (host === "youtu.be") id = u.pathname.split("/")[1] || "";
+    else if (host.endsWith("youtube.com") || host.endsWith("youtube-nocookie.com")) {
+      if (u.pathname === "/watch") id = u.searchParams.get("v") || "";
+      else {
+        const m = u.pathname.match(/^\/(embed|shorts|live|v)\/([\w-]{11})/);
+        if (m) id = m[2];
+      }
+    }
+    return /^[\w-]{11}$/.test(id) ? id : "";
+  } catch (e) { return ""; }
+}
+
+function sortWork(list) {
+  return list.sort((a, b) => {
+    const ya = Number(a.year) || 0, yb = Number(b.year) || 0;
+    if (ya !== yb) return yb - ya;
+    const ta = a.createdAt && a.createdAt.seconds ? a.createdAt.seconds : 0;
+    const tb = b.createdAt && b.createdAt.seconds ? b.createdAt.seconds : 0;
+    return tb - ta;
+  });
+}
+
+async function getWorkHistory() {
+  await waitForFB();
+  try {
+    const snaps = await fs().getDocs(fs().collection(db(), "workHistory"));
+    const works = [];
+    snaps.forEach(d => works.push({ id: d.id, ...d.data() }));
+    return { success: true, works: sortWork(works) };
+  } catch (e) {
+    console.error("getWorkHistory failed", e);
+    return { success: false, works: [], error: e.message };
+  }
+}
+
+async function getWork(id) {
+  await waitForFB();
+  try {
+    const snap = await fs().getDoc(fs().doc(db(), "workHistory", id));
+    if (!snap.exists()) return { success: false, notFound: true };
+    return { success: true, work: { id: snap.id, ...snap.data() } };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+
+async function addWork(data) {
+  await waitForFB();
+  const ref = await fs().addDoc(fs().collection(db(), "workHistory"), { ...data, createdAt: fs().serverTimestamp() });
+  return { success: true, id: ref.id };
+}
+async function updateWork(id, data) {
+  await waitForFB();
+  await fs().updateDoc(fs().doc(db(), "workHistory", id), { ...data, updatedAt: fs().serverTimestamp() });
+  return { success: true };
+}
+async function deleteWork(id) {
+  await waitForFB();
+  await fs().deleteDoc(fs().doc(db(), "workHistory", id));
+  return { success: true };
+}
+
+async function getWorkPageContent() {
+  await waitForFB();
+  const defaults = {
+    eyebrow: "Our Work",
+    heading: "Our Work History",
+    subheading: "A permanent record of the projects Rising Hope Society has carried out for our communities — with photos, videos and full details."
+  };
+  try {
+    const snap = await fs().getDoc(fs().doc(db(), "settings", "work"));
+    if (snap.exists()) return { success: true, ...defaults, ...snap.data() };
+  } catch (e) {}
+  return { success: true, ...defaults };
+}
+async function saveWorkPageContent(data) {
+  await waitForFB();
+  await fs().setDoc(fs().doc(db(), "settings", "work"), data, { merge: true });
+  return { success: true };
+}
+
+Object.assign(window.RHS, {
+  parseYouTubeId, getWorkHistory, getWork, addWork, updateWork, deleteWork,
+  getWorkPageContent, saveWorkPageContent
+});

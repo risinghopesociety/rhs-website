@@ -197,6 +197,7 @@ function showSetupSection(section, btn){
   if(el) el.classList.remove("hidden");
   if(btn) btn.classList.add("active");
   if(section==="stories") loadStoriesList();
+  if(section==="work") loadWorkAdmin();
   if(section==="news") loadNewsList();
   if(section==="home") loadSlidesList();
   if(section==="team") loadTeamList();
@@ -2865,3 +2866,201 @@ window.showSetupSection = function(name, btn) {
   if (_origShowSetupSection) _origShowSetupSection(name, btn);
   if (name === "validationRules") loadValidationRules();
 };
+
+
+/* ===================== OUR WORK (Work History) ===================== */
+window._workImgs = [];      // [{url} existing | {file, preview} new]
+window._workEditId = null;
+window._workCache = {};
+
+function loadWorkAdmin(){
+  if(!window.RHS){setTimeout(loadWorkAdmin,500);return;}
+  RHS.getWorkPageContent().then(c=>{
+    document.getElementById("work-pg-eyebrow").value=c.eyebrow||"";
+    document.getElementById("work-pg-heading").value=c.heading||"";
+    document.getElementById("work-pg-sub").value=c.subheading||"";
+  });
+  loadWorkList();
+}
+
+function saveWorkPageHeading(){
+  const data={
+    eyebrow:document.getElementById("work-pg-eyebrow").value.trim(),
+    heading:document.getElementById("work-pg-heading").value.trim(),
+    subheading:document.getElementById("work-pg-sub").value.trim()
+  };
+  RHS.saveWorkPageContent(data)
+    .then(()=>showMsg("workPgMsg","✅ Heading saved.","success"))
+    .catch(()=>showMsg("workPgMsg","❌ Failed to save. Check Firestore rules.","error"));
+}
+
+function onWorkYouTubeInput(){
+  const v=document.getElementById("work-youtube").value.trim();
+  const box=document.getElementById("workYtPreview");
+  if(!v){box.innerHTML="";return;}
+  const id=RHS.parseYouTubeId(v);
+  box.innerHTML=id
+    ? `<div style="display:flex;gap:10px;align-items:center"><img src="https://img.youtube.com/vi/${id}/mqdefault.jpg" style="width:120px;border-radius:8px"><span style="color:#1F7A45;font-size:.85rem"><i class="fa fa-check-circle"></i> Valid YouTube link</span></div>`
+    : `<span style="color:#D9483A;font-size:.85rem"><i class="fa fa-circle-exclamation"></i> This is not a valid YouTube link.</span>`;
+}
+
+function addWorkImages(input){
+  const files=[...(input.files||[])];
+  let skipped=0;
+  files.forEach(f=>{
+    if(!f.type.startsWith("image/")){skipped++;return;}
+    window._workImgs.push({file:f,preview:URL.createObjectURL(f)});
+  });
+  input.value="";
+  renderWorkImgGrid();
+  if(skipped) showMsg("workMsg","⚠️ "+skipped+" file(s) skipped — only images are allowed.","error");
+}
+
+function renderWorkImgGrid(){
+  const grid=document.getElementById("workImgGrid");
+  grid.innerHTML=window._workImgs.map((im,i)=>`
+    <div style="position:relative;border-radius:10px;overflow:hidden;border:2px solid ${i===0?"#E8A33D":"#E7DFD2"};aspect-ratio:1/1;background:#F5F9F8">
+      <img src="${im.preview||im.url}" style="width:100%;height:100%;object-fit:cover">
+      ${i===0?`<span style="position:absolute;left:6px;top:6px;background:#E8A33D;color:#fff;font-size:.66rem;font-weight:700;padding:2px 8px;border-radius:20px">COVER</span>`:`<button type="button" title="Make cover" onclick="makeWorkCover(${i})" style="position:absolute;left:6px;top:6px;background:rgba(20,83,79,.85);color:#fff;border:none;font-size:.66rem;padding:2px 8px;border-radius:20px;cursor:pointer"><i class="fa fa-star"></i></button>`}
+      <button type="button" title="Remove" onclick="removeWorkImg(${i})" style="position:absolute;right:6px;top:6px;width:24px;height:24px;border-radius:50%;background:#D9483A;color:#fff;border:none;cursor:pointer;font-size:.75rem"><i class="fa fa-xmark"></i></button>
+    </div>`).join("");
+}
+function removeWorkImg(i){
+  const im=window._workImgs[i]; if(im&&im.preview) URL.revokeObjectURL(im.preview);
+  window._workImgs.splice(i,1); renderWorkImgGrid();
+}
+function makeWorkCover(i){
+  const [im]=window._workImgs.splice(i,1); window._workImgs.unshift(im); renderWorkImgGrid();
+}
+
+// Shrink big phone photos before upload (faster + saves Cloudinary storage)
+function compressWorkImage(file,maxSide=1920,quality=0.85){
+  return new Promise(resolve=>{
+    if(file.type==="image/gif"||file.type==="image/svg+xml"){resolve(file);return;}
+    const img=new Image(), url=URL.createObjectURL(file);
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      let {width:w,height:h}=img;
+      if(Math.max(w,h)<=maxSide && file.size<1.5*1024*1024){resolve(file);return;}
+      const r=Math.min(1,maxSide/Math.max(w,h));
+      const c=document.createElement("canvas"); c.width=Math.round(w*r); c.height=Math.round(h*r);
+      c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+      c.toBlob(b=>resolve(b&&b.size<file.size?new File([b],file.name.replace(/\.\w+$/,".jpg"),{type:"image/jpeg"}):file),"image/jpeg",quality);
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);resolve(file);};
+    img.src=url;
+  });
+}
+
+async function saveWork(){
+  const title=document.getElementById("work-title").value.trim();
+  const location=document.getElementById("work-location").value.trim();
+  const detail=document.getElementById("work-detail").value.trim();
+  const yearRaw=document.getElementById("work-year").value.trim();
+  const ytRaw=document.getElementById("work-youtube").value.trim();
+  if(!title||!location||!detail){showMsg("workMsg","⚠️ Heading, Location and Detail are required.","error");return;}
+  let youtubeId="";
+  if(ytRaw){
+    youtubeId=RHS.parseYouTubeId(ytRaw);
+    if(!youtubeId){showMsg("workMsg","⚠️ Please enter a valid YouTube link.","error");return;}
+  }
+  const btn=document.getElementById("saveWorkBtn");
+  setLoading(btn,true,"Saving...");
+  try{
+    // Upload new images (3 at a time), keep the chosen order
+    const imgs=window._workImgs, urls=new Array(imgs.length);
+    const pending=imgs.map((im,i)=>({im,i})).filter(x=>!x.im.url);
+    imgs.forEach((im,i)=>{ if(im.url) urls[i]=im.url; });
+    let done=0, queue=[...pending];
+    const worker=async()=>{
+      while(queue.length){
+        const {im,i}=queue.shift();
+        const f=await compressWorkImage(im.file);
+        urls[i]=await RHS.uploadImage(f,"rhs/work");
+        done++; showMsg("workMsg",`⏳ Uploading images ${done}/${pending.length}...`,"success");
+      }
+    };
+    await Promise.all([worker(),worker(),worker()]);
+    const data={title,location,detail,year:yearRaw?Number(yearRaw):"",youtubeUrl:ytRaw,youtubeId,images:urls.filter(Boolean)};
+    if(window._workEditId){ await RHS.updateWork(window._workEditId,data); showMsg("workMsg","✅ Work updated!","success"); }
+    else { await RHS.addWork(data); showMsg("workMsg","✅ Work added and published on the website!","success"); }
+    resetWorkForm(false); loadWorkList();
+  }catch(err){
+    console.error(err);
+    showMsg("workMsg","❌ "+(err.message||"Failed to save.")+" (If this says permissions, publish the Firestore rule for workHistory.)","error");
+  }
+  setLoading(btn,false);
+  if(window._workEditId) btn.innerHTML='<i class="fa fa-save"></i> Update Work';
+}
+
+function resetWorkForm(clearMsg=true){
+  window._workImgs.forEach(im=>im.preview&&URL.revokeObjectURL(im.preview));
+  window._workImgs=[]; window._workEditId=null;
+  ["work-title","work-location","work-detail","work-year","work-youtube"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("workYtPreview").innerHTML="";
+  document.getElementById("workFormTitle").textContent="Add Work History";
+  document.getElementById("saveWorkBtn").innerHTML='<i class="fa fa-plus"></i> Add Work';
+  document.getElementById("cancelWorkBtn").innerHTML='<i class="fa fa-rotate-left"></i> Clear';
+  renderWorkImgGrid();
+  if(clearMsg) showMsg("workMsg","","");
+}
+function clearWorkForm(){ resetWorkForm(true); }
+
+function editWork(id){
+  const w=window._workCache[id]; if(!w) return;
+  resetWorkForm(true);
+  window._workEditId=id;
+  document.getElementById("work-title").value=w.title||"";
+  document.getElementById("work-location").value=w.location||"";
+  document.getElementById("work-detail").value=w.detail||"";
+  document.getElementById("work-year").value=w.year||"";
+  document.getElementById("work-youtube").value=w.youtubeUrl||"";
+  onWorkYouTubeInput();
+  window._workImgs=(w.images||[]).map(url=>({url}));
+  renderWorkImgGrid();
+  document.getElementById("workFormTitle").textContent="Edit Work History";
+  document.getElementById("saveWorkBtn").innerHTML='<i class="fa fa-save"></i> Update Work';
+  document.getElementById("cancelWorkBtn").innerHTML='<i class="fa fa-xmark"></i> Cancel Edit';
+  document.getElementById("work-form-card").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function deleteWorkItem(id){
+  const w=window._workCache[id];
+  if(!confirm('Remove "'+(w?w.title:"this work")+'" from the website?\nThis cannot be undone.')) return;
+  RHS.deleteWork(id).then(()=>{
+    if(window._workEditId===id) resetWorkForm(true);
+    showMsg("workMsg","✅ Work removed from the website.","success"); loadWorkList();
+  }).catch(()=>showMsg("workMsg","❌ Failed to delete.","error"));
+}
+
+function loadWorkList(){
+  const wrap=document.getElementById("workListWrap"); if(!wrap) return;
+  wrap.innerHTML='<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
+  RHS.getWorkHistory().then(res=>{
+    const list=res.works||[];
+    document.getElementById("workCount").textContent=list.length?`(${list.length})`:"";
+    if(!res.success){wrap.innerHTML='<p style="color:#D9483A;text-align:center;padding:20px">Failed to load. Check Firestore rules for workHistory.</p>';return;}
+    if(!list.length){wrap.innerHTML='<p style="color:#8A9A96;text-align:center;padding:20px">No work added yet.</p>';return;}
+    window._workCache={}; list.forEach(w=>window._workCache[w.id]=w);
+    wrap.innerHTML='<div style="display:flex;flex-direction:column;gap:12px">'+list.map(w=>{
+      const cover=(w.images&&w.images[0])?RHS.imgUrl(w.images[0],200):(w.youtubeId?`https://img.youtube.com/vi/${w.youtubeId}/default.jpg`:"");
+      return `<div style="background:#F5F9F8;border:1.5px solid #D8E8E5;border-radius:12px;padding:14px;display:flex;gap:12px;flex-wrap:wrap">
+        ${cover?`<img src="${cover}" style="width:84px;height:64px;border-radius:8px;object-fit:cover;flex-shrink:0">`:`<div style="width:84px;height:64px;background:#E7DFD2;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa fa-image" style="color:#8A9A96"></i></div>`}
+        <div style="flex:1;min-width:180px">
+          <strong style="color:#14534F">${escHtml(w.title)}</strong>
+          <div style="color:#8A9A96;font-size:.78rem;margin:3px 0 6px">
+            <i class="fa fa-location-dot"></i> ${escHtml(w.location||"")}
+            ${w.year?` · <i class="fa fa-calendar"></i> ${escHtml(String(w.year))}`:""}
+            · <i class="fa fa-images"></i> ${(w.images||[]).length}
+            ${w.youtubeId?` · <i class="fa-brands fa-youtube" style="color:#D9483A"></i> Video`:""}
+          </div>
+          <p style="color:#4A5C58;font-size:.85rem;margin:0">${escHtml((w.detail||"").substring(0,110))}${(w.detail||"").length>110?"...":""}</p>
+        </div>
+        <div style="display:flex;gap:6px;align-items:flex-start">
+          <a class="btn btn-sm" style="background:#E8A33D;color:#fff;border:none" href="work-detail.html?id=${w.id}" target="_blank" title="View"><i class="fa fa-eye"></i></a>
+          <button class="btn btn-sm" style="background:#14534F;color:#fff;border:none" onclick="editWork('${w.id}')" title="Edit"><i class="fa fa-edit"></i></button>
+          <button class="btn btn-sm btn-reject" onclick="deleteWorkItem('${w.id}')" title="Delete"><i class="fa fa-trash"></i></button>
+        </div>
+      </div>`;}).join("")+'</div>';
+  });
+}
