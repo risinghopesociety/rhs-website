@@ -1146,3 +1146,94 @@ img, video { max-width: 100%; display: block; }
   .wd-card { padding: 20px; }
   .wd-lb-prev, .wd-lb-next { top: auto; bottom: 14px; transform: none; }
 }
+
+/* ==========================================================
+   MEMBERSHIP CARD (CNIC / driving-licence size, 1011×638 canvas)
+   Same design is used for online view, Smart Card PNG and PDF.
+   ========================================================== */
+.rc-host { position: relative; width: 100%; overflow: hidden; }
+.rc-card { position: relative; overflow: hidden; border-radius: 34px; background: #FBF6EF; color: #1F2E2B; font-family: 'Inter', 'Liberation Sans', Arial, sans-serif; text-align: left; line-height: normal; box-sizing: border-box; }
+.rc-card *, .rc-card *::before { box-sizing: border-box; }
+.rc-host .rc-card { position: absolute; top: 0; left: 0; box-shadow: none; border: 1px solid #E7DFD2; }
+.rc-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: repeating-linear-gradient(135deg, rgba(20,83,79,.035) 0 2px, transparent 2px 14px), radial-gradient(circle at 85% 80%, rgba(232,163,61,.14), transparent 45%); }
+.rc-wm { position: absolute; right: -60px; bottom: -70px; width: 420px; height: 420px; object-fit: contain; opacity: .07; }
+.rc-head { position: relative; height: 120px; background: linear-gradient(110deg, #14534F 0%, #1E7A73 100%); display: flex; align-items: center; padding: 0 34px; gap: 20px; color: #fff; }
+.rc-lg { width: 82px; height: 82px; border-radius: 50%; background: #fff; border: 3px solid #E8A33D; padding: 3px; object-fit: contain; flex-shrink: 0; }
+.rc-head h1 { font-family: 'Fraunces', 'DejaVu Serif', Georgia, serif; font-size: 34px; font-weight: 700; line-height: 1.1; color: #fff; margin: 0; }
+.rc-head small { display: block; font-size: 14px; letter-spacing: .22em; text-transform: uppercase; color: #CFE3E0; margin-top: 6px; }
+.rc-r { margin-left: auto; text-align: right; }
+.rc-r b { display: block; font-size: 15px; letter-spacing: .2em; color: #E8A33D; }
+.rc-pill { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; background: rgba(255,255,255,.14); border: 1.5px solid rgba(255,255,255,.4); border-radius: 99px; padding: 5px 16px; font-size: 15px; font-weight: 700; letter-spacing: .14em; }
+.rc-pill i { width: 11px; height: 11px; border-radius: 50%; display: block; }
+.rc-stripe { position: relative; height: 7px; background: linear-gradient(90deg, #E8A33D, #F2785C); }
+.rc-body { position: relative; display: flex; gap: 30px; padding: 26px 34px 0; }
+.rc-photo { width: 210px; height: 296px; border-radius: 16px; border: 5px solid #14534F; object-fit: cover; box-shadow: 0 8px 20px rgba(20,83,79,.25); flex-shrink: 0; background: #fff; display: block; }
+.rc-photo-ph { display: flex; align-items: center; justify-content: center; background: #EEF8F1; }
+.rc-info { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.rc-name { margin-top: 4px; font-family: 'Fraunces', 'DejaVu Serif', Georgia, serif; font-weight: 700; color: #14534F; line-height: 1.15; }
+.rc-desg { font-size: 20px; color: #6b7c78; margin: 4px 0 6px; }
+.rc-type { display: inline-block; align-self: flex-start; background: #14534F; color: #fff; font-size: 15px; font-weight: 700; letter-spacing: .08em; padding: 5px 16px; border-radius: 99px; text-transform: uppercase; }
+.rc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin-top: 16px; }
+.rc-f label { display: block; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: #8A9A96; font-weight: 700; }
+.rc-f span { display: block; font-size: 22px; font-weight: 700; margin-top: 2px; overflow-wrap: anywhere; }
+.rc-fsig { margin-top: auto; align-self: flex-end; width: 260px; text-align: center; margin-bottom: -8px; }
+.rc-fsig-img, .rc-bsig-img { display: flex; align-items: flex-end; justify-content: center; }
+.rc-fsig-img { height: 46px; }
+.rc-fsig-img img { max-height: 44px; max-width: 240px; object-fit: contain; }
+.rc-fsig > div:last-child, .rc-bsig > div:last-child { border-top: 2px solid #14534F; padding-top: 3px; font-size: 12px; letter-spacing: .14em; color: #4A5C58; font-weight: 700; }
+.rc-cmt { position: absolute; left: 34px; right: 34px; bottom: 62px; height: 78px; border-radius: 16px; background: linear-gradient(180deg, #EEF6F4, #E3F0ED); border: 1.5px dashed #9CC4BE; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 20px; }
+.rc-cmt label { font-size: 12px; letter-spacing: .24em; text-transform: uppercase; color: #6b8a85; font-weight: 700; }
+.rc-cmt span { font-family: 'Fraunces', 'DejaVu Serif', Georgia, serif; font-weight: 700; color: #14534F; margin-top: 2px; max-width: 100%; overflow: hidden; }
+.rc-foot { position: absolute; left: 0; right: 0; bottom: 0; height: 46px; background: #EAF3F0; border-top: 1px dashed #B9D3CE; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #4A5C58; gap: 8px; }
+.rc-foot b { color: #14534F; }
+/* back */
+.rc-bhead { position: relative; height: 84px; background: linear-gradient(110deg, #14534F, #1E7A73); display: flex; align-items: center; padding: 0 34px; gap: 16px; color: #fff; }
+.rc-bhead img { width: 56px; height: 56px; border-radius: 50%; background: #fff; border: 2px solid #E8A33D; padding: 2px; object-fit: contain; }
+.rc-bhead h2 { font-family: 'Fraunces', 'DejaVu Serif', Georgia, serif; font-size: 26px; font-weight: 700; color: #fff; margin: 0; }
+.rc-bhead small { margin-left: auto; font-size: 13px; letter-spacing: .2em; color: #E8A33D; font-weight: 700; }
+.rc-bbody { position: relative; display: flex; padding: 24px 34px 0; gap: 30px; }
+.rc-bl { flex: 1; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.rc-bl .rc-f span { font-size: 20px; }
+.rc-br { width: 230px; text-align: center; flex-shrink: 0; }
+.rc-qr { width: 200px; height: 200px; margin: 0 auto; border-radius: 14px; border: 3px solid #14534F; padding: 9px; background: #fff; display: flex; align-items: center; justify-content: center; }
+.rc-qr img, .rc-qr canvas { width: 176px !important; height: 176px !important; display: block; }
+.rc-qr canvas { display: none !important; }
+.rc-qr img { display: block !important; }
+.rc-br p { font-size: 13px; color: #4A5C58; margin: 8px 0 0; line-height: 1.35; }
+.rc-bsig { position: absolute; left: 34px; bottom: 78px; width: 330px; }
+.rc-bsig-img { height: 64px; justify-content: flex-start; }
+.rc-bsig-img img { max-height: 62px; max-width: 300px; object-fit: contain; }
+.rc-issue { position: absolute; right: 34px; bottom: 84px; text-align: right; }
+.rc-issue label { display: block; font-size: 12px; letter-spacing: .16em; color: #8A9A96; font-weight: 700; }
+.rc-issue span { font-size: 20px; font-weight: 700; }
+.rc-bfoot { position: absolute; left: 0; right: 0; bottom: 0; height: 62px; background: #14534F; color: #DCEBE8; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 13px; line-height: 1.5; }
+.rc-bfoot b { color: #E8A33D; }
+
+/* online view wrapper */
+.rc-view { display: flex; flex-direction: column; gap: 18px; max-width: 640px; margin: 18px auto 0; }
+.rc-view .rc-lbl { font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; font-weight: 700; color: #8A9A96; margin-bottom: 6px; }
+.rc-view .rc-shadow { filter: drop-shadow(0 10px 18px rgba(20,83,79,.22)); }
+.rc-view .rc-host { border-radius: 3.36% / 5.33%; }
+.rc-view .rc-host .rc-card { border: none; }
+
+/* html2canvas-safe text metrics: explicit line-heights so exported PNG/PDF match the screen */
+.rc-card { line-height: 1.25; }
+.rc-head h1 { line-height: 40px; }
+.rc-head small { line-height: 18px; margin-top: 4px; }
+.rc-r b { line-height: 20px; }
+.rc-pill { line-height: 20px; padding: 4px 16px; }
+.rc-name { line-height: 48px; margin-top: 0; }
+.rc-desg { line-height: 26px; margin: 2px 0 8px; }
+.rc-type { line-height: 20px; padding: 6px 16px; }
+.rc-f label { line-height: 14px; }
+.rc-f span { line-height: 28px; margin-top: 3px; }
+.rc-fsig > div:last-child, .rc-bsig > div:last-child { line-height: 16px; }
+.rc-cmt label { line-height: 16px; }
+.rc-cmt span { line-height: 36px; overflow: visible; margin-top: 2px; }
+.rc-foot { line-height: 18px; }
+.rc-bhead h2 { line-height: 32px; }
+.rc-bhead small { line-height: 16px; }
+.rc-br p { line-height: 17px; }
+.rc-issue label { line-height: 14px; }
+.rc-issue span { line-height: 24px; display: block; }
+.rc-bfoot { line-height: 20px; }

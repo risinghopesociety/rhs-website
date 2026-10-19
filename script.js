@@ -920,31 +920,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const badgeTxt   = isActive ? "✅ Active"  : isBanned ? "🚫 Banned" : isExpired ? "🕐 Expired" : st;
     const borderCol  = isActive ? "#14534F"   : isBanned ? "#D9483A" : isExpired ? "#E07B2A" : "#E8A33D";
 
-    const photoHtml = member.photo
-      ? `<img src="${RHS.imgUrl ? RHS.imgUrl(member.photo, 220) : member.photo}" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid ${borderCol};display:block;margin:0 auto 12px">`
-      : `<div style="width:90px;height:90px;border-radius:50%;background:#EEF8F1;border:3px solid ${borderCol};display:flex;align-items:center;justify-content:center;margin:0 auto 12px"><i class="fa-solid fa-user" style="font-size:2rem;color:#8A9A96"></i></div>`;
+    window.__certMember = member;
     certResult.hidden = false;
     certResult.innerHTML = `
       <div class="cert-card">
         <div class="cert-header">
-          <h3><i class="fa-solid fa-certificate"></i> Digital Membership Certificate</h3>
+          <h3><i class="fa-solid fa-id-card"></i> Digital Membership Card</h3>
           <span class="cert-badge" style="background:${badgeBg};color:${badgeColor};border:1.5px solid ${badgeColor}55">${badgeTxt}</span>
         </div>
-        ${photoHtml}
-        <div class="cert-grid">
-          <div class="item"><span class="lbl">Full Name</span><span class="val">${member.fullName}</span></div>
-          <div class="item"><span class="lbl">Reg No</span><span class="val">${member.registrationNo}</span></div>
-          <div class="item"><span class="lbl">Membership</span><span class="val">${member.membershipType || "—"}</span></div>
-          <div class="item"><span class="lbl">Gender</span><span class="val">${member.gender}</span></div>
-          <div class="item"><span class="lbl">Mobile</span><span class="val">${member.mobile}</span></div>
-          <div class="item"><span class="lbl">Valid Upto</span><span class="val">${member.validUpto || "—"}</span></div>
-          <div class="item" style="grid-column:1/-1"><span class="lbl">Address</span><span class="val">${member.address}</span></div>
+        <div class="rc-view">
+          <div><div class="rc-lbl">Front</div><div class="rc-shadow"><div id="rcFront"></div></div></div>
+          <div><div class="rc-lbl">Back</div><div class="rc-shadow"><div id="rcBack"></div></div></div>
         </div>
         <div class="cert-actions">
-          <button class="btn btn-primary" onclick="printCertificate(${JSON.stringify(member).replace(/"/g, '&quot;')})">
-            <i class="fa-solid fa-print"></i> Download / Print
+          <button class="btn btn-primary" onclick="printCertificate(window.__certMember, this)">
+            <i class="fa-solid fa-file-pdf"></i> Download PDF / Print
           </button>
-          <button class="btn btn-primary" style="background:#E8A33D;border-color:#E8A33D" onclick="printSmartCard(${JSON.stringify(member).replace(/"/g, '&quot;')})">
+          <button class="btn btn-primary" style="background:#E8A33D;border-color:#E8A33D" onclick="printSmartCard(window.__certMember, this)">
             <i class="fa-solid fa-id-card"></i> Download Smart Card
           </button>
           <button class="btn btn-ghost" onclick="window.closeLedger ? window.closeLedger() : null; document.getElementById('certResult').hidden=true; document.getElementById('certResult').innerHTML='';">
@@ -954,222 +946,27 @@ document.addEventListener("DOMContentLoaded", () => {
             <i class="fa-solid fa-arrow-left"></i> Back to Portal
           </button>
         </div>
-        <p class="cert-footnote">Computer-generated digital certificate. No signature required.</p>
+        <p class="cert-footnote">Computer-generated digital membership card · CNIC size (85.6 × 54 mm)</p>
       </div>`;
+    if (window.RHSCard) {
+      RHSCard.mount(document.getElementById("rcFront"), member, "front");
+      RHSCard.mount(document.getElementById("rcBack"), member, "back");
+    }
   }
 
-  window.printSmartCard = function (member) {
-    const pa = document.getElementById("printCert");
-    if (!pa) return;
-    const logoSrc = window.NGO.logoUrl || "images/logo.png";
-    const status = (member.status || "Active").toUpperCase();
-    const isActive = status === "ACTIVE";
-    const isBanned = status === "BANNED";
-    const isExpired = status === "EXPIRED";
-    const badgeColor = isActive ? "#5FD98A" : isBanned ? "#F08A7E" : isExpired ? "#F5B57A" : "#F0D98A";
-    const photoBlock = member.photo
-      ? `<img src="${RHS.imgUrl ? RHS.imgUrl(member.photo, 220) : member.photo}" style="width:58px;height:58px;border-radius:50%;object-fit:cover;border:2px solid #14534F;flex-shrink:0">`
-      : `<div style="width:58px;height:58px;border-radius:50%;background:#EEF8F1;border:2px solid #14534F;flex-shrink:0;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-user" style="color:#8A9A96"></i></div>`;
-    const verifyUrl = `${location.origin}${location.pathname}#verify`;
-
-    // Issue date, based on the member's registration date (same logic as the full certificate)
-    const issueDateRaw = member.timestamp || "";
-    let issueDate = "";
-    if (issueDateRaw && /^\d{2}-\d{2}-\d{4}$/.test(issueDateRaw)) {
-      const [dd, mm, yyyy] = issueDateRaw.split("-");
-      issueDate = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd))
-        .toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
-    } else {
-      issueDate = issueDateRaw || "—";
-    }
-
-    const field = (label, value) => `<div><div style="color:#8A9A96;font-size:8px;letter-spacing:.05em">${label}</div><div style="font-weight:700;color:#1C2B29;font-size:10.5px;margin-top:1px">${value || "—"}</div></div>`;
-
-    pa.innerHTML = `
-      <div id="smartCardInner" style="width:400px;border-radius:14px;overflow:hidden;background:#FAFAF8;font-family:Arial,sans-serif;border:1px solid #E7DFD2">
-        <div style="background:#14534F;padding:12px 16px;display:flex;align-items:center;gap:10px;box-sizing:border-box">
-          <img src="${logoSrc}" style="width:40px;height:40px;border-radius:50%;object-fit:contain;background:#fff;padding:3px;flex-shrink:0;display:block">
-          <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
-            <div style="color:#fff;font-size:14px;font-weight:700;line-height:1.25">${window.NGO.name}</div>
-            <div style="color:#E8A33D;font-size:9.5px;letter-spacing:.06em;line-height:1.4">MEMBERSHIP SMART CARD</div>
-          </div>
-          <div style="flex-shrink:0;display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.35);border-radius:20px;padding:4px 10px 4px 8px">
-            <span style="width:7px;height:7px;border-radius:50%;background:${badgeColor};flex-shrink:0;display:inline-block"></span>
-            <span style="font-size:9px;font-weight:600;color:#fff;letter-spacing:.03em;white-space:nowrap">${status}</span>
-          </div>
-        </div>
-        <div style="height:3px;background:linear-gradient(90deg,#E8A33D,#F5C76A,#E8A33D)"></div>
-        <div style="padding:14px 16px 10px;display:flex;gap:12px;align-items:center">
-          ${photoBlock}
-          <div>
-            <div style="font-size:15px;font-weight:700;color:#14534F;line-height:1.25">${member.fullName || "—"}</div>
-            <div style="font-size:10.5px;color:#8A9A96;line-height:1.4">${member.designation || "General Member"}</div>
-            <div style="font-size:10.5px;color:#4A6B60;font-weight:600;line-height:1.4">${member.membershipType || "General Member"}</div>
-          </div>
-        </div>
-        <div style="padding:4px 16px 12px;display:grid;grid-template-columns:1fr 1fr;gap:9px 12px">
-          ${field("REG NO", member.registrationNo)}
-          ${field("VALID UPTO", member.validUpto)}
-          ${field("GENDER", member.gender)}
-          ${field("PROFESSION", member.profession)}
-          ${field("MOBILE", member.mobile)}
-          ${field("EMAIL", member.email)}
-          <div style="grid-column:1/-1">${field("ADDRESS", member.address)}</div>
-        </div>
-        <div style="border-top:1px dashed #E7DFD2"></div>
-        <div style="padding:10px 16px;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
-          <div>
-            <div style="height:36px;width:120px;display:flex;align-items:flex-end">
-              ${window.NGO.signatureUrl ? `<img src="${window.NGO.signatureUrl}" style="max-width:120px;max-height:34px;object-fit:contain">` : ""}
-            </div>
-            <div style="border-top:1.5px solid #14534F;padding-top:3px;font-size:8.5px;color:#8A9A96;width:120px">Authorized Signature</div>
-            <div style="font-size:8.5px;color:#8A9A96;margin-top:4px">Issued: <strong style="color:#1C2B29">${issueDate}</strong></div>
-          </div>
-          <div id="smartCardQR" style="width:54px;height:54px;background:#fff;border:1px solid #E7DFD2;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0"></div>
-        </div>
-        <div style="background:#EEF8F1;padding:7px 16px;text-align:center">
-          <div style="font-size:8.5px;color:#4A6B60">Scan or visit to verify · ${verifyUrl}</div>
-        </div>
-      </div>`;
-
-    if (window.QRCode) {
-      new QRCode(document.getElementById("smartCardQR"), {
-        text: verifyUrl, width: 48, height: 48,
-        colorDark: "#14534F", colorLight: "#ffffff"
-      });
-    }
-
-    const fname = "Membership-SmartCard-" + (member.registrationNo || member.fullName || "RHS").replace(/[^a-z0-9]+/gi, "-") + ".png";
-    setTimeout(() => {
-      const inner = document.getElementById("smartCardInner");
-      printAreaImageWhenReady(inner, fname);
-    }, 150); // small delay so the QR library finishes drawing before we capture
+  /* Smart card PNG + PDF now both come from the shared card design (member-card.js) */
+  function runCardJob(btn, busyText, job) {
+    const old = btn ? btn.innerHTML : "";
+    if (btn) { btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${busyText}`; }
+    Promise.resolve().then(job)
+      .catch(err => { console.error(err); alert("Could not create the file. Please check your internet connection and try again."); })
+      .finally(() => { if (btn) { btn.disabled = false; btn.innerHTML = old; } });
+  }
+  window.printSmartCard = function (member, btn) {
+    runCardJob(btn, "Preparing...", () => RHSCard.downloadPNG(member));
   };
-
-  function printAreaImageWhenReady(el, filename) {
-    const imgs = Array.from(el.querySelectorAll("img"));
-    const loaders = imgs.map(img => {
-      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
-      return new Promise(resolve => {
-        img.addEventListener("load", resolve, { once: true });
-        img.addEventListener("error", resolve, { once: true });
-      });
-    });
-    Promise.race([Promise.all(loaders), new Promise(r => setTimeout(r, 4000))])
-      .then(() => generateImageFromArea(el, filename));
-  }
-
-  window.printCertificate = function (member) {
-    const pa = document.getElementById("printCert");
-    if (!pa) return;
-    const logoSrc  = window.NGO.logoUrl || "images/logo.png";
-    const regNo    = member.registrationNo || "—";
-    const status   = (member.status || "Active").toUpperCase();
-    const isActive = status === "ACTIVE";
-    const isBanned = status === "BANNED";
-    const badgeColor = isActive ? "#2E9E5B" : isBanned ? "#D9483A" : "#E8A33D";
-    const badgeBg    = isActive ? "#EEF8F1"  : isBanned ? "#FEF2F2" : "#FEF9EC";
-    // Use member's registration date (timestamp) instead of today
-    const issueDateRaw = member.timestamp || "";
-    let issueDate = "";
-    if (issueDateRaw && /^\d{2}-\d{2}-\d{4}$/.test(issueDateRaw)) {
-      const [dd, mm, yyyy] = issueDateRaw.split("-");
-      const d = new Date(parseInt(yyyy), parseInt(mm)-1, parseInt(dd));
-      issueDate = d.toLocaleDateString("en-PK", { day:"numeric", month:"long", year:"numeric" });
-    } else {
-      issueDate = issueDateRaw || new Date().toLocaleDateString("en-PK", { day:"numeric", month:"long", year:"numeric" });
-    }
-    const verifyUrl  = `${location.origin}${location.pathname}#verify`;
-    const photoBlock = member.photo
-      ? `<img src="${RHS.imgUrl ? RHS.imgUrl(member.photo, 240) : member.photo}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:4px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.25)">`
-      : `<div style="width:100px;height:100px;border-radius:50%;background:#EEF8F1;border:4px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center"><svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' fill='#4CAF8A' viewBox='0 0 24 24'><path d='M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z'/></svg></div>`;
-    pa.innerHTML = `
-      <style>
-        @page{margin:10mm;size:A4;}
-        body{-webkit-print-color-adjust:exact;print-color-adjust:exact;margin:0}
-        .no-print{display:none!important}
-      </style>
-      <div style="border:5px double #14534F;border-radius:6px;font-family:Georgia,serif;max-width:680px;margin:0 auto;overflow:hidden">
-
-        <!-- DARK GREEN HEADER -->
-        <div style="background:#14534F;padding:22px 28px;display:flex;align-items:center">
-          <img src="${logoSrc}" style="width:70px;height:70px;border-radius:50%;object-fit:contain;background:#fff;padding:5px;border:3px solid rgba(255,255,255,.3);flex-shrink:0">
-          <div style="flex:1;color:#fff;margin-left:18px">
-            <div style="font-size:10px;letter-spacing:.25em;color:rgba(255,255,255,.6);font-family:sans-serif;margin-bottom:3px">DIGITAL MEMBERSHIP CERTIFICATE</div>
-            <div style="font-size:22px;font-weight:700;line-height:1.2">${window.NGO.name}</div>
-            <div style="font-size:11px;color:rgba(255,255,255,.65);font-family:sans-serif;margin-top:3px">${window.NGO.address}</div>
-          </div>
-          <div style="text-align:right;color:#fff;flex-shrink:0;margin-left:18px">
-            <div style="font-size:9px;color:rgba(255,255,255,.5);font-family:sans-serif">REG. NO.</div>
-            <div style="font-size:15px;font-weight:700;font-family:sans-serif">${regNo}</div>
-          </div>
-        </div>
-
-        <!-- GOLD ACCENT BAR -->
-        <div style="height:5px;background:linear-gradient(90deg,#E8A33D,#F5C76A,#E8A33D)"></div>
-
-        <!-- PHOTO + NAME ROW -->
-        <div style="background:#F5F9F8;padding:22px 28px;display:flex;align-items:center;border-bottom:1px solid #E7DFD2">
-          ${photoBlock}
-          <div style="flex:1;margin-left:20px">
-            <div style="font-size:21px;font-weight:700;color:#14534F">${member.fullName || "—"}</div>
-            <div style="font-size:13px;color:#8A9A96;font-family:sans-serif;margin-top:2px">${member.designation || "General Member"}</div>
-            <div style="margin-top:8px;display:inline-flex;align-items:center;background:${badgeBg};border:1.5px solid ${badgeColor}55;border-radius:20px;padding:4px 12px">
-              <div style="width:7px;height:7px;border-radius:50%;background:${badgeColor};flex-shrink:0"></div>
-              <span style="font-size:11px;font-weight:700;color:${badgeColor};font-family:sans-serif;letter-spacing:.05em;margin-left:6px">${status}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- DETAILS GRID -->
-        <div style="padding:20px 28px;display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid #E7DFD2">
-          ${[
-            ["Membership Type", member.membershipType || "—"],
-            ["Admin Comment",   member.adminComments   || "—"],
-            ["CNIC",       member.cnic         || "—"],
-            ["Date of Birth", member.dob        || "—"],
-            ["Mobile",     member.mobile        || "—"],
-            ["Valid Upto", member.validUpto      || "—"],
-            ["Gender",     member.gender         || "—"],
-            ["Province",   member.province       || "—"],
-          ].map(([l,v]) => `
-            <div style="padding:10px 0;border-bottom:1px dashed #E7DFD2">
-              <div style="font-size:9px;letter-spacing:.1em;color:#8A9A96;font-family:sans-serif;text-transform:uppercase">${l}</div>
-              <div style="font-size:13px;font-weight:600;color:#1C2B29;font-family:sans-serif;margin-top:2px">${v}</div>
-            </div>`).join("")}
-          <div style="padding:10px 0;grid-column:1/-1;border-bottom:1px dashed #E7DFD2">
-            <div style="font-size:9px;letter-spacing:.1em;color:#8A9A96;font-family:sans-serif;text-transform:uppercase">Address</div>
-            <div style="font-size:13px;font-weight:600;color:#1C2B29;font-family:sans-serif;margin-top:2px">${member.address || "—"}</div>
-          </div>
-        </div>
-
-        <!-- SIGNATURE + ISSUE DATE -->
-        <div style="padding:20px 28px;display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid #E7DFD2;flex-wrap:wrap">
-          <div style="text-align:center;min-width:180px;margin-bottom:12px">
-            <div style="font-size:11px;color:#14534F;font-family:sans-serif;font-weight:700;margin-bottom:2px">President / Authorized Signatory</div>
-            <div style="height:46px;width:150px;margin:0 auto;display:flex;align-items:flex-end;justify-content:center">
-              ${window.NGO.signatureUrl ? `<img src="${window.NGO.signatureUrl}" loading="eager" decoding="sync" alt="Signature" style="max-width:150px;max-height:44px;width:auto;height:auto;object-fit:contain">` : ""}
-            </div>
-            <div style="border-top:1.5px solid #14534F;padding-top:5px;font-size:10px;color:#8A9A96;font-family:sans-serif">${window.NGO.name}</div>
-          </div>
-          <div style="text-align:right;font-family:sans-serif;margin-bottom:12px">
-            <div style="font-size:9px;color:#8A9A96;text-transform:uppercase;letter-spacing:.08em">Issue Date</div>
-            <div style="font-size:13px;font-weight:700;color:#14534F;margin-top:2px">${issueDate}</div>
-          </div>
-        </div>
-
-        <!-- VERIFY URL FOOTER -->
-        <div style="padding:11px 28px;background:#EEF8F1;text-align:center">
-          <div style="font-size:9.5px;color:#4A6B60;font-family:sans-serif">
-            ✅ Verify this certificate online: <strong>${verifyUrl}</strong>
-            &nbsp;&nbsp;|&nbsp;&nbsp; 📞 ${window.NGO.phone} &nbsp;|&nbsp; 📧 ${window.NGO.email}
-          </div>
-          <div style="font-size:9px;color:#8A9A96;font-family:sans-serif;margin-top:3px">Computer-generated digital certificate · ${window.NGO.name}</div>
-        </div>
-
-      </div>`;
-    const fname = "Membership-Certificate-" + (member.registrationNo || member.fullName || "RHS").replace(/[^a-z0-9]+/gi, "-") + ".pdf";
-    printAreaWhenReady(pa, fname);
+  window.printCertificate = function (member, btn) {
+    runCardJob(btn, "Preparing...", () => RHSCard.downloadPDF(member));
   };
 
   /* CLEAR VERIFY BTN */
