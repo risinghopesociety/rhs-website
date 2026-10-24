@@ -388,3 +388,11 @@ body{font-family:'Inter',sans-serif;background:#F0F4F3;color:var(--ink);margin:0
   .detail-grid{grid-template-columns:1fr;}
   .modal-actions .field{min-width:100%;}
 }
+
+/* ===== Urdu / English writing helper (rtl-editor.js) ===== */
+.rt-tools { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 2px 0 6px; font-size: .78rem; }
+.rt-tools-lbl { color: #6b7c78; font-weight: 600; margin-right: 4px; }
+.rt-tools button { border: 1.5px solid #D8E8E5; background: #fff; color: #14534F; border-radius: 99px; padding: 3px 12px; font-size: .76rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+.rt-tools button.on { background: #14534F; border-color: #14534F; color: #fff; }
+.rt-tools-hint { margin-left: auto; color: #8A9A96; }
+textarea.rt-ta-urdu { font-family: 'Noto Nastaliq Urdu', 'Inter', serif; line-height: 2.1; }

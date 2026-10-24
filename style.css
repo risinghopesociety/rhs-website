@@ -1237,3 +1237,13 @@ img, video { max-width: 100%; display: block; }
 .rc-issue label { line-height: 14px; }
 .rc-issue span { line-height: 24px; display: block; }
 .rc-bfoot { line-height: 20px; }
+
+/* ===== Auto Urdu / English lines (rtl-text.js) ===== */
+.rt-line { text-align: start; overflow-wrap: anywhere; }
+.rt-line.rt-center { text-align: center; }
+.rt-line[dir="rtl"] { font-family: 'Noto Nastaliq Urdu', 'Inter', serif; line-height: 2.1; }
+.rt-gap { height: .7em; }
+.rt-preview { text-align: start; white-space: pre-line; }
+.rt-preview[dir="rtl"] { font-family: 'Noto Nastaliq Urdu', 'Inter', serif; line-height: 2; }
+.detail-modal-text.rt-done { white-space: normal; }
+.wd-detail.rt-done { white-space: normal; }
