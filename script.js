@@ -92,6 +92,35 @@ function loadHomeContent() {
       // otherwise keep the existing fallback text already in the HTML.
       if (el && res[key]) el.textContent = res[key];
     });
+
+    /* ----- "Our Purpose" section (controlled from Admin > Setup > Our Purpose) ----- */
+    const purposeMap = {
+      purposeTitle: "purposeTitle", purposeHeading: "purposeHeading", purposeText: "purposeText",
+      purposeCardTitle: "purposeCardTitle", purposeCardText: "purposeCardText"
+    };
+    Object.entries(purposeMap).forEach(([key, id]) => {
+      const el = document.getElementById(id);
+      if (el && res[key]) el.textContent = res[key];
+    });
+    const cardIcon = document.getElementById("purposeCardIcon");
+    if (cardIcon && /^fa-(solid|regular|brands) fa-[a-z0-9-]+$/.test(res.purposeCardIcon || "")) {
+      cardIcon.className = res.purposeCardIcon;
+    }
+    const badgeWrap = document.getElementById("purposeBadges");
+    if (badgeWrap && Array.isArray(res.purposeBadges)) {
+      badgeWrap.textContent = "";
+      res.purposeBadges.forEach(b => {
+        if (!b || !b.text || !String(b.text).trim()) return;   // empty text = badge hidden
+        const span = document.createElement("span");
+        if (/^fa-(solid|regular|brands) fa-[a-z0-9-]+$/.test(b.icon || "")) {
+          const i = document.createElement("i");
+          i.className = b.icon;
+          span.appendChild(i);
+        }
+        span.appendChild(document.createTextNode(" " + String(b.text).trim()));
+        badgeWrap.appendChild(span);
+      });
+    }
   }).catch(() => {});
 }
 

@@ -599,6 +599,9 @@
         <button class="filter-btn active" onclick="showSetupSection('home', this)">
           <i class="fa fa-house"></i> Home
         </button>
+        <button class="filter-btn" onclick="showSetupSection('purpose', this)">
+          <i class="fa fa-bullseye"></i> Our Purpose
+        </button>
         <button class="filter-btn" onclick="showSetupSection('news', this)">
           <i class="fa fa-newspaper"></i> News
         </button>
@@ -664,6 +667,36 @@
       </div>
 
       <!-- NEWS FEED -->
+      <!-- ===== OUR PURPOSE (home page section) ===== -->
+      <div class="setup-section hidden" id="setup-purpose">
+        <div class="card" style="margin-top:16px">
+          <h3 class="card-title"><i class="fa fa-bullseye"></i> Our Purpose Section</h3>
+          <p style="color:#8A9A96;font-size:.88rem;margin-bottom:16px">Home page ka "Our Purpose" section yahan se control hota hai. Jo likho ge wohi website par show hoga. Field khali chhoro to purana (default) text rahega.</p>
+          <div class="charity-form-grid">
+            <div class="field"><label>Title</label><input type="text" id="set-purposeTitle" placeholder="Our Purpose"></div>
+            <div class="field"><label>Main Heading</label><input type="text" id="set-purposeHeading" placeholder="Service rooted in community, driven by people."></div>
+            <div class="field" style="grid-column:1/-1"><label>Text</label><textarea id="set-purposeText" rows="4" placeholder="Section description..."></textarea></div>
+            
+            <div class="field"><label>Badge 1 Text <small>(khali chhoro to hide ho jayega)</small></label><input type="text" id="set-purposeBadge1Text" placeholder="e.g. Registered NGO"></div>
+            <div class="field"><label>Badge 1 Icon</label><select id="set-purposeBadge1Icon"><option value="fa-solid fa-certificate">Certificate / Badge</option><option value="fa-solid fa-location-dot">Location Pin</option><option value="fa-solid fa-users">People / Users</option><option value="fa-solid fa-heart">Heart</option><option value="fa-solid fa-hand-holding-heart">Helping Hand</option><option value="fa-solid fa-hands-holding-circle">Hands Holding</option><option value="fa-solid fa-handshake">Handshake</option><option value="fa-solid fa-star">Star</option><option value="fa-solid fa-shield-halved">Shield</option><option value="fa-solid fa-circle-check">Check Mark</option><option value="fa-solid fa-house">House</option><option value="fa-solid fa-graduation-cap">Education</option><option value="fa-solid fa-utensils">Food</option><option value="fa-solid fa-kit-medical">Health</option><option value="fa-solid fa-globe">Globe</option><option value="fa-solid fa-seedling">Growth</option><option value="fa-solid fa-scale-balanced">Fairness / Justice</option><option value="fa-solid fa-people-group">Community Group</option></select></div>
+            <div class="field"><label>Badge 2 Text <small>(khali chhoro to hide ho jayega)</small></label><input type="text" id="set-purposeBadge2Text" placeholder="e.g. Registered NGO"></div>
+            <div class="field"><label>Badge 2 Icon</label><select id="set-purposeBadge2Icon"><option value="fa-solid fa-certificate">Certificate / Badge</option><option value="fa-solid fa-location-dot">Location Pin</option><option value="fa-solid fa-users">People / Users</option><option value="fa-solid fa-heart">Heart</option><option value="fa-solid fa-hand-holding-heart">Helping Hand</option><option value="fa-solid fa-hands-holding-circle">Hands Holding</option><option value="fa-solid fa-handshake">Handshake</option><option value="fa-solid fa-star">Star</option><option value="fa-solid fa-shield-halved">Shield</option><option value="fa-solid fa-circle-check">Check Mark</option><option value="fa-solid fa-house">House</option><option value="fa-solid fa-graduation-cap">Education</option><option value="fa-solid fa-utensils">Food</option><option value="fa-solid fa-kit-medical">Health</option><option value="fa-solid fa-globe">Globe</option><option value="fa-solid fa-seedling">Growth</option><option value="fa-solid fa-scale-balanced">Fairness / Justice</option><option value="fa-solid fa-people-group">Community Group</option></select></div>
+            <div class="field"><label>Badge 3 Text <small>(khali chhoro to hide ho jayega)</small></label><input type="text" id="set-purposeBadge3Text" placeholder="e.g. Registered NGO"></div>
+            <div class="field"><label>Badge 3 Icon</label><select id="set-purposeBadge3Icon"><option value="fa-solid fa-certificate">Certificate / Badge</option><option value="fa-solid fa-location-dot">Location Pin</option><option value="fa-solid fa-users">People / Users</option><option value="fa-solid fa-heart">Heart</option><option value="fa-solid fa-hand-holding-heart">Helping Hand</option><option value="fa-solid fa-hands-holding-circle">Hands Holding</option><option value="fa-solid fa-handshake">Handshake</option><option value="fa-solid fa-star">Star</option><option value="fa-solid fa-shield-halved">Shield</option><option value="fa-solid fa-circle-check">Check Mark</option><option value="fa-solid fa-house">House</option><option value="fa-solid fa-graduation-cap">Education</option><option value="fa-solid fa-utensils">Food</option><option value="fa-solid fa-kit-medical">Health</option><option value="fa-solid fa-globe">Globe</option><option value="fa-solid fa-seedling">Growth</option><option value="fa-solid fa-scale-balanced">Fairness / Justice</option><option value="fa-solid fa-people-group">Community Group</option></select></div>
+          </div>
+          <h4 style="margin:22px 0 10px;color:#14534F"><i class="fa fa-square"></i> Green Box (Right Side Card)</h4>
+          <div class="charity-form-grid">
+            <div class="field"><label>Box Title</label><input type="text" id="set-purposeCardTitle" placeholder="Community First"></div>
+            <div class="field"><label>Box Icon</label><select id="set-purposeCardIcon"><option value="fa-solid fa-certificate">Certificate / Badge</option><option value="fa-solid fa-location-dot">Location Pin</option><option value="fa-solid fa-users">People / Users</option><option value="fa-solid fa-heart">Heart</option><option value="fa-solid fa-hand-holding-heart">Helping Hand</option><option value="fa-solid fa-hands-holding-circle">Hands Holding</option><option value="fa-solid fa-handshake">Handshake</option><option value="fa-solid fa-star">Star</option><option value="fa-solid fa-shield-halved">Shield</option><option value="fa-solid fa-circle-check">Check Mark</option><option value="fa-solid fa-house">House</option><option value="fa-solid fa-graduation-cap">Education</option><option value="fa-solid fa-utensils">Food</option><option value="fa-solid fa-kit-medical">Health</option><option value="fa-solid fa-globe">Globe</option><option value="fa-solid fa-seedling">Growth</option><option value="fa-solid fa-scale-balanced">Fairness / Justice</option><option value="fa-solid fa-people-group">Community Group</option></select></div>
+            <div class="field" style="grid-column:1/-1"><label>Box Text</label><textarea id="set-purposeCardText" rows="3" placeholder="Box description..."></textarea></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="savePurpose()"><i class="fa fa-save"></i> Save Our Purpose</button>
+          </div>
+          <p class="form-msg" id="purposeMsg"></p>
+        </div>
+      </div>
+
       <div class="setup-section hidden" id="setup-news">
         <div class="card" style="margin-top:16px">
           <h3 class="card-title"><i class="fa fa-newspaper"></i> News Feed</h3>
@@ -991,6 +1024,6 @@
   </script>
   <script type="module" src="firebase-db.js?v=4"></script>
   <script src="rtl-editor.js?v=1" defer></script>
-<script src="admin.js?v=5" defer></script>
+<script src="admin.js?v=6" defer></script>
 </body>
 </html>

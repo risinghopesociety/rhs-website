@@ -200,6 +200,7 @@ function showSetupSection(section, btn){
   if(section==="work") loadWorkAdmin();
   if(section==="news") loadNewsList();
   if(section==="home") loadSlidesList();
+  if(section==="purpose") loadPurpose();
   if(section==="team") loadTeamList();
 }
 
@@ -251,6 +252,59 @@ function loadSetupData(){
       if(el) el.value=val;
     });
   }).catch(()=>{});
+}
+
+// ====== OUR PURPOSE (home page section) ======
+const PURPOSE_DEFAULTS = {
+  purposeTitle:"Our Purpose",
+  purposeHeading:"Service rooted in community, driven by people.",
+  purposeText:"Founded by residents of Khairpur Tamewali, Rising Hope Society works on grassroots welfare projects — food packages, shelter, health camps, education support, and relief drives — entirely powered by volunteer members and generous donors.",
+  purposeCardTitle:"Community First",
+  purposeCardText:"Every project begins and ends with the people of our community in mind. We serve without discrimination.",
+  purposeCardIcon:"fa-solid fa-hands-holding-circle",
+  purposeBadges:[
+    {text:"Registered NGO",icon:"fa-solid fa-certificate"},
+    {text:"Khairpur Tamewali",icon:"fa-solid fa-location-dot"},
+    {text:"Community Driven",icon:"fa-solid fa-users"}
+  ]
+};
+function loadPurpose(){
+  if(!window.RHS){setTimeout(loadPurpose,500);return;}
+  RHS.getContent().then(res=>{
+    res = res || {};
+    const D = PURPOSE_DEFAULTS;
+    const val = k => (res[k] !== undefined && res[k] !== null && res[k] !== "") ? res[k] : D[k];
+    ["purposeTitle","purposeHeading","purposeText","purposeCardTitle"].forEach(k=>{
+      const el=document.getElementById("set-"+k); if(el) el.value=val(k);
+    });
+    const ct=document.getElementById("set-purposeCardText"); if(ct) ct.value=val("purposeCardText");
+    const ci=document.getElementById("set-purposeCardIcon"); if(ci) ci.value=val("purposeCardIcon");
+    const badges = Array.isArray(res.purposeBadges) ? res.purposeBadges : D.purposeBadges;
+    for(let n=1;n<=3;n++){
+      const b = badges[n-1] || {text:"",icon:D.purposeBadges[n-1].icon};
+      const t=document.getElementById("set-purposeBadge"+n+"Text"); if(t) t.value=b.text||"";
+      const i=document.getElementById("set-purposeBadge"+n+"Icon"); if(i) i.value=b.icon||D.purposeBadges[n-1].icon;
+    }
+  }).catch(()=>{});
+}
+function savePurpose(){
+  if(!window.RHS){return;}
+  const g=id=>document.getElementById(id)?.value||"";
+  const data={
+    purposeTitle:g("set-purposeTitle").trim(),
+    purposeHeading:g("set-purposeHeading").trim(),
+    purposeText:g("set-purposeText").trim(),
+    purposeCardTitle:g("set-purposeCardTitle").trim(),
+    purposeCardText:g("set-purposeCardText").trim(),
+    purposeCardIcon:g("set-purposeCardIcon"),
+    purposeBadges:[1,2,3].map(n=>({text:g("set-purposeBadge"+n+"Text").trim(),icon:g("set-purposeBadge"+n+"Icon")}))
+  };
+  const btn=document.querySelector('#setup-purpose .btn-primary[onclick="savePurpose()"]');
+  setLoading(btn,true,"Saving...");
+  RHS.saveContent(data).then(()=>{
+    setLoading(btn,false);
+    showMsg("purposeMsg","✅ Our Purpose saved! Website par ab naya text show hoga.","success");
+  }).catch(()=>{setLoading(btn,false);showMsg("purposeMsg","Failed to save.","error");});
 }
 
 // ====== SAVE HOME PAGE CONTENT ======

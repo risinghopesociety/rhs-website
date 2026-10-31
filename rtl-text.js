@@ -11,7 +11,7 @@
   const HAS_RTL = /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/;
 
   // Full text blocks: split into lines, each line gets its own direction
-  const FULL = "#donateDetail,#donateSubheading,#heroText,#teamMatter,#workSub,#detailModalText,.wd-detail,.bio,.rt";
+  const FULL = "#purposeText,#purposeCardText,#donateDetail,#donateSubheading,#heroText,#teamMatter,#workSub,#detailModalText,.wd-detail,.bio,.rt";
   // Clamped previews (3-line cards): keep as one block, choose direction by majority
   const PREVIEW = ".news-card-text,.story-card-text,.work-text";
 
