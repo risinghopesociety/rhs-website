@@ -1268,3 +1268,9 @@ img, video { max-width: 100%; display: block; }
 .pwa-help-box ol{ text-align:left; margin:14px 0 0 20px; color:#2b3b38; font-size:.92rem; line-height:1.7; }
 .pwa-help-x{ position:absolute; top:8px; right:12px; background:none; border:0; font-size:1.6rem; cursor:pointer; color:#8A9A96; }
 @media (max-width:600px){ .pwa-install-btn{ bottom:18px; left:12px; padding:11px 15px; } }
+
+/* ===== Our Purpose — centered ===== */
+.about-text, .about-card { text-align: center; }
+.about-text p { margin-left: auto; margin-right: auto; }
+.about-badges { justify-content: center; }
+.about-card i { display: block; }
