@@ -602,6 +602,9 @@
         <button class="filter-btn" onclick="showSetupSection('purpose', this)">
           <i class="fa fa-bullseye"></i> Our Purpose
         </button>
+        <button class="filter-btn" onclick="showSetupSection('services', this)">
+          <i class="fa fa-grip"></i> Our Services
+        </button>
         <button class="filter-btn" onclick="showSetupSection('news', this)">
           <i class="fa fa-newspaper"></i> News
         </button>
@@ -694,6 +697,32 @@
             <button class="btn btn-primary" onclick="savePurpose()"><i class="fa fa-save"></i> Save Our Purpose</button>
           </div>
           <p class="form-msg" id="purposeMsg"></p>
+        </div>
+      </div>
+
+      <!-- ===== OUR SERVICES (home page section) ===== -->
+      <div class="setup-section hidden" id="setup-services">
+        <div class="card" style="margin-top:16px">
+          <h3 class="card-title"><i class="fa fa-grip"></i> Our Services Section</h3>
+          <p style="color:#8A9A96;font-size:.88rem;margin-bottom:16px">Home page ka "Our Services" section yahan se control hota hai. Cards add, delete, upar neeche aur text badal sakte hain. Urdu wale box optional hain: bhare hon to Urdu mode mein wohi dikhega.</p>
+          <label style="display:flex;align-items:center;gap:8px;margin-bottom:16px;font-weight:600;color:#14534F"><input type="checkbox" id="svc-visible" checked> Is section ko website par dikhao</label>
+          <div class="charity-form-grid">
+            <div class="field"><label>Small Title (English)</label><input type="text" id="svc-eyebrow" placeholder="What We Offer"></div>
+            <div class="field"><label>Small Title (Urdu)</label><input type="text" id="svc-eyebrowUr" dir="rtl" placeholder="ہماری خدمات"></div>
+            <div class="field"><label>Main Heading (English)</label><input type="text" id="svc-heading" placeholder="Services made simple, for everyone."></div>
+            <div class="field"><label>Main Heading (Urdu)</label><input type="text" id="svc-headingUr" dir="rtl"></div>
+            <div class="field"><label>Intro Text (English)</label><textarea id="svc-text" rows="2"></textarea></div>
+            <div class="field"><label>Intro Text (Urdu)</label><textarea id="svc-textUr" rows="2" dir="rtl"></textarea></div>
+          </div>
+          <h4 style="margin:22px 0 10px;color:#14534F"><i class="fa fa-th-large"></i> Service Cards</h4>
+          <div id="svcRows"></div>
+          <datalist id="svcLinks"><option value="member.html?open=registration">Join / Registration</option><option value="member.html#verify">Verify Certificate</option><option value="charity.html?open=grant">Get Help (Apply)</option><option value="donate.html">Donate</option><option value="our-work.html">Our Work</option><option value="news.html">News</option><option value="stories.html">Stories</option><option value="team.html">Our Team</option><option value="contact.html">Contact</option><option value="index.html">Home</option></datalist>
+          <div class="form-actions">
+            <button class="btn btn-ghost" type="button" onclick="svcAddRow()"><i class="fa fa-plus"></i> Add Service Card</button>
+            <button class="btn btn-ghost" type="button" onclick="svcResetDefaults()"><i class="fa fa-rotate-left"></i> Reset to Default</button>
+            <button class="btn btn-primary" type="button" onclick="saveServices()"><i class="fa fa-save"></i> Save Our Services</button>
+          </div>
+          <p class="form-msg" id="servicesMsg"></p>
         </div>
       </div>
 
@@ -1024,6 +1053,6 @@
   </script>
   <script type="module" src="firebase-db.js?v=4"></script>
   <script src="rtl-editor.js?v=1" defer></script>
-<script src="admin.js?v=6" defer></script>
+<script src="admin.js?v=7" defer></script>
 </body>
 </html>

@@ -25,7 +25,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#14534F">
 <meta name="mobile-web-app-capable" content="yes">
@@ -121,6 +121,59 @@
   </div>
 </section>
 
+<!-- ===== OUR SERVICES (editable from Admin > Setup > Our Services) ===== -->
+<section class="services" id="services">
+  <div class="container">
+    <div class="services-head">
+      <span class="eyebrow" id="servicesEyebrow" data-ur="ہماری خدمات">What We Offer</span>
+      <h2 id="servicesHeading" data-ur="ہر کسی کے لیے آسان خدمات۔">Services made simple, for everyone.</h2>
+      <p id="servicesText" data-ur="سب کچھ ایک ہی جگہ — ممبر بنیں، مدد حاصل کریں، عطیہ کریں اور باخبر رہیں۔">Everything you need — join, get help, donate and stay informed — in one place.</p>
+    </div>
+    <div class="svc-grid" id="servicesGrid">
+      <a class="svc-card" href="member.html?open=registration">
+        <span class="svc-icon"><i class="fa-solid fa-id-card"></i></span>
+        <h3 data-ur="آن لائن ممبرشپ">Online Membership</h3>
+        <p data-ur="اپنے شناختی کارڈ نمبر کے ساتھ آن لائن رجسٹر کریں اور QR کوڈ والا ممبرشپ کارڈ حاصل کریں۔">Register online with your CNIC and get your membership card with QR code.</p>
+      </a>
+      <a class="svc-card" href="member.html#verify">
+        <span class="svc-icon"><i class="fa-solid fa-circle-check"></i></span>
+        <h3 data-ur="تصدیق اور چیریٹی ریکارڈ">Verify & Charity Record</h3>
+        <p data-ur="شناختی کارڈ نمبر اور تاریخ پیدائش سے اپنا سرٹیفکیٹ تصدیق کریں اور عطیات کا ریکارڈ دیکھیں۔">Verify your certificate and view your donation record using your CNIC and date of birth.</p>
+      </a>
+      <a class="svc-card" href="charity.html?open=grant">
+        <span class="svc-icon"><i class="fa-solid fa-hand-holding-heart"></i></span>
+        <h3 data-ur="چیریٹی ہیلپ ڈیسک">Charity Help Desk</h3>
+        <p data-ur="مدد کے لیے آن لائن درخواست دیں اور اپنے کیس کی صورتحال کسی بھی وقت دیکھیں۔">Apply online for help and track the status of your case anytime.</p>
+      </a>
+      <a class="svc-card" href="donate.html">
+        <span class="svc-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span>
+        <h3 data-ur="آن لائن عطیہ">Donate Online</h3>
+        <p data-ur="ہمارے بینک اکاؤنٹس دیکھیں اور اعتماد کے ساتھ عطیہ کریں۔">See our bank accounts and donate with confidence.</p>
+      </a>
+      <a class="svc-card" href="our-work.html">
+        <span class="svc-icon"><i class="fa-solid fa-briefcase"></i></span>
+        <h3 data-ur="ہمارا کام">Our Work</h3>
+        <p data-ur="ہمارے کام کی تاریخ تصاویر اور ویڈیوز کے ساتھ دیکھیں۔">Browse our work history with photos and videos.</p>
+      </a>
+      <a class="svc-card" href="news.html">
+        <span class="svc-icon"><i class="fa-solid fa-newspaper"></i></span>
+        <h3 data-ur="خبریں">News</h3>
+        <p data-ur="سوسائٹی کے تازہ اعلانات اور اپ ڈیٹس۔">Latest announcements and updates from the society.</p>
+      </a>
+      <a class="svc-card" href="stories.html">
+        <span class="svc-icon"><i class="fa-solid fa-heart"></i></span>
+        <h3 data-ur="کامیابی کی کہانیاں">Impact Stories</h3>
+        <p data-ur="ان لوگوں اور خاندانوں کی کہانیاں جن کی ہم خدمت کرتے ہیں۔">Stories of the people and families we serve.</p>
+      </a>
+      <a class="svc-card" href="team.html">
+        <span class="svc-icon"><i class="fa-solid fa-users"></i></span>
+        <h3 data-ur="ہماری ٹیم">Our Team</h3>
+        <p data-ur="ہماری کمیونٹی کی خدمت کرنے والے ٹیم ممبران سے ملیں۔">Meet the team members serving our community.</p>
+      </a>
+    </div>
+  </div>
+</section>
+
 <!-- ===== ANIMATED STATS ===== -->
 <section class="stats" id="stats">
   <div class="container">
@@ -172,7 +225,7 @@
 <script type="module" src="firebase-db.js?v=2"></script>
 <script type="module" src="include.js?v=2"></script>
 <script src="rtl-text.js?v=2" defer></script>
-<script src="script.js?v=6" defer></script>
+<script src="script.js?v=7" defer></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";

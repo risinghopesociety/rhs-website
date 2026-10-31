@@ -121,6 +121,53 @@ function loadHomeContent() {
         badgeWrap.appendChild(span);
       });
     }
+
+    /* ----- "Our Services" section (controlled from Admin > Setup > Our Services) ----- */
+    (function renderServices() {
+      const sec = document.getElementById("services");
+      if (!sec) return;
+      if (res.servicesVisible === false) { sec.style.display = "none"; return; }
+      const isUr = document.getElementById("htmlRoot")?.getAttribute("lang") === "ur";
+      const put = (id, en, ur) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (en) el.textContent = en;
+        if (ur) el.setAttribute("data-ur", ur); else if (en) el.removeAttribute("data-ur");
+        if (isUr && ur) { el._origText = el.textContent; el.textContent = ur; }
+      };
+      put("servicesEyebrow", res.servicesEyebrow, res.servicesEyebrowUr);
+      put("servicesHeading", res.servicesHeading, res.servicesHeadingUr);
+      put("servicesText", res.servicesText, res.servicesTextUr);
+      const grid = document.getElementById("servicesGrid");
+      if (!grid || !Array.isArray(res.servicesList)) return;
+      const okIcon = v => /^fa-(solid|regular|brands) fa-[a-z0-9-]+$/.test(v || "");
+      const okLink = v => /^(?!\s*(javascript|data|vbscript):)[\w\-./?=&#%:+@~]*$/i.test(v || "") && !/^\s*$/.test(v || "");
+      grid.textContent = "";
+      res.servicesList.forEach(c => {
+        if (!c || !String(c.title || "").trim()) return;
+        const link = okLink(c.link);
+        const card = document.createElement(link ? "a" : "div");
+        card.className = "svc-card";
+        if (link) card.href = c.link.trim();
+        const ic = document.createElement("span");
+        ic.className = "svc-icon";
+        const i = document.createElement("i");
+        i.className = okIcon(c.icon) ? c.icon : "fa-solid fa-star";
+        ic.appendChild(i);
+        const h = document.createElement("h3");
+        const p = document.createElement("p");
+        h.textContent = String(c.title).trim();
+        p.textContent = String(c.text || "").trim();
+        if (c.titleUr) h.setAttribute("data-ur", c.titleUr);
+        if (c.textUr) p.setAttribute("data-ur", c.textUr);
+        if (isUr) {
+          if (c.titleUr) { h._origText = h.textContent; h.textContent = c.titleUr; }
+          if (c.textUr)  { p._origText = p.textContent; p.textContent = c.textUr; }
+        }
+        card.append(ic, h, p);
+        grid.appendChild(card);
+      });
+    })();
   }).catch(() => {});
 }
 

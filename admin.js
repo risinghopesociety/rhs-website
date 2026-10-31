@@ -201,6 +201,7 @@ function showSetupSection(section, btn){
   if(section==="news") loadNewsList();
   if(section==="home") loadSlidesList();
   if(section==="purpose") loadPurpose();
+  if(section==="services") loadServices();
   if(section==="team") loadTeamList();
 }
 
@@ -252,6 +253,132 @@ function loadSetupData(){
       if(el) el.value=val;
     });
   }).catch(()=>{});
+}
+
+// ====== OUR SERVICES (home page section) ======
+const SVC_ICONS = [["fa-solid fa-id-card", "ID Card"], ["fa-solid fa-circle-check", "Check Mark"], ["fa-solid fa-hand-holding-heart", "Helping Hand"], ["fa-solid fa-hand-holding-dollar", "Donate"], ["fa-solid fa-briefcase", "Work"], ["fa-solid fa-newspaper", "News"], ["fa-solid fa-heart", "Heart"], ["fa-solid fa-users", "People"], ["fa-solid fa-house", "House"], ["fa-solid fa-graduation-cap", "Education"], ["fa-solid fa-utensils", "Food"], ["fa-solid fa-kit-medical", "Health"], ["fa-solid fa-handshake", "Handshake"], ["fa-solid fa-star", "Star"], ["fa-solid fa-shield-halved", "Shield"], ["fa-solid fa-globe", "Globe"], ["fa-solid fa-seedling", "Growth"], ["fa-solid fa-scale-balanced", "Fairness"], ["fa-solid fa-people-group", "Community"], ["fa-solid fa-phone", "Phone"], ["fa-solid fa-envelope", "Envelope"], ["fa-solid fa-bell", "Bell"], ["fa-solid fa-mobile-screen", "Mobile App"], ["fa-solid fa-location-dot", "Location"]];
+const SVC_DEFAULTS = {
+  eyebrow:"What We Offer", eyebrowUr:"ہماری خدمات",
+  heading:"Services made simple, for everyone.", headingUr:"ہر کسی کے لیے آسان خدمات۔",
+  text:"Everything you need — join, get help, donate and stay informed — in one place.",
+  textUr:"سب کچھ ایک ہی جگہ — ممبر بنیں، مدد حاصل کریں، عطیہ کریں اور باخبر رہیں۔",
+  list:[
+    {icon:"fa-solid fa-id-card",title:"Online Membership",titleUr:"آن لائن ممبرشپ",text:"Register online with your CNIC and get your membership card with QR code.",textUr:"اپنے شناختی کارڈ نمبر کے ساتھ آن لائن رجسٹر کریں اور QR کوڈ والا ممبرشپ کارڈ حاصل کریں۔",link:"member.html?open=registration"},
+    {icon:"fa-solid fa-circle-check",title:"Verify & Charity Record",titleUr:"تصدیق اور چیریٹی ریکارڈ",text:"Verify your certificate and view your donation record using your CNIC and date of birth.",textUr:"شناختی کارڈ نمبر اور تاریخ پیدائش سے اپنا سرٹیفکیٹ تصدیق کریں اور عطیات کا ریکارڈ دیکھیں۔",link:"member.html#verify"},
+    {icon:"fa-solid fa-hand-holding-heart",title:"Charity Help Desk",titleUr:"چیریٹی ہیلپ ڈیسک",text:"Apply online for help and track the status of your case anytime.",textUr:"مدد کے لیے آن لائن درخواست دیں اور اپنے کیس کی صورتحال کسی بھی وقت دیکھیں۔",link:"charity.html?open=grant"},
+    {icon:"fa-solid fa-hand-holding-dollar",title:"Donate Online",titleUr:"آن لائن عطیہ",text:"See our bank accounts and donate with confidence.",textUr:"ہمارے بینک اکاؤنٹس دیکھیں اور اعتماد کے ساتھ عطیہ کریں۔",link:"donate.html"},
+    {icon:"fa-solid fa-briefcase",title:"Our Work",titleUr:"ہمارا کام",text:"Browse our work history with photos and videos.",textUr:"ہمارے کام کی تاریخ تصاویر اور ویڈیوز کے ساتھ دیکھیں۔",link:"our-work.html"},
+    {icon:"fa-solid fa-newspaper",title:"News",titleUr:"خبریں",text:"Latest announcements and updates from the society.",textUr:"سوسائٹی کے تازہ اعلانات اور اپ ڈیٹس۔",link:"news.html"},
+    {icon:"fa-solid fa-heart",title:"Impact Stories",titleUr:"کامیابی کی کہانیاں",text:"Stories of the people and families we serve.",textUr:"ان لوگوں اور خاندانوں کی کہانیاں جن کی ہم خدمت کرتے ہیں۔",link:"stories.html"},
+    {icon:"fa-solid fa-users",title:"Our Team",titleUr:"ہماری ٹیم",text:"Meet the team members serving our community.",textUr:"ہماری کمیونٹی کی خدمت کرنے والے ٹیم ممبران سے ملیں۔",link:"team.html"}
+  ]
+};
+const SVC_MAX = 12;
+function svcRowsEl(){ return document.getElementById("svcRows"); }
+function svcBuildRow(c){
+  c = c || {icon:"fa-solid fa-star",title:"",titleUr:"",text:"",textUr:"",link:""};
+  const row=document.createElement("div");
+  row.className="svc-row";
+  row.style.cssText="border:1px solid #D5E8E5;border-radius:14px;padding:14px;margin-bottom:14px;background:#F9FCFB";
+  row.innerHTML=
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
+      '<strong class="svc-num" style="color:#14534F"></strong>'+
+      '<span>'+
+        '<button type="button" class="btn btn-sm btn-ghost" data-act="up" title="Upar"><i class="fa fa-arrow-up"></i></button> '+
+        '<button type="button" class="btn btn-sm btn-ghost" data-act="down" title="Neeche"><i class="fa fa-arrow-down"></i></button> '+
+        '<button type="button" class="btn btn-sm btn-ghost" data-act="del" title="Delete" style="color:#c0392b"><i class="fa fa-trash"></i></button>'+
+      '</span>'+
+    '</div>'+
+    '<div class="charity-form-grid">'+
+      '<div class="field"><label>Icon</label><select class="svc-icon"></select></div>'+
+      '<div class="field"><label>Link (click par kahan jaye)</label><input type="text" class="svc-link" list="svcLinks" placeholder="e.g. donate.html"></div>'+
+      '<div class="field"><label>Title (English)</label><input type="text" class="svc-title"></div>'+
+      '<div class="field"><label>Title (Urdu)</label><input type="text" class="svc-titleUr" dir="rtl"></div>'+
+      '<div class="field"><label>Text (English)</label><textarea class="svc-text" rows="2"></textarea></div>'+
+      '<div class="field"><label>Text (Urdu)</label><textarea class="svc-textUr" rows="2" dir="rtl"></textarea></div>'+
+    '</div>';
+  const sel=row.querySelector(".svc-icon");
+  SVC_ICONS.forEach(([v,l])=>{const o=document.createElement("option");o.value=v;o.textContent=l;sel.appendChild(o);});
+  if(c.icon && !SVC_ICONS.some(x=>x[0]===c.icon)){const o=document.createElement("option");o.value=c.icon;o.textContent=c.icon;sel.appendChild(o);}
+  sel.value=c.icon||"fa-solid fa-star";
+  row.querySelector(".svc-link").value=c.link||"";
+  row.querySelector(".svc-title").value=c.title||"";
+  row.querySelector(".svc-titleUr").value=c.titleUr||"";
+  row.querySelector(".svc-text").value=c.text||"";
+  row.querySelector(".svc-textUr").value=c.textUr||"";
+  row.addEventListener("click",e=>{
+    const b=e.target.closest("button[data-act]"); if(!b) return;
+    const act=b.dataset.act;
+    if(act==="del"){ row.remove(); }
+    else if(act==="up" && row.previousElementSibling){ row.parentNode.insertBefore(row,row.previousElementSibling); }
+    else if(act==="down" && row.nextElementSibling){ row.parentNode.insertBefore(row.nextElementSibling,row); }
+    svcRenumber();
+  });
+  return row;
+}
+function svcRenumber(){
+  [...svcRowsEl().querySelectorAll(".svc-row")].forEach((r,i)=>{r.querySelector(".svc-num").textContent="Card "+(i+1);});
+}
+function svcFill(d){
+  const set=(id,v)=>{const el=document.getElementById(id); if(el) el.value=v||"";};
+  set("svc-eyebrow",d.eyebrow); set("svc-eyebrowUr",d.eyebrowUr);
+  set("svc-heading",d.heading); set("svc-headingUr",d.headingUr);
+  set("svc-text",d.text); set("svc-textUr",d.textUr);
+  const box=svcRowsEl(); box.textContent="";
+  (d.list||[]).forEach(c=>box.appendChild(svcBuildRow(c)));
+  svcRenumber();
+}
+function svcAddRow(){
+  const box=svcRowsEl();
+  if(box.querySelectorAll(".svc-row").length>=SVC_MAX){ showMsg("servicesMsg","Maximum "+SVC_MAX+" cards allowed.","error"); return; }
+  box.appendChild(svcBuildRow()); svcRenumber();
+  box.lastElementChild.scrollIntoView({behavior:"smooth",block:"center"});
+}
+function svcResetDefaults(){
+  if(!confirm("Sab kuch default par wapas aa jayega (abhi save nahi hoga). Theek hai?")) return;
+  svcFill(SVC_DEFAULTS);
+  document.getElementById("svc-visible").checked=true;
+}
+function loadServices(){
+  if(!window.RHS){setTimeout(loadServices,500);return;}
+  RHS.getContent().then(res=>{
+    res=res||{};
+    const D=SVC_DEFAULTS, pick=(k,dk)=>(res[k]!==undefined&&res[k]!==null&&res[k]!=="")?res[k]:D[dk];
+    document.getElementById("svc-visible").checked = res.servicesVisible!==false;
+    svcFill({
+      eyebrow:pick("servicesEyebrow","eyebrow"), eyebrowUr:pick("servicesEyebrowUr","eyebrowUr"),
+      heading:pick("servicesHeading","heading"), headingUr:pick("servicesHeadingUr","headingUr"),
+      text:pick("servicesText","text"), textUr:pick("servicesTextUr","textUr"),
+      list:Array.isArray(res.servicesList)?res.servicesList:D.list
+    });
+  }).catch(()=>{ svcFill(SVC_DEFAULTS); });
+}
+function saveServices(){
+  if(!window.RHS){return;}
+  const g=id=>(document.getElementById(id)?.value||"").trim();
+  const list=[...svcRowsEl().querySelectorAll(".svc-row")].map(r=>({
+    icon:r.querySelector(".svc-icon").value,
+    link:r.querySelector(".svc-link").value.trim(),
+    title:r.querySelector(".svc-title").value.trim(),
+    titleUr:r.querySelector(".svc-titleUr").value.trim(),
+    text:r.querySelector(".svc-text").value.trim(),
+    textUr:r.querySelector(".svc-textUr").value.trim()
+  })).filter(c=>c.title);
+  const bad=list.find(c=>c.link && /^\s*(javascript|data|vbscript):/i.test(c.link));
+  if(bad){ showMsg("servicesMsg","Link galat hai: "+bad.link,"error"); return; }
+  const data={
+    servicesVisible:document.getElementById("svc-visible").checked,
+    servicesEyebrow:g("svc-eyebrow"), servicesEyebrowUr:g("svc-eyebrowUr"),
+    servicesHeading:g("svc-heading"), servicesHeadingUr:g("svc-headingUr"),
+    servicesText:g("svc-text"), servicesTextUr:g("svc-textUr"),
+    servicesList:list
+  };
+  const btn=document.querySelector('#setup-services .btn-primary[onclick="saveServices()"]');
+  setLoading(btn,true,"Saving...");
+  RHS.saveContent(data).then(()=>{
+    setLoading(btn,false);
+    showMsg("servicesMsg","✅ Our Services saved! Website par ab naye cards show honge.","success");
+  }).catch(()=>{setLoading(btn,false);showMsg("servicesMsg","Failed to save.","error");});
 }
 
 // ====== OUR PURPOSE (home page section) ======

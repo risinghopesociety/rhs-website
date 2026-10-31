@@ -1278,3 +1278,31 @@ img, video { max-width: 100%; display: block; }
 /* ===== Our Purpose — space between label and heading (Urdu heading was touching it) ===== */
 .about-text .eyebrow { display: block; margin-bottom: 22px; }
 .urdu-mode .about-text .eyebrow { margin-bottom: 34px; }
+
+/* ===================== OUR SERVICES (home) ===================== */
+.services { padding: 70px 0 80px; background: var(--cream); }
+.services-head { text-align: center; max-width: 720px; margin: 0 auto 40px; }
+.services-head .eyebrow { display: block; margin-bottom: 18px; }
+.services-head h2 { font-size: clamp(1.8rem, 3.5vw, 2.6rem); color: var(--teal); margin: 0 0 14px; }
+.services-head p { color: #4A5C58; margin: 0 auto; }
+.svc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+.svc-card {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  background: #fff; border: 1px solid #E4EEEC; border-radius: 20px;
+  padding: 28px 22px 26px; text-decoration: none; color: inherit;
+  box-shadow: 0 10px 28px -16px rgba(20,83,79,.28);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+a.svc-card:hover { transform: translateY(-5px); border-color: var(--gold); box-shadow: 0 18px 36px -16px rgba(20,83,79,.4); }
+.svc-icon {
+  width: 62px; height: 62px; border-radius: 50%; margin-bottom: 16px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(160deg, var(--teal) 0%, var(--teal-2) 100%);
+  color: var(--gold); font-size: 1.5rem;
+}
+.svc-card h3 { font-size: 1.15rem; color: var(--teal); margin: 0 0 8px; }
+.svc-card p { color: #4A5C58; font-size: .93rem; line-height: 1.6; margin: 0; }
+[dir="rtl"] .svc-card h3 { line-height: 1.9; }
+[dir="rtl"] .svc-card p, [dir="rtl"] .services-head p { line-height: 2.1; }
+@media (max-width: 600px) { .services { padding: 50px 0 56px; } .svc-grid { grid-template-columns: 1fr 1fr; gap: 12px; } .svc-card { padding: 20px 12px; } .svc-card p { font-size: .85rem; } }
+@media (max-width: 380px) { .svc-grid { grid-template-columns: 1fr; } }
