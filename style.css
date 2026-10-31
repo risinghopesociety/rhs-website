@@ -1274,3 +1274,7 @@ img, video { max-width: 100%; display: block; }
 .about-text p { margin-left: auto; margin-right: auto; }
 .about-badges { justify-content: center; }
 .about-card i { display: block; }
+
+/* ===== Our Purpose — space between label and heading (Urdu heading was touching it) ===== */
+.about-text .eyebrow { display: block; margin-bottom: 22px; }
+.urdu-mode .about-text .eyebrow { margin-bottom: 34px; }
