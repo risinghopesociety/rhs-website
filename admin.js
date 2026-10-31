@@ -1845,6 +1845,10 @@ function viewGrant(g){
   document.getElementById("modalGrantCrn").textContent="Case: "+g.crn;
   const decLower=(g.decision||"").toLowerCase();
   const stLower=(g.status||"").toLowerCase();
+  // Verification note is stored in its own field so later stages (decision/close) never overwrite it.
+  // Old cases kept it inside decisionNote with a "Verification Notes:" prefix, so fall back to that.
+  const vNote=(g.verificationNote!=null&&g.verificationNote!=="")?g.verificationNote
+    :(g.decisionNote&&g.decisionNote.startsWith("Verification Notes:")?g.decisionNote.replace("Verification Notes:","").trim():"");
   document.getElementById("grantModalBody").innerHTML=`
     <div class="detail-grid">
       <div class="detail-item"><span class="lbl">CRN</span><span class="val">${escHtml(g.crn)}</span></div>
@@ -1880,13 +1884,14 @@ function viewGrant(g){
       <button class="btn btn-assign btn-sm" onclick="doAssignGrant('${g.id}')"  ><i class="fa fa-user-tag"></i> Assign Case</button>
       `:""}
 
-      ${stLower==="assigned"||stLower==="completed"?`
+      ${stLower==="new"||stLower==="assigned"||stLower==="completed"?`
       <div style="margin-top:14px">
         <label style="font-size:0.82rem;font-weight:600;color:#8A9A96;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:6px">
           <i class="fa fa-comment-alt"></i> Verification Notes / Comments
         </label>
         <textarea id="verifyComment" rows="3" class="modal-input" style="width:100%;resize:vertical;font-family:'Inter',sans-serif;font-size:0.9rem" 
-          placeholder="Write your verification notes here... e.g. Physically visited, documents checked, beneficiary confirmed...">${g.decisionNote&&g.decisionNote.startsWith("Verification Notes:")?g.decisionNote.replace("Verification Notes:","").trim():""}</textarea>
+          placeholder="Write your verification notes here... e.g. Physically visited, documents checked, beneficiary confirmed...">${escHtml(vNote)}</textarea>
+        <button type="button" class="btn btn-sm btn-ghost" style="margin-top:8px" onclick="doSaveVerificationNote('${g.id}')"><i class="fa fa-save"></i> Save Note</button>
       </div>
       ${stLower==="assigned"?`<button class="btn btn-sm" style="background:#F0EBFF;color:#6D28D9;border:1px solid #C4B5FD;margin-top:10px" onclick="doVerificationComplete('${g.id}')"  >
         <i class="fa fa-clipboard-check"></i> Mark Verification Complete → Case Completed
@@ -1930,6 +1935,12 @@ function viewGrant(g){
       <p style="color:#8A9A96;font-size:0.88rem;font-style:italic">
         <i class="fa fa-lock"></i> This case was Successfully Granted and cannot be reopened.
       </p>`}
+    </div>`:""}
+
+    ${(stLower==="closed"||stLower==="rejected")&&vNote?`
+    <div style="margin-top:16px;padding:12px 14px;border-radius:12px;background:#F5F9F8;border:1px solid #D8E8E5">
+      <div style="font-size:0.78rem;font-weight:700;color:#4A5C58;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px"><i class="fa fa-comment-alt"></i> Verification Notes</div>
+      <div dir="auto" style="white-space:pre-wrap;font-size:0.92rem;line-height:1.6">${escHtml(vNote)}</div>
     </div>`:""}
 
     <p class="form-msg" id="grantActionMsg"></p>
@@ -1994,9 +2005,25 @@ function doAssignGrant(id){
   if(!name||!contact){showMsg("grantActionMsg","Please enter name and contact.","error");return;}
   showMsg("grantActionMsg","Assigning...","");
   if(!window.RHS){showMsg("grantActionMsg","System loading...","error");return;}
-  RHS.updateGrant(id,{status:"Assigned",assignedTo:name,assignedContact:contact}).then(res=>{
+  const upd={status:"Assigned",assignedTo:name,assignedContact:contact};
+  const noteEl=document.getElementById("verifyComment");
+  if(noteEl) upd.verificationNote=noteEl.value.trim();
+  RHS.updateGrant(id,upd).then(res=>{
     if(res.success){showMsg("grantActionMsg","✅ Case assigned to "+name,"success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
+  }).catch(()=>showMsg("grantActionMsg","Network error. Please check connection.","error"));
+}
+
+function doSaveVerificationNote(id){
+  const noteEl=document.getElementById("verifyComment");
+  if(!noteEl) return;
+  if(!window.RHS){showMsg("grantActionMsg","System loading...","error");return;}
+  showMsg("grantActionMsg","Saving note...","");
+  RHS.updateGrant(id,{verificationNote:noteEl.value.trim()}).then(res=>{
+    if(res.success){
+      showMsg("grantActionMsg","✅ Verification note saved.","success");
+      const c=(allGrantsData||[]).find(x=>x.id===id); if(c) c.verificationNote=noteEl.value.trim();
+    } else showMsg("grantActionMsg",res.message||"Failed.","error");
   }).catch(()=>showMsg("grantActionMsg","Network error. Please check connection.","error"));
 }
 
@@ -2009,7 +2036,7 @@ function doVerificationComplete(id){
   RHS.updateGrant(id,{
     verificationStatus:"Completed",
     status:"Completed",
-    decisionNote: comment ? "Verification Notes: "+comment : ""
+    verificationNote: comment
   }).then(res=>{
     setLoading(btn, false);
     if(res.success){
@@ -2027,7 +2054,10 @@ function doDecision(id,decision,name,crn){
   const note=decision==="Approved"
     ?`Dear ${name}, Congratulations! 🎉 Your Charity Case ${crn} has been Successfully Approved. Our team will contact you at your doorstep. Jazak Allah Khair!\n\n📞 ${ph} | 📧 ${em}`
     :`Dear ${name}, Unfortunately your Case ${crn} does not qualify under our current criteria. Your case has been Rejected.\n\nTo appeal, please physically meet our President with Case No: ${crn}.\n\n📞 ${ph} | 📧 ${em}`;
-  RHS.updateGrant(id,{decision:decision,decisionNote:note}).then(res=>{
+  const upd={decision:decision,decisionNote:note};
+  const noteEl=document.getElementById("verifyComment");
+  if(noteEl) upd.verificationNote=noteEl.value.trim();
+  RHS.updateGrant(id,upd).then(res=>{
     if(res.success){showMsg("grantActionMsg","✅ Decision recorded: "+decision,"success");loadGrants(currentGrantFilter);loadAdminStats();}
     else showMsg("grantActionMsg",res.message||"Failed.","error");
   }).catch(()=>showMsg("grantActionMsg","Network error. Please check connection.","error"));

@@ -518,6 +518,7 @@ async function submitGrant(data) {
     status: "New",
     decision: "",
     decisionNote: "",
+    verificationNote: "",
     assignedTo: "",
     assignedContact: "",
     verificationStatus: "",
@@ -533,6 +534,12 @@ async function submitGrant(data) {
 }
 
 // Check if an active (non-closed) grant exists for a CNIC — no DOB needed
+// Forms save the amount as amountRequired, while the admin/status screens read amount
+function normGrant(d) {
+  const x = d.data();
+  return { id: d.id, ...x, amount: (x.amount != null ? x.amount : x.amountRequired) };
+}
+
 async function checkGrantByCnic(cnic) {
   await waitForFB();
   const cnicF = generateCNIC(cnic);
@@ -543,7 +550,7 @@ async function checkGrantByCnic(cnic) {
   const snaps = await fs().getDocs(q);
   if (snaps.empty) return { found: false };
   const grants = [];
-  snaps.forEach(d => grants.push({ id: d.id, ...d.data() }));
+  snaps.forEach(d => grants.push(normGrant(d)));
   const active = grants.filter(g => (g.status || "").toLowerCase() !== "closed");
   if (!active.length) return { found: false };
   return { found: true, grant: active[0] };
@@ -560,7 +567,7 @@ async function getGrantStatus(cnic, dob) {
   const snaps = await fs().getDocs(q);
   if (snaps.empty) return { success: false, message: "No grant request found." };
   const grants = [];
-  snaps.forEach(d => grants.push({ id: d.id, ...d.data() }));
+  snaps.forEach(d => grants.push(normGrant(d)));
 
   // Show active case first, closed last
   const active = grants.filter(g => (g.status || "").toLowerCase() !== "closed");
@@ -582,7 +589,7 @@ async function getGrants(filter = "all") {
 
   const snaps = await fs().getDocs(q);
   let grants = [];
-  snaps.forEach(d => grants.push({ id: d.id, ...d.data() }));
+  snaps.forEach(d => grants.push(normGrant(d)));
 
   // FIX: Completed filter mein sirf woh cases jo status=Completed hain aur decision nahi (Approved/Rejected nahi)
   if (filter === "completed") {

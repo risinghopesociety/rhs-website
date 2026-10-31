@@ -1469,6 +1469,14 @@ document.addEventListener("DOMContentLoaded", () => {
           const active = res.grants.filter(g => (g.status || "").toLowerCase() !== "closed");
           const closed = res.grants.filter(g => (g.status || "").toLowerCase() === "closed");
           const list   = active.length ? active : closed;
+          const escN = t => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+          // Verification note written by the team (older cases kept it inside decisionNote)
+          const noteHtml = g => {
+            const n = (g.verificationNote != null && g.verificationNote !== "") ? g.verificationNote
+              : (g.decisionNote && g.decisionNote.startsWith("Verification Notes:") ? g.decisionNote.replace("Verification Notes:", "").trim() : "");
+            if (!n) return "";
+            return `<div dir="auto" style="margin-top:12px;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,.65);border:1px dashed currentColor;font-size:.9rem;line-height:1.7;white-space:pre-wrap;text-align:start"><strong>📝 Verification Note:</strong><br>${escN(n)}</div>`;
+          };
           let html = "";
           for (const g of list) {
             let msg = "", vibe = "status-yellow", icon = "fa-hourglass-half";
@@ -1556,6 +1564,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     very soon to complete the process. 🤝
                   </p>
 
+                  ${noteHtml(g) ? noteHtml(g).replace("margin-top:12px", "margin:0 0 14px;color:#1a4a38") : ""}
+
                   <!-- Applied / Amount note -->
                   <p style="font-size:.84rem;color:#4a7a62;margin:10px 0 18px;background:#fff8;border-radius:8px;padding:7px 14px;display:inline-block">
                     📅 Applied: <strong>${g.timestamp}</strong> &nbsp;•&nbsp; 💰 Rs. <strong>${amt}</strong>
@@ -1605,6 +1615,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 ${topIcon}
                 ${titleHtml}
                 <p style="line-height:1.7">${msg}</p>
+                ${noteHtml(g)}
                 <p class="status-note" style="margin-top:10px">
                   📅 Applied: <strong>${g.timestamp}</strong> &nbsp;•&nbsp; 💰 Rs. <strong>${amt}</strong>
                 </p>
