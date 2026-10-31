@@ -606,6 +606,14 @@ async function getGrants(filter = "all") {
   return { success: true, grants };
 }
 
+// Read a single case straight from the database (used to confirm a save really stuck)
+async function getGrantById(id) {
+  await waitForFB();
+  const snap = await fs().getDoc(fs().doc(db(), "grantRequests", id));
+  if (!snap.exists()) return { success: false };
+  return { success: true, grant: normGrant(snap) };
+}
+
 async function updateGrant(id, updates) {
   await waitForFB();
   await fs().updateDoc(fs().doc(db(), "grantRequests", id), {
@@ -1120,6 +1128,7 @@ window.RHS.addStory              = addStory;
 window.RHS.updateStory           = updateStory;
 window.RHS.deleteStory           = deleteStory;
 window.RHS.getSlides             = getSlides;
+window.RHS.getGrantById          = getGrantById;
 window.RHS.addSlide              = addSlide;
 window.RHS.updateSlide           = updateSlide;
 window.RHS.deleteSlide           = deleteSlide;

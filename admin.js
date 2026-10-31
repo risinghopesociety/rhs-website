@@ -1640,7 +1640,7 @@ function renderGrantsTable(grants, q = "") {
       <td>${Rs(g.amount)}</td>
       <td>${statusBadge(g.status)}</td>
       <td>${escHtml(g.timestamp)}</td>
-      <td><button class="btn btn-sm btn-ghost" onclick='viewGrant(${JSON.stringify(g).replace(/'/g, "&#39;")})'>
+      <td><button class="btn btn-sm btn-ghost" onclick="viewGrantById('${g.id}')">
         <i class="fa fa-eye"></i> View
       </button></td>
     </tr>`;
@@ -1841,6 +1841,11 @@ function loadGrants(filter,btn){
   }).catch(()=>{wrap.innerHTML='<div class="empty-state">Failed to load.</div>';});
 }
 
+function viewGrantById(id){
+  const g=(allGrantsData||[]).find(x=>x.id===id);
+  if(g) viewGrant(g); else alert("Case list is out of date. Please refresh the page.");
+}
+
 function viewGrant(g){
   document.getElementById("modalGrantCrn").textContent="Case: "+g.crn;
   const decLower=(g.decision||"").toLowerCase();
@@ -1892,6 +1897,7 @@ function viewGrant(g){
         <textarea id="verifyComment" rows="3" class="modal-input" style="width:100%;resize:vertical;font-family:'Inter',sans-serif;font-size:0.9rem" 
           placeholder="Write your verification notes here... e.g. Physically visited, documents checked, beneficiary confirmed...">${escHtml(vNote)}</textarea>
         <button type="button" class="btn btn-sm btn-ghost" style="margin-top:8px" onclick="doSaveVerificationNote('${g.id}')"><i class="fa fa-save"></i> Save Note</button>
+        <span id="noteSaveMsg" style="margin-left:10px;font-size:0.88rem;font-weight:600"></span>
       </div>
       ${stLower==="assigned"?`<button class="btn btn-sm" style="background:#F0EBFF;color:#6D28D9;border:1px solid #C4B5FD;margin-top:10px" onclick="doVerificationComplete('${g.id}')"  >
         <i class="fa fa-clipboard-check"></i> Mark Verification Complete → Case Completed
@@ -2017,14 +2023,21 @@ function doAssignGrant(id){
 function doSaveVerificationNote(id){
   const noteEl=document.getElementById("verifyComment");
   if(!noteEl) return;
-  if(!window.RHS){showMsg("grantActionMsg","System loading...","error");return;}
-  showMsg("grantActionMsg","Saving note...","");
-  RHS.updateGrant(id,{verificationNote:noteEl.value.trim()}).then(res=>{
-    if(res.success){
-      showMsg("grantActionMsg","✅ Verification note saved.","success");
-      const c=(allGrantsData||[]).find(x=>x.id===id); if(c) c.verificationNote=noteEl.value.trim();
-    } else showMsg("grantActionMsg",res.message||"Failed.","error");
-  }).catch(()=>showMsg("grantActionMsg","Network error. Please check connection.","error"));
+  const out=document.getElementById("noteSaveMsg");
+  const say=(t,ok)=>{ if(out){out.textContent=t;out.style.color=ok?"#2E9E5B":"#D9483A";} showMsg("grantActionMsg",t,ok?"success":"error"); };
+  if(!window.RHS){say("System loading... try again.",false);return;}
+  const text=noteEl.value.trim();
+  say("Saving note...",true);
+  RHS.updateGrant(id,{verificationNote:text})
+    .then(()=>RHS.getGrantById(id))               // read it back from the database to be sure
+    .then(res=>{
+      if(res&&res.success&&(res.grant.verificationNote||"")===text){
+        const c=(allGrantsData||[]).find(x=>x.id===id); if(c) c.verificationNote=text;
+        say("✅ Note saved. Applicant will see it on the status page.",true);
+        loadGrants(currentGrantFilter);
+      } else say("❌ Note was NOT stored in the database. Please try again.",false);
+    })
+    .catch(err=>{ console.error("Save note failed:",err); say("❌ Could not save: "+((err&&err.code)||(err&&err.message)||"network error"),false); });
 }
 
 function doVerificationComplete(id){

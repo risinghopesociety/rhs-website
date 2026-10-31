@@ -1475,7 +1475,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const n = (g.verificationNote != null && g.verificationNote !== "") ? g.verificationNote
               : (g.decisionNote && g.decisionNote.startsWith("Verification Notes:") ? g.decisionNote.replace("Verification Notes:", "").trim() : "");
             if (!n) return "";
-            return `<div dir="auto" style="margin-top:12px;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,.65);border:1px dashed currentColor;font-size:.9rem;line-height:1.7;white-space:pre-wrap;text-align:start"><strong>📝 Verification Note:</strong><br>${escN(n)}</div>`;
+            return `<div dir="auto" style="margin-top:12px;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,.65);border:1px dashed currentColor;font-size:.9rem;line-height:1.7;white-space:pre-wrap;text-align:start"><strong>📝 Verification Notes / Comments:</strong><br>${escN(n)}</div>`;
           };
           let html = "";
           for (const g of list) {
