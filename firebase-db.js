@@ -218,6 +218,23 @@ function parseDMY(ds) {
   return new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0])).getTime();
 }
 
+// ---- Membership validity helpers -------------------------------------------
+function startOfToday() {
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
+// A member is valid THROUGH their validUpto date (inclusive); lapsed the day after.
+function isLapsed(m) {
+  const v = parseDMY(m && m.validUpto);
+  return !!v && v < startOfToday();
+}
+// What the member's status really is right now: an "Active" member whose
+// validUpto date has passed is Expired, even before the admin sweep saves it.
+function effectiveStatus(m) {
+  const s = (m && m.status) || "";
+  return (s.toLowerCase() === "active" && isLapsed(m)) ? "Expired" : s;
+}
+
 // Return whichever date is later (dd-mm-yyyy)
 function getLatestDate(a, b) {
   return parseDMY(a) >= parseDMY(b) ? a : b;
@@ -298,6 +315,7 @@ async function registerMember(data) {
 
 async function getMembers(filter = "all") {
   await waitForFB();
+  await syncMemberValidity();   // persist Expired for lapsed Active members (throttled)
   let q;
   if (filter === "pending") {
     q = fs().query(fs().collection(db(), "members"), fs().where("status", "==", "Underprocess"));
@@ -327,18 +345,21 @@ async function getMemberByCredentials(cnic, dob) {
   const snaps = await fs().getDocs(q);
   if (snaps.empty) return { success: false, message: "No member found with these credentials." };
   const data = { id: snaps.docs[0].id, ...snaps.docs[0].data() };
+  data.status = effectiveStatus(data);          // lapsed validity shows as Expired
   return { success: true, found: true, active: data.status === "Active", member: data };
 }
 
 async function updateMemberStatus(id, status, extra = {}) {
   await waitForFB();
   const updates = { ...extra, status };
-  // When approving to Active, set validUpto = registration date + 30 days (if not already set)
+  // Approving to Active: keep an existing validUpto that is still in the future
+  // (e.g. a donation was recorded before approval); otherwise give 30 days
+  // from the APPROVAL date, as the Validation Rules page promises.
   if (status === "Active" && !extra.validUpto) {
     const memberRef = await fs().getDoc(fs().doc(db(), "members", id));
     const mData = memberRef.exists() ? memberRef.data() : {};
-    const regDate = mData.timestamp || today(); // timestamp = dd-mm-yyyy registration date
-    updates.validUpto = addDaysToDate(regDate, 30);
+    const stillValid = parseDMY(mData.validUpto) >= startOfToday();
+    updates.validUpto = stillValid ? mData.validUpto : addDaysToDate(today(), 30);
   }
   await fs().updateDoc(fs().doc(db(), "members", id), updates);
   return { success: true };
@@ -375,40 +396,94 @@ async function searchMembers(q) {
 // ============================================================
 // CHARITY DONATIONS
 // ============================================================
+// Work out what a donation does to a member BEFORE anything is written.
+// Rule used: the rule with the highest "Min Amount" that the donation reaches
+// (so ranges with gaps, and amounts above the top range, still earn the
+// nearest tier instead of nothing). Below the lowest Min Amount = no extension.
+async function planDonationEffect(memberId, amount, donationDate) {
+  const memSnap = await fs().getDoc(fs().doc(db(), "members", memberId));
+  const m = memSnap.exists() ? memSnap.data() : {};
+  const out = {
+    validUpto: m.validUpto || "", daysAdded: 0, reactivated: false, belowMinimum: false,
+    status: m.status || "", ruleId: "", memberUpdate: null
+  };
+  const rule = await findValidationRule(amount);
+  if (!rule) { out.belowMinimum = true; return out; }
+
+  const days = Number(rule.days) || 0;
+  let validUpto = addDaysToDate(donationDate, days);          // counted from the donation date
+  if (parseDMY(m.validUpto) > parseDMY(validUpto)) validUpto = m.validUpto;   // never shorten
+
+  const update = { validUpto, lastDonationDate: donationDate, lastDonationAmount: amount };
+  // Expired member whose new validity reaches today -> back to Active.
+  // (Underprocess stays until approved; Banned is never auto-activated.)
+  if ((m.status || "").toLowerCase() === "expired" && parseDMY(validUpto) >= startOfToday()) {
+    update.status = "Active";
+    out.reactivated = true;
+    out.status = "Active";
+  }
+  out.validUpto = validUpto; out.daysAdded = days; out.ruleId = rule.id; out.memberUpdate = update;
+  return out;
+}
+
 async function addCharityEntry(data) {
   await waitForFB();
+  const amount = Number(data.amount) || 0;
+  const donationDate = data.date || today();
+
+  let effect = { validUpto: "", daysAdded: 0, reactivated: false, belowMinimum: false, status: "", ruleId: "", memberUpdate: null };
+  if (data.memberId) {
+    effect = await planDonationEffect(data.memberId, amount, donationDate);
+    // Saved WITH the donation so the ledger shows what each donation earned
+    data.validUpto = effect.validUpto;
+    data.daysAdded = effect.daysAdded;
+    data.ruleId = effect.ruleId;
+  }
+
   const ref = await fs().addDoc(fs().collection(db(), "charityDonations"), {
     ...data,
     createdAt: fs().serverTimestamp()
   });
 
-  // Update member validUpto using validation rules
-  if (data.memberId) {
-    const amount = Number(data.amount) || 0;
-    const daysToAdd = await getValidationDaysForAmount(amount);
-    let validUpto = "";
-    if (daysToAdd > 0) {
-      const memberRef = await fs().getDoc(fs().doc(db(), "members", data.memberId));
-      const memberData = memberRef.exists() ? memberRef.data() : {};
-      const existingValid = memberData.validUpto || "";
-      // Start from today (donation date), not from old validUpto
-      validUpto = addDaysToDate(data.date || today(), daysToAdd);
-      await fs().updateDoc(fs().doc(db(), "members", data.memberId), { validUpto });
-    }
-    data.validUpto = validUpto;
-    data.daysAdded = daysToAdd;
+  if (data.memberId && effect.memberUpdate) {
+    await fs().updateDoc(fs().doc(db(), "members", data.memberId), effect.memberUpdate);
   }
 
   // Add to cashbook
   await addCashEntry({
     type: "Inflow",
-    date: data.date || today(),
+    date: donationDate,
     source: `Charity — ${data.memberName} (${data.cnic})`,
-    amount: Number(data.amount) || 0,
+    amount,
     note: data.paymentMethod || ""
   });
 
-  return { success: true, id: ref.id, validUpto: data.validUpto || "" };
+  return {
+    success: true, id: ref.id,
+    validUpto: effect.validUpto || "", daysAdded: effect.daysAdded,
+    reactivated: effect.reactivated, belowMinimum: effect.belowMinimum,
+    memberStatus: effect.status
+  };
+}
+
+// Save "Expired" on every Active member whose validUpto date has passed.
+// Called when the admin dashboard loads; throttled to once per 10 minutes.
+let _lastValiditySync = 0;
+async function syncMemberValidity(force = false) {
+  if (!force && Date.now() - _lastValiditySync < 10 * 60 * 1000) return { success: true, updated: 0, skipped: true };
+  await waitForFB();
+  try {
+    const snaps = await fs().getDocs(fs().query(fs().collection(db(), "members"), fs().where("status", "==", "Active")));
+    const jobs = [];
+    snaps.forEach(d => {
+      if (isLapsed(d.data())) jobs.push(fs().updateDoc(fs().doc(db(), "members", d.id), { status: "Expired", expiredOn: today() }));
+    });
+    await Promise.all(jobs);
+    _lastValiditySync = Date.now();
+    return { success: true, updated: jobs.length };
+  } catch (e) {
+    return { success: false, updated: 0, message: e.message };
+  }
 }
 
 async function getCharityLedger(cnic, dob) {
@@ -422,6 +497,7 @@ async function getCharityLedger(cnic, dob) {
   const memberSnaps = await fs().getDocs(memberQ);
   if (memberSnaps.empty) return { success: false, message: "No member found with these credentials." };
   const member = { id: memberSnaps.docs[0].id, ...memberSnaps.docs[0].data() };
+  member.status = effectiveStatus(member);
   // No orderBy — avoids composite index error
   const donQ = fs().query(fs().collection(db(), "charityDonations"), fs().where("cnic", "==", cnicF));
   const donSnaps = await fs().getDocs(donQ);
@@ -770,7 +846,7 @@ async function getAdminStats() {
 
   let pending = 0, active = 0, expired = 0, banned = 0;
   members.forEach(d => {
-    const s = (d.data().status || "").toLowerCase();
+    const s = effectiveStatus(d.data()).toLowerCase();
     if (s === "underprocess") pending++;
     else if (s === "active") active++;
     else if (s === "expired") expired++;
@@ -823,7 +899,7 @@ async function getPublicStats() {
 
     let pending = 0, active = 0, expired = 0, banned = 0;
     members.forEach(d => {
-      const s = (d.data().status || "").toLowerCase();
+      const s = effectiveStatus(d.data()).toLowerCase();
       if (s === "underprocess") pending++;
       else if (s === "active") active++;
       else if (s === "expired") expired++;
@@ -873,6 +949,16 @@ async function getValidationRules() {
 async function addValidationRule(data) {
   await waitForFB();
   try {
+    const min = Number(data.minAmount), max = Number(data.maxAmount), days = Number(data.days);
+    if (!(min >= 0) || !(max > min) || !(days >= 1)) {
+      return { success: false, message: "⚠️ Min must be less than Max, and days must be at least 1." };
+    }
+    // Two rules must never cover the same amount
+    const existing = await getValidationRules();
+    const clash = (existing.rules || []).find(r => !(max < Number(r.minAmount) || min > Number(r.maxAmount)));
+    if (clash) {
+      return { success: false, message: `⚠️ This range overlaps an existing rule (Rs. ${Number(clash.minAmount).toLocaleString()} – Rs. ${Number(clash.maxAmount).toLocaleString()}). Delete or change that rule first.` };
+    }
     await fs().addDoc(fs().collection(db(), "validationRules"), {
       minAmount:     Number(data.minAmount),
       maxAmount:     Number(data.maxAmount),
@@ -897,19 +983,25 @@ async function deleteValidationRule(id) {
   }
 }
 
-// Get how many validity days to add for a given donation amount
-// Returns 0 if no rule matches (amount below minimum or no rules)
-async function getValidationDaysForAmount(amount) {
+// The rule that applies to a donation amount (see planDonationEffect for the logic).
+async function findValidationRule(amount) {
   try {
     const res = await getValidationRules();
-    if (!res.success || !res.rules.length) return 0;
+    if (!res.success || !res.rules.length) return null;
     const amt = Number(amount) || 0;
-    // Find matching range rule (minAmount <= amt <= maxAmount)
-    const match = res.rules.find(r => amt >= Number(r.minAmount) && amt <= Number(r.maxAmount));
-    return match ? Number(match.days) : 0;
-  } catch(e) {
-    return 0;
+    const reached = res.rules
+      .filter(r => amt >= Number(r.minAmount))
+      .sort((x, y) => Number(y.minAmount) - Number(x.minAmount));
+    return reached[0] || null;
+  } catch (e) {
+    return null;
   }
+}
+
+// Validity days for an amount (0 = below the lowest rule / no rules)
+async function getValidationDaysForAmount(amount) {
+  const r = await findValidationRule(amount);
+  return r ? Number(r.days) || 0 : 0;
 }
 
 window.RHS = {
@@ -940,6 +1032,7 @@ window.RHS = {
   uploadImage, uploadMedia, imgUrl,
   // Validation Rules
   getValidationRules, addValidationRule, deleteValidationRule, getValidationDaysForAmount,
+  syncMemberValidity, effectiveStatus,
   // Utils
   today, generateCNIC, addMonthToDate, addDaysToDate
 };

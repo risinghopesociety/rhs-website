@@ -1344,6 +1344,12 @@ function setDefaultDates(){
 
 // ====== ADMIN STATS ======
 function loadAdminStats(){
+  // Save "Expired" for Active members whose validity date has passed, then count
+  if(window.RHS&&RHS.syncMemberValidity){
+    RHS.syncMemberValidity().catch(()=>{}).then(()=>_loadAdminStatsCore());
+  } else { _loadAdminStatsCore(); }
+}
+function _loadAdminStatsCore(){
   RHS.getAdminStats().then(res=>{
     if(!res.success)return;
     // Row 1 - Members
@@ -1901,7 +1907,10 @@ function submitCharity(){
     setLoading(charityBtn, false);
     if(res.success){
       let msg="✅ Charity entry saved! Valid Upto: "+(res.validUpto||"—");
-      showMsg("charityMsg",msg,"success");
+      if(res.daysAdded) msg+=" ("+res.daysAdded+" days from the validation rule)";
+      if(res.reactivated) msg+=" — member was Expired and is now Active again.";
+      if(res.belowMinimum) msg="⚠️ Donation saved, but Rs. "+Number(amount).toLocaleString()+" is below the lowest Validation Rule, so membership validity was NOT extended.";
+      showMsg("charityMsg",msg,res.belowMinimum?"error":"success");
       if(sendWA&&selectedMember.mobile){
         const mob=selectedMember.mobile.replace(/\D/g,"");
         const waNum="92"+mob.slice(1);
@@ -3037,7 +3046,7 @@ function loadValidationRules() {
     });
     html += `</tbody></table></div>
       <p style="font-size:.78rem;color:#8A9A96;margin-top:8px;font-style:italic">
-        <i class="fa fa-info-circle"></i> ${res.rules.length} rule(s) active. New donations will use the matching range rule.
+        <i class="fa fa-info-circle"></i> ${res.rules.length} rule(s) active. A donation uses the rule whose range it falls in; if it falls in a gap or above the top range, the nearest lower rule applies. Below the lowest Min Amount = no extension.
       </p>`;
     wrap.innerHTML = html;
   }).catch(() => {

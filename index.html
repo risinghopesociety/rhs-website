@@ -204,7 +204,7 @@
 <!-- ===== FOOTER (shared) ===== -->
 <div id="site-footer"></div>
 
-<script type="module" src="firebase-db.js?v=2"></script>
+<script type="module" src="firebase-db.js?v=5"></script>
 <script type="module" src="include.js?v=3"></script>
 <script src="rtl-text.js?v=2" defer></script>
 <script src="script.js?v=8" defer></script>
@@ -240,8 +240,15 @@
         getDocs(collection(db, "grantRequests"))
       ]);
       let pending=0, active=0, expired=0, banned=0;
+      const todayMs = new Date().setHours(0,0,0,0);
       membersSnap.forEach(d => {
-        const s=(d.data().status||"").toLowerCase();
+        const md=d.data();
+        let s=(md.status||"").toLowerCase();
+        // An Active member whose validity date has passed counts as Expired
+        if (s==="active" && md.validUpto) {
+          const q=String(md.validUpto).split("-");
+          if (q.length===3 && new Date(+q[2],+q[1]-1,+q[0]).getTime() < todayMs) s="expired";
+        }
         if(s==="underprocess") pending++;
         else if(s==="active") active++;
         else if(s==="expired") expired++;

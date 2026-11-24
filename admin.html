@@ -952,6 +952,12 @@
             Define how many days a member certificate stays valid based on donation amount range.
             New approved members (no donation yet) automatically get <strong>30 days</strong> from approval date.
           </p>
+          <ul style="color:#5b6b67;font-size:.84rem;margin:0 0 14px 18px;line-height:1.7">
+            <li>When a donation is recorded, the member stays <strong>Active</strong> until <em>donation date + rule days</em> (a donation never shortens existing validity).</li>
+            <li>When the <strong>Valid Upto</strong> date passes, the member automatically becomes <strong>Expired</strong>.</li>
+            <li>An <strong>Expired</strong> member who donates (and reaches a rule) becomes <strong>Active</strong> again. <em>Underprocess</em> and <em>Banned</em> members are never auto-activated.</li>
+            <li>A donation below the lowest rule is saved but does not extend validity.</li>
+          </ul>
           <p style="color:#92620A;font-size:.82rem;margin-bottom:20px;background:#FEF9EC;border:1px solid #F5C76A55;border-radius:8px;padding:8px 12px">
             <i class="fa fa-info-circle"></i> Rules apply to <strong>new donations only</strong>. Old donation history is not changed. Each rule is saved with an effective date.
           </p>
@@ -1051,8 +1057,8 @@
     window.__fbReady = true;
     window.dispatchEvent(new Event('firebaseReady'));
   </script>
-  <script type="module" src="firebase-db.js?v=4"></script>
+  <script type="module" src="firebase-db.js?v=5"></script>
   <script src="rtl-editor.js?v=1" defer></script>
-<script src="admin.js?v=7" defer></script>
+<script src="admin.js?v=8" defer></script>
 </body>
 </html>

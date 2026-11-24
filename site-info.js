@@ -17,6 +17,6 @@ export const SITE_INFO = {
     { label: "WhatsApp",  icon: "fa-brands fa-whatsapp",   url: "https://wa.me/923088919628" },
     { label: "Facebook",  icon: "fa-brands fa-facebook-f", url: "" },
     { label: "Instagram", icon: "fa-brands fa-instagram",  url: "" },
-    { label: "YouTube",   icon: "fa-brands fa-youtube",    url: "www.youtube.com/@iishabukhari" }
+    { label: "YouTube",   icon: "fa-brands fa-youtube",    url: "" }
   ]
 };

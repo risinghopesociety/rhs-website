@@ -1,7 +1,7 @@
 /* RHS service worker — makes the site installable and gives a graceful offline fallback.
    Strategy: network-first for pages/scripts/styles (so admin edits & updates always show),
    cache fallback when offline. Firebase / Cloudinary / API calls are never touched. */
-const CACHE = "rhs-pwa-v3";
+const CACHE = "rhs-pwa-v4";
 const PRECACHE = ["./index.html", "./style.css", "./images/logo.png", "./images/icons/icon-192.png"];
 
 self.addEventListener("install", e => {
