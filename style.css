@@ -1822,3 +1822,162 @@ a:focus-visible, button:focus-visible, .btn:focus-visible,
   }
   .pwa-install-btn i { font-size: 1.1rem; }
 }
+
+
+/* ==========================================================================
+   GLOSS + MOTION  (Airbnb-style finish)
+   Easing is Airbnb's own: cubic-bezier(.2, 0, 0, 1)
+   ========================================================================== */
+:root {
+  --ease: cubic-bezier(.2, 0, 0, 1);
+  --shadow-hover: rgba(0,0,0,.02) 0 0 0 1px, rgba(0,0,0,.05) 0 6px 16px, rgba(0,0,0,.12) 0 14px 30px;
+}
+
+/* ---- Frosted-glass navbar that lifts once you scroll ---- */
+.navbar {
+  background: rgba(255,255,255,.86);
+  -webkit-backdrop-filter: saturate(1.6) blur(16px);
+  backdrop-filter: saturate(1.6) blur(16px);
+  transition: box-shadow .3s var(--ease), background .3s var(--ease);
+}
+.navbar.scrolled {
+  background: rgba(255,255,255,.93);
+  box-shadow: 0 10px 30px -14px rgba(0,0,0,.18);
+}
+.brand-mark { transition: transform .5s var(--ease); }
+.brand:hover .brand-mark { transform: rotate(-6deg) scale(1.06); }
+
+/* ---- Glossy buttons: pointer-following highlight, sheen sweep, press ---- */
+.btn { position: relative; overflow: hidden; isolation: isolate;
+  transition: transform .25s var(--ease), box-shadow .25s var(--ease), background-color .2s, color .2s, border-color .2s; }
+.btn:active { transform: scale(.97); }
+.btn-primary {
+  background-color: #E31C5F;
+  background-image: radial-gradient(circle at var(--mx, 50%) var(--my, 0%),
+    #FF385C 0%, #E61E4D 28%, #E31C5F 42%, #D70466 62%, #BD1E59 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.30), 0 8px 18px -8px rgba(255,56,92,.6);
+}
+.btn-primary:hover, .btn-primary:active {
+  background-color: #E31C5F;
+  background-image: radial-gradient(circle at var(--mx, 50%) var(--my, 0%),
+    #FF385C 0%, #E61E4D 28%, #E31C5F 42%, #D70466 62%, #BD1E59 100%);
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.34), 0 14px 24px -8px rgba(255,56,92,.65);
+}
+.btn-primary:active { transform: scale(.97); }
+.btn-donate {
+  background-color: #222;
+  background-image: linear-gradient(180deg, #3d3d3d 0%, #1b1b1b 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 8px 18px -10px rgba(0,0,0,.5);
+}
+.btn-donate:hover {
+  background-color: #222;
+  background-image: linear-gradient(180deg, #484848 0%, #1f1f1f 100%);
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 14px 24px -10px rgba(0,0,0,.55);
+}
+.btn-donate:active { transform: scale(.97); }
+.btn-ghost:hover, .btn-secondary:hover { transform: translateY(-2px); box-shadow: 0 8px 18px -10px rgba(0,0,0,.25); }
+.btn-ghost:active, .btn-secondary:active { transform: scale(.97); }
+.btn-primary::after, .btn-donate::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(115deg, transparent 32%, rgba(255,255,255,.38) 50%, transparent 68%);
+  transform: translateX(-130%); transition: transform .8s var(--ease);
+}
+.btn-primary:hover::after, .btn-donate:hover::after { transform: translateX(130%); }
+.btn-primary:disabled, .btn-primary:disabled:hover {
+  background: var(--primary-disabled); transform: none; box-shadow: none;
+}
+.btn-primary:disabled::after { display: none; }
+
+/* ---- Hero: ambient glow + staggered entrance ---- */
+.hero { position: relative; isolation: isolate; }
+.hero::before {
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 460px; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(55% 100% at 50% 0%, rgba(255,56,92,.10), transparent 70%),
+    radial-gradient(30% 70% at 85% 10%, rgba(255,56,92,.05), transparent 70%);
+}
+@keyframes rise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+.js-motion:not(.page-ready) .hero-content > * { opacity: 0; }
+.js-motion.page-ready .hero-content > * { animation: rise .9s var(--ease) both; }
+.js-motion.page-ready .hero-content > :nth-child(1) { animation-delay: .04s; }
+.js-motion.page-ready .hero-content > :nth-child(2) { animation-delay: .14s; }
+.js-motion.page-ready .hero-content > :nth-child(3) { animation-delay: .24s; }
+.js-motion.page-ready .hero-content > :nth-child(4) { animation-delay: .36s; }
+.hero-track { transition-timing-function: var(--ease); transition-duration: .6s; }
+
+/* ---- Scroll reveal (class is added/removed by motion.js) ---- */
+.rv {
+  opacity: 0; translate: 0 28px;
+  transition: opacity .8s var(--ease) var(--rv-d, 0ms), translate .8s var(--ease) var(--rv-d, 0ms),
+              transform .35s var(--ease), box-shadow .35s var(--ease);
+}
+.rv.rv-in { opacity: 1; translate: 0 0; }
+
+/* ---- Cards: lift on hover, photos zoom, press feedback ---- */
+a.svc-card, .bank-card, .team-card, .news-card, .story-card, .work-card {
+  transition: transform .35s var(--ease), box-shadow .35s var(--ease);
+}
+a.svc-card:hover, .bank-card:hover, .team-card:hover, .news-card:hover, .story-card:hover, .work-card:hover {
+  transform: translateY(-5px); box-shadow: var(--shadow-hover);
+}
+a.svc-card:active, .work-card:active, .news-card:active, .story-card:active { transform: scale(.985); }
+.news-card, .story-card { overflow: hidden; }
+.news-card-img, .story-card-img, .work-media img { transition: transform .7s var(--ease); }
+.news-card:hover .news-card-img, .story-card:hover .story-card-img { transform: scale(1.05); }
+.work-card:hover .work-media img { transform: scale(1.06); }
+.team-card .photo { transition: transform .5s var(--ease), box-shadow .5s var(--ease); }
+.team-card:hover .photo { transform: scale(1.06); }
+
+/* ---- Glossy icon badges (turn Rausch when their card is hovered) ---- */
+.svc-icon, .use-icon, .bank-card-icon {
+  background: linear-gradient(145deg, #ffffff 0%, #ececec 100%);
+  box-shadow: 0 1px 2px rgba(0,0,0,.10), inset 0 1px 0 #fff, inset 0 -1px 0 rgba(0,0,0,.04);
+  transition: transform .45s var(--ease), color .3s var(--ease), box-shadow .3s var(--ease);
+}
+a.svc-card:hover .svc-icon, .use-item:hover .use-icon, .bank-card:hover .bank-card-icon {
+  color: var(--primary); transform: scale(1.1) rotate(-4deg);
+  box-shadow: 0 6px 14px -4px rgba(255,56,92,.35), inset 0 1px 0 #fff;
+}
+
+/* ---- Stats, forms: soft gloss ---- */
+.stat-card { background: linear-gradient(180deg, #fff 0%, #fafafa 100%); transition: transform .35s var(--ease), box-shadow .35s var(--ease); }
+.stat-card:hover { transform: translateY(-3px); background: linear-gradient(180deg, #fff 0%, #fafafa 100%); box-shadow: var(--shadow); }
+.form-card, .contact-form { box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 12px 32px -16px rgba(0,0,0,.14); }
+.field input, .field select, .field textarea { transition: border-color .2s var(--ease), box-shadow .2s var(--ease), background .2s; }
+.field input:hover, .field select:hover, .field textarea:hover { border-color: var(--ink); }
+.work-chip { transition: background .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease), transform .2s var(--ease); }
+.work-chip:active { transform: scale(.95); }
+.social-links a, .footer-social a { transition: background .25s var(--ease), color .25s var(--ease), transform .3s var(--ease); }
+.social-links a:hover, .footer-social a:hover { transform: translateY(-3px); }
+.footer-links a, .footer-legal-links a, .footer-contact a { transition: color .2s var(--ease); }
+.carousel-arrow { transition: background .2s var(--ease), transform .25s var(--ease); }
+.carousel-arrow:hover { transform: scale(1.08); }
+.carousel-arrow:active { transform: scale(.94); }
+.slider-dots .dot { transition: transform .3s var(--ease), background .3s var(--ease); }
+
+/* ---- Messages, modals ---- */
+@keyframes popIn { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.detail-modal-overlay, .pwa-help { animation: fadeIn .25s var(--ease); }
+.detail-modal-box { animation: popIn .4s var(--ease); }
+.form-msg, .form-result, .status-msg { animation: rise .45s var(--ease) both; }
+
+/* ---- WhatsApp: soft pulse ring ---- */
+.whatsapp-float::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%; background: #25D366; z-index: -1;
+  animation: waPing 3s var(--ease) infinite;
+}
+@keyframes waPing { 0% { transform: scale(1); opacity: .45; } 70%, 100% { transform: scale(1.75); opacity: 0; } }
+
+/* ---- Respect "reduce motion" ---- */
+@media (prefers-reduced-motion: reduce) {
+  .rv { opacity: 1 !important; translate: none !important; transition: none !important; }
+  .js-motion .hero-content > *, .form-msg, .form-result, .status-msg,
+  .detail-modal-box, .detail-modal-overlay, .pwa-help { animation: none !important; opacity: 1 !important; }
+  .btn::after, .whatsapp-float::before { display: none; }
+  a.svc-card:hover, .bank-card:hover, .team-card:hover, .news-card:hover, .story-card:hover,
+  .work-card:hover, .stat-card:hover, .btn:hover { transform: none !important; }
+  html { scroll-behavior: auto; }
+}
