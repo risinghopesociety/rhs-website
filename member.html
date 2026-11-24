@@ -2,6 +2,8 @@
 <html lang="en" id="htmlRoot">
 <head>
 <meta charset="UTF-8">
+<script>try{if(sessionStorage.getItem("rhs_seen"))document.documentElement.classList.add("no-loader")}catch(e){}</script>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Membership & Certificate Verification — Rising Hope Society</title>
@@ -25,7 +27,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=12">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#ffffff">
 <meta name="mobile-web-app-capable" content="yes">
@@ -75,7 +77,7 @@
 <section class="member-portal" id="memberSection">
   <div class="container">
     <div class="section-head">
-      <span class="eyebrow">Member Portal</span>
+      <span class="eyebrow">Member portal</span>
       <h2>Registration & Certificate Verification</h2>
       <p>Join as a new member or verify your existing membership and donation history.</p>
     </div>
@@ -94,7 +96,7 @@
 <section class="registration" id="registration" style="display:none">
   <div class="container">
     <div class="section-head">
-      <span class="eyebrow">Join Us</span>
+      <span class="eyebrow">Join us</span>
       <h2>Become a Member</h2>
       <p>Register as an official member of Rising Hope Society. After approval, you'll receive a digital membership certificate.</p>
     </div>
@@ -106,15 +108,15 @@
             <input type="text" id="regCnic" placeholder="00000-0000000-0" maxlength="15" inputmode="numeric" required autocomplete="off" autocorrect="off" spellcheck="false">
           </div>
           <div class="field">
-            <label for="regDob">Date of Birth <span class="req">*</span></label>
+            <label for="regDob">Date of birth <span class="req">*</span></label>
             <input type="text" id="regDob" placeholder="dd-mm-yyyy" maxlength="10" inputmode="numeric" required autocomplete="off">
           </div>
           <div class="field">
-            <label for="regName">Full Name <span class="req">*</span></label>
+            <label for="regName">Full name <span class="req">*</span></label>
             <input type="text" id="regName" placeholder="As on CNIC" required autocomplete="off">
           </div>
           <div class="field">
-            <label for="regFather">Father / Husband Name <span class="req">*</span></label>
+            <label for="regFather">Father / husband name <span class="req">*</span></label>
             <input type="text" id="regFather" placeholder="Father or husband name" required autocomplete="off">
           </div>
           <div class="field">
@@ -131,7 +133,7 @@
             <input type="text" id="regProfession" placeholder="e.g. Teacher, Farmer…" required autocomplete="off">
           </div>
           <div class="field">
-            <label for="regMobile">Mobile Number <span class="req">*</span></label>
+            <label for="regMobile">Mobile number <span class="req">*</span></label>
             <input type="text" id="regMobile" placeholder="0300-0000000" maxlength="12" inputmode="numeric" required autocomplete="off">
           </div>
           <div class="field">
@@ -151,7 +153,7 @@
             </select>
           </div>
           <div class="field">
-            <label for="regMembership">Membership Type <span class="req">*</span></label>
+            <label for="regMembership">Membership type <span class="req">*</span></label>
             <select id="regMembership" required autocomplete="off">
               <option value="">Select type</option>
               <option value="General Member">General Member</option>
@@ -161,11 +163,11 @@
             </select>
           </div>
           <div class="field full-col">
-            <label for="regAddress">Full Address <span class="req">*</span></label>
+            <label for="regAddress">Full address <span class="req">*</span></label>
             <textarea id="regAddress" rows="2" placeholder="House no, street, area, city…" required autocomplete="off"></textarea>
           </div>
           <div class="field full-col">
-            <label for="regPhoto">Passport Size Photo <span class="req">*</span></label>
+            <label for="regPhoto">Passport-size photo <span class="req">*</span></label>
             <input type="file" id="regPhoto" accept="image/*"
               style="display:block;width:100%;padding:12px;border:2px dashed #c1c1c1;border-radius:8px;background:#f7f7f7;font-size:1rem;cursor:pointer;box-sizing:border-box;margin-top:4px">
             <div id="regPhotoPreview" style="margin-top:8px"></div>
@@ -194,7 +196,7 @@
 <section class="verify-section" id="verify" style="display:none">
   <div class="container">
     <div class="section-head">
-      <span class="eyebrow">Verification Portal</span>
+      <span class="eyebrow">Verification portal</span>
       <h2>Verify your membership certificate</h2>
       <p>Enter your CNIC and Date of Birth to verify your certificate or view your charity donation record.</p>
     </div>
@@ -206,7 +208,7 @@
             <input type="text" id="vCnic" placeholder="00000-0000000-0" maxlength="15" inputmode="numeric" required autocomplete="off">
           </div>
           <div class="field">
-            <label for="vDob">Date of Birth <span class="req">*</span></label>
+            <label for="vDob">Date of birth <span class="req">*</span></label>
             <input type="text" id="vDob" placeholder="dd-mm-yyyy" maxlength="10" inputmode="numeric" required autocomplete="off">
           </div>
         </div>
@@ -259,10 +261,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script type="module" src="firebase-db.js?v=2"></script>
-<script type="module" src="include.js?v=2"></script>
+<script type="module" src="include.js?v=3"></script>
 <script src="member-card.js?v=1" defer></script>
 <script src="rtl-text.js?v=1" defer></script>
-<script src="script.js?v=6" defer></script>
+<script src="script.js?v=8" defer></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -288,6 +290,6 @@
   window.dispatchEvent(new Event('firebaseReady'));
 </script>
 
-<script src="pwa.js?v=1" defer></script>
+<script src="pwa.js?v=2" defer></script>
 </body>
 </html>

@@ -8,23 +8,29 @@
       </span>
     </a>
 
-    <!-- Language Toggle -->
-    <button class="lang-btn" id="langToggle" onclick="toggleLang()" title="اردو / English">
-      <i class="fa-solid fa-language"></i> <span id="langLabel">اردو</span>
-    </button>
-
     <nav class="nav-links" id="navLinks">
       <a href="index.html" data-page="home" data-en="Home" data-ur="ہوم">Home</a>
       <a href="member.html" data-page="member" data-en="Members" data-ur="رکنیت">Members</a>
-      <a href="donate.html" data-page="donate" data-en="Donate Us" data-ur="عطیہ کریں">Donate Us</a>
-      <a href="charity.html" data-page="charity" data-en="Charity Help" data-ur="امداد">Charity Help</a>
-      <a href="our-work.html" data-page="work" data-en="Our Work" data-ur="ہمارا کام">Our Work</a>
-      <a href="news.html" data-page="news" data-en="News" data-ur="خبریں">News</a>
-      <a href="stories.html" data-page="stories" data-en="Stories" data-ur="کہانیاں">Stories</a>
-      <a href="team.html" data-page="team" data-en="Our Team" data-ur="ٹیم">Our Team</a>
-      <a href="contact.html" data-page="contact" data-en="Contact" data-ur="رابطہ">Contact</a>
-      <a href="admin.html" style="color:var(--coral);font-weight:700"><i class="fa-solid fa-user-shield"></i> Admin</a>
+      <a href="donate.html" data-page="donate" data-en="Donate" data-ur="عطیہ کریں">Donate</a>
+      <a href="charity.html" data-page="charity" data-en="Get help" data-ur="امداد">Get help</a>
+      <a href="our-work.html" data-page="work" data-en="Our work" data-ur="ہمارا کام">Our work</a>
+      <div class="nav-more" id="navMore">
+        <button type="button" class="nav-more-btn" id="navMoreBtn" aria-haspopup="true" aria-expanded="false">
+          <span data-en="More" data-ur="مزید">More</span> <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+        </button>
+        <div class="nav-more-menu" id="navMoreMenu">
+          <a href="news.html" data-page="news" data-en="News" data-ur="خبریں">News</a>
+          <a href="stories.html" data-page="stories" data-en="Stories" data-ur="کہانیاں">Stories</a>
+          <a href="team.html" data-page="team" data-en="Our team" data-ur="ٹیم">Our team</a>
+          <a href="contact.html" data-page="contact" data-en="Contact" data-ur="رابطہ">Contact</a>
+        </div>
+      </div>
     </nav>
+
+    <!-- Language toggle: sits at the far end, next to the menu button -->
+    <button class="lang-btn" id="langToggle" onclick="toggleLang()" title="اردو / English">
+      <i class="fa-solid fa-language"></i> <span id="langLabel">اردو</span>
+    </button>
     <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
       <span></span><span></span><span></span>
     </button>

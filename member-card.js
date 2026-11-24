@@ -96,7 +96,7 @@
     root.querySelectorAll("[data-rc-qr]").forEach(el => {
       el.innerHTML = "";
       if (window.QRCode) {
-        new QRCode(el, { text: verifyUrl(), width: 176, height: 176, colorDark: "#14534F", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+        new QRCode(el, { text: verifyUrl(), width: 176, height: 176, colorDark: "#222222", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
       }
     });
   }
@@ -180,13 +180,13 @@
   function qrCanvas(text) {
     if (!window.QRCode) return null;
     const d = document.createElement("div");
-    new QRCode(d, { text, width: 176, height: 176, colorDark: "#14534F", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+    new QRCode(d, { text, width: 176, height: 176, colorDark: "#222222", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
     return d.querySelector("canvas");
   }
 
   function base(g, logo) {
     g.save(); rr(g, 0, 0, W, H, 34); g.clip();
-    g.fillStyle = "#FBF6EF"; g.fillRect(0, 0, W, H);
+    g.fillStyle = "#ffffff"; g.fillRect(0, 0, W, H);
     g.strokeStyle = "rgba(20,83,79,.035)"; g.lineWidth = 2;
     for (let c = 0; c < W + H; c += 19.8) { g.beginPath(); g.moveTo(c, 0); g.lineTo(c - H, H); g.stroke(); }
     const rg = g.createRadialGradient(860, 510, 0, 860, 510, 470);
@@ -197,15 +197,15 @@
   }
   function headBar(g, h) {
     const lg = g.createLinearGradient(0, 0, W, h * 1.6);
-    lg.addColorStop(0, "#14534F"); lg.addColorStop(1, "#1E7A73");
+    lg.addColorStop(0, "#222222"); lg.addColorStop(1, "#3f3f3f");
     g.fillStyle = lg; g.fillRect(0, 0, W, h);
     const sg = g.createLinearGradient(0, 0, W, 0);
-    sg.addColorStop(0, "#E8A33D"); sg.addColorStop(1, "#F2785C");
+    sg.addColorStop(0, "#ff385c"); sg.addColorStop(1, "#ff385c");
     g.fillStyle = sg; g.fillRect(0, h, W, 7);
   }
   function logoBadge(g, logo, cx, cy, size) {
     g.save(); g.beginPath(); g.arc(cx, cy, size / 2, 0, Math.PI * 2); g.fillStyle = "#fff"; g.fill();
-    g.lineWidth = size > 70 ? 3 : 2; g.strokeStyle = "#E8A33D"; g.stroke(); g.restore();
+    g.lineWidth = size > 70 ? 3 : 2; g.strokeStyle = "#ff385c"; g.stroke(); g.restore();
     if (logo) {
       g.save(); g.beginPath(); g.arc(cx, cy, size / 2 - 3, 0, Math.PI * 2); g.clip();
       const inner = size - (size > 70 ? 12 : 8);
@@ -218,7 +218,7 @@
     logoBadge(g, im.logo, 34 + 41, 60, 82);
     T(g, n.name || "Rising Hope Society", 136, 49, { font: `700 34px ${SERIF}`, color: "#fff" });
     T(g, "Khairpur Tamewali · Bahawalpur", 136, 82, { font: `400 14px ${SANS}`, color: "#CFE3E0", ls: 3.08, upper: true });
-    T(g, "MEMBERSHIP CARD", 977, 40.5, { font: `700 15px ${SANS}`, color: "#E8A33D", ls: 3, align: "right" });
+    T(g, "MEMBERSHIP CARD", 977, 40.5, { font: `700 15px ${SANS}`, color: "#ff385c", ls: 3, align: "right" });
     // status pill
     g.font = `700 15px ${SANS}`;
     const pt = tw(g, st.label, 2.1), pw = 16 + 11 + 8 + pt + 16 + 3, px = 977 - pw, py = 58.5;
@@ -229,29 +229,29 @@
 
     // photo
     g.save(); g.shadowColor = "rgba(20,83,79,.25)"; g.shadowBlur = 20; g.shadowOffsetY = 8;
-    rr(g, 34, 153, 210, 296, 16); g.fillStyle = "#14534F"; g.fill(); g.restore();
-    g.save(); rr(g, 39, 158, 200, 286, 11); g.clip(); g.fillStyle = "#EEF8F1"; g.fillRect(39, 158, 200, 286);
+    rr(g, 34, 153, 210, 296, 16); g.fillStyle = "#222222"; g.fill(); g.restore();
+    g.save(); rr(g, 39, 158, 200, 286, 11); g.clip(); g.fillStyle = "#f7f7f7"; g.fillRect(39, 158, 200, 286);
     if (im.photo) fitImg(g, im.photo, 39, 158, 200, 286, "cover");
     else { g.fillStyle = "#9bb5b1"; g.beginPath(); g.arc(139, 260, 38, 0, 7); g.fill(); g.beginPath(); g.ellipse(139, 380, 70, 62, 0, Math.PI, 0); g.fill(); }
     g.restore();
 
     const X = 274, IW = 703;
-    T(g, m.fullName || "—", X, 177, { font: `700 ${nameSize(m.fullName)}px ${SERIF}`, color: "#14534F" });
+    T(g, m.fullName || "—", X, 177, { font: `700 ${nameSize(m.fullName)}px ${SERIF}`, color: "#222222" });
     T(g, m.designation || "General Member", X, 216, { font: `400 20px ${SANS}`, color: "#6b7c78" });
     const type = String(m.membershipType || "General Member");
     g.font = `700 15px ${SANS}`;
     const bw = tw(g, type.toUpperCase(), 1.2) + 32;
-    rr(g, X, 237, bw, 32, 16); g.fillStyle = "#14534F"; g.fill();
+    rr(g, X, 237, bw, 32, 16); g.fillStyle = "#222222"; g.fill();
     T(g, type, X + 16, 253, { font: `700 15px ${SANS}`, color: "#fff", ls: 1.2, upper: true });
     const cw = (IW - 24) / 2;
     [["Reg No", m.registrationNo, X, 285], ["Valid Upto", m.validUpto, X + cw + 24, 285],
      ["Gender", m.gender, X, 342], ["Mobile", m.mobile, X + cw + 24, 342]].forEach(([l, v, x, y]) => {
       T(g, l, x, y + 7, { font: `700 12px ${SANS}`, color: "#8A9A96", ls: 1.92, upper: true });
-      T(g, v || "—", x, y + 17 + 14, { font: `700 22px ${SANS}`, color: "#1F2E2B" });
+      T(g, v || "—", x, y + 17 + 14, { font: `700 22px ${SANS}`, color: "#222222" });
     });
     // signature (front)
     if (im.sig) fitImg(g, im.sig, 717 + 10, 390, 240, 44, "contain");
-    g.fillStyle = "#14534F"; g.fillRect(717, 436, 260, 2);
+    g.fillStyle = "#222222"; g.fillRect(717, 436, 260, 2);
     T(g, "AUTHORIZED SIGNATURE", 847, 449, { font: `700 12px ${SANS}`, color: "#4A5C58", ls: 1.68, align: "center" });
 
     // admin comment
@@ -261,7 +261,7 @@
       const cg = g.createLinearGradient(0, 498, 0, 576); cg.addColorStop(0, "#EEF6F4"); cg.addColorStop(1, "#E3F0ED");
       g.fillStyle = cg; g.fill(); g.setLineDash([6, 5]); g.lineWidth = 1.5; g.strokeStyle = "#9CC4BE"; g.stroke(); g.setLineDash([]);
       T(g, "ADMIN COMMENT", 505.5, 518, { font: `700 12px ${SANS}`, color: "#6b8a85", ls: 2.88, align: "center" });
-      T(g, cm, 505.5, 546, { font: `700 ${commentSize(cm)}px ${SERIF}`, color: "#14534F", align: "center" });
+      T(g, cm, 505.5, 546, { font: `700 ${commentSize(cm)}px ${SERIF}`, color: "#222222", align: "center" });
     }
     // footer
     g.fillStyle = "#EAF3F0"; g.fillRect(0, 592, W, 46);
@@ -270,7 +270,7 @@
     g.font = `400 14px ${SANS}`; const w1 = g.measureText(a1).width; g.font = `700 14px ${SANS}`; const w2 = g.measureText(a2).width;
     const sx = (W - (w1 + 8 + w2)) / 2;
     T(g, a1, sx, 615, { font: `400 14px ${SANS}`, color: "#4A5C58" });
-    T(g, a2, sx + w1 + 8, 615, { font: `700 14px ${SANS}`, color: "#14534F" });
+    T(g, a2, sx + w1 + 8, 615, { font: `700 14px ${SANS}`, color: "#222222" });
     done();
   }
 
@@ -279,32 +279,32 @@
     headBar(g, 84);
     logoBadge(g, im.logo, 34 + 28, 42, 56);
     T(g, n.name || "Rising Hope Society", 106, 42, { font: `700 26px ${SERIF}`, color: "#fff" });
-    T(g, "MEMBER IDENTITY CARD", 977, 42, { font: `700 13px ${SANS}`, color: "#E8A33D", ls: 2.6, align: "right" });
+    T(g, "MEMBER IDENTITY CARD", 977, 42, { font: `700 13px ${SANS}`, color: "#ff385c", ls: 2.6, align: "right" });
     let y = 115;
     [["Address", m.address, 2], ["Profession", m.profession, 1], ["Email", m.email, 1]].forEach(([l, v, ml]) => {
       T(g, l, 34, y + 7, { font: `700 12px ${SANS}`, color: "#8A9A96", ls: 1.92, upper: true });
       const lines = wrap(g, v || "—", `700 20px ${SANS}`, 683, ml);
-      lines.forEach((ln, i) => T(g, ln, 34, y + 17 + 14 + i * 28, { font: `700 20px ${SANS}`, color: "#1F2E2B" }));
+      lines.forEach((ln, i) => T(g, ln, 34, y + 17 + 14 + i * 28, { font: `700 20px ${SANS}`, color: "#222222" }));
       y += 14 + 3 + 28 * lines.length + 14;
     });
     // QR
-    rr(g, 762, 115, 200, 200, 14); g.fillStyle = "#fff"; g.fill(); g.lineWidth = 3; g.strokeStyle = "#14534F"; g.stroke();
+    rr(g, 762, 115, 200, 200, 14); g.fillStyle = "#fff"; g.fill(); g.lineWidth = 3; g.strokeStyle = "#222222"; g.stroke();
     if (im.qr) g.drawImage(im.qr, 774, 127, 176, 176);
     T(g, "Scan to verify", 862, 331.5, { font: `400 13px ${SANS}`, color: "#4A5C58", align: "center" });
     T(g, "this membership online", 862, 348.5, { font: `400 13px ${SANS}`, color: "#4A5C58", align: "center" });
     // signature
     if (im.sig) fitImg(g, im.sig, 34, 475, 300, 62, "contain", "left");
-    g.fillStyle = "#14534F"; g.fillRect(34, 539, 330, 2);
+    g.fillStyle = "#222222"; g.fillRect(34, 539, 330, 2);
     T(g, "AUTHORIZED SIGNATORY", 34, 552, { font: `700 12px ${SANS}`, color: "#4A5C58", ls: 1.68 });
     T(g, "ISSUED", 977, 523, { font: `700 12px ${SANS}`, color: "#8A9A96", ls: 1.92, align: "right" });
-    T(g, issueDate(m), 977, 542, { font: `700 20px ${SANS}`, color: "#1F2E2B", align: "right" });
+    T(g, issueDate(m), 977, 542, { font: `700 20px ${SANS}`, color: "#222222", align: "right" });
     // footer
-    g.fillStyle = "#14534F"; g.fillRect(0, 576, W, 62);
+    g.fillStyle = "#222222"; g.fillRect(0, 576, W, 62);
     T(g, `If found, please return to ${n.name || "Rising Hope Society"}, Khairpur Tamewali, Bahawalpur`, W / 2, 597, { font: `400 13px ${SANS}`, color: "#DCEBE8", align: "center" });
     g.font = `700 13px ${SANS}`; const p1 = n.phone || ""; const wp = g.measureText(p1).width;
     g.font = `400 13px ${SANS}`; const p2 = " · " + (n.email || ""); const wq = g.measureText(p2).width;
     const bx = (W - (wp + wq)) / 2;
-    T(g, p1, bx, 617, { font: `700 13px ${SANS}`, color: "#E8A33D" });
+    T(g, p1, bx, 617, { font: `700 13px ${SANS}`, color: "#ff385c" });
     T(g, p2, bx + wp, 617, { font: `400 13px ${SANS}`, color: "#DCEBE8" });
     done();
   }

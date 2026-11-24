@@ -90,7 +90,7 @@ function loadHomeContent() {
       const el = document.getElementById(id);
       // Only overwrite the default text if admin has actually saved a value —
       // otherwise keep the existing fallback text already in the HTML.
-      if (el && res[key]) el.textContent = res[key];
+      if (el && res[key]) { el.textContent = res[key]; el.removeAttribute("data-ur"); } // admin text replaces the default Urdu
     });
 
     /* ----- "Our Purpose" section (controlled from Admin > Setup > Our Purpose) ----- */
@@ -100,7 +100,7 @@ function loadHomeContent() {
     };
     Object.entries(purposeMap).forEach(([key, id]) => {
       const el = document.getElementById(id);
-      if (el && res[key]) el.textContent = res[key];
+      if (el && res[key]) { el.textContent = res[key]; el.removeAttribute("data-ur"); }
     });
     const cardIcon = document.getElementById("purposeCardIcon");
     if (cardIcon && /^fa-(solid|regular|brands) fa-[a-z0-9-]+$/.test(res.purposeCardIcon || "")) {
@@ -207,9 +207,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (toggle) toggle.classList.remove("open");
       if (links) {
         links.classList.remove("open");
-        links.querySelectorAll("a").forEach(a => a.classList.remove("active"));
+        if ((navLink.getAttribute("href") || "").startsWith("#")) {
+          links.querySelectorAll('a[href^="#"]').forEach(a => a.classList.remove("active"));
+          navLink.classList.add("active");
+        }
       }
-      navLink.classList.add("active");
     }
   });
 
@@ -222,7 +224,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     const navLinks = document.getElementById("navLinks");
     if (navLinks) {
-      navLinks.querySelectorAll("a").forEach(a => {
+      navLinks.querySelectorAll('a[href^="#"]').forEach(a => {
         a.classList.toggle("active", a.getAttribute("href") === "#" + current);
       });
     }
@@ -969,7 +971,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const badgeColor = isActive ? "#2E9E5B" : isBanned ? "#D9483A" : isExpired ? "#E07B2A" : "#E8A33D";
     const badgeBg    = isActive ? "#EEF8F1"  : isBanned ? "#FEF2F2" : isExpired ? "#FEF3EA" : "#FEF9EC";
     const badgeTxt   = isActive ? "✅ Active"  : isBanned ? "🚫 Banned" : isExpired ? "🕐 Expired" : st;
-    const borderCol  = isActive ? "#14534F"   : isBanned ? "#D9483A" : isExpired ? "#E07B2A" : "#E8A33D";
+    const borderCol  = isActive ? "#222222"   : isBanned ? "#D9483A" : isExpired ? "#E07B2A" : "#E8A33D";
 
     window.__certMember = member;
     certResult.hidden = false;
@@ -1084,7 +1086,7 @@ document.addEventListener("DOMContentLoaded", () => {
             rows = `<tr><td colspan="4" style="text-align:center;padding:20px;color:#8A9A96;font-style:italic">No charity records found.</td></tr>`;
           } else {
             donations.forEach((d, i) => {
-              rows += `<tr style="background:${i % 2 ? "#F5F9F8" : "#fff"}">
+              rows += `<tr style="background:${i % 2 ? "#f7f7f7" : "#fff"}">
                 <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2;font-family:sans-serif;font-size:.88rem">${d.date || "—"}</td>
                 <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2;font-family:sans-serif;font-size:.88rem">${d.paymentMethod || d.method || "Cash"}</td>
                 <td style="padding:10px 14px;border-bottom:1px solid #E7DFD2;color:#2E9E5B;font-weight:700;font-family:sans-serif;font-size:.88rem">Rs. ${Number(d.amount || 0).toLocaleString()}</td>
@@ -1095,7 +1097,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (donResult) {
             donResult.innerHTML = `
               <div id="ledgerContent" style="border:2px solid #E7DFD2;border-radius:12px;overflow:hidden;background:#fff;font-family:Georgia,serif">
-                <div style="background:#14534F;padding:18px 24px;display:flex;align-items:center">
+                <div style="background:#222222;padding:18px 24px;display:flex;align-items:center">
                   <img src="${logoSrc}" style="width:50px;height:50px;border-radius:50%;object-fit:contain;background:#fff;padding:4px;border:2px solid rgba(255,255,255,0.3);flex-shrink:0">
                   <div style="flex:1;margin-left:14px">
                     <div style="font-size:9px;letter-spacing:.2em;color:rgba(255,255,255,.6);font-family:sans-serif;margin-bottom:2px">CHARITY DONATION LEDGER</div>
@@ -1104,21 +1106,21 @@ document.addEventListener("DOMContentLoaded", () => {
                   </div>
                   <div style="text-align:right;flex-shrink:0;margin-left:14px">
                     <div style="font-size:9px;color:rgba(255,255,255,.5);font-family:sans-serif;margin-bottom:2px">TOTAL CHARITY</div>
-                    <div style="font-size:16px;font-weight:700;color:#E8A33D;font-family:sans-serif">Rs. ${res.total.toLocaleString()}</div>
+                    <div style="font-size:16px;font-weight:700;color:#ff385c;font-family:sans-serif">Rs. ${res.total.toLocaleString()}</div>
                   </div>
                 </div>
-                <div style="height:3px;background:#E8A33D"></div>
+                <div style="height:3px;background:#ff385c"></div>
                 <div style="padding:16px 24px;display:flex;align-items:center;border-bottom:1px solid #E7DFD2;background:#FAFAF8;flex-wrap:wrap">
                   ${m.photo
-                    ? `<img src="${RHS.imgUrl ? RHS.imgUrl(m.photo, 150) : m.photo}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:3px solid #14534F;flex-shrink:0">`
-                    : `<div style="width:60px;height:60px;border-radius:50%;background:#EEF8F1;border:3px solid #14534F;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa-solid fa-user" style="font-size:1.5rem;color:#4CAF8A"></i></div>`}
+                    ? `<img src="${RHS.imgUrl ? RHS.imgUrl(m.photo, 150) : m.photo}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:3px solid #222222;flex-shrink:0">`
+                    : `<div style="width:60px;height:60px;border-radius:50%;background:#EEF8F1;border:3px solid #222222;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa-solid fa-user" style="font-size:1.5rem;color:#4CAF8A"></i></div>`}
                   <div style="flex:1;min-width:0;margin-left:16px">
-                    <div style="font-size:16px;font-weight:700;color:#14534F">${m.fullName}</div>
+                    <div style="font-size:16px;font-weight:700;color:#222222">${m.fullName}</div>
                     <div style="font-size:12px;color:#8A9A96;font-family:sans-serif">${m.registrationNo || "—"} · ${m.membershipType || "Member"}</div>
                   </div>
                   <div style="text-align:right;margin-left:16px">
                     <div style="font-size:11px;color:#8A9A96;font-family:sans-serif;margin-bottom:4px">Valid Upto</div>
-                    <div style="font-size:14px;font-weight:700;color:#14534F;font-family:sans-serif">${m.validUpto || "—"}</div>
+                    <div style="font-size:14px;font-weight:700;color:#222222;font-family:sans-serif">${m.validUpto || "—"}</div>
                     <div style="margin-top:6px;display:inline-flex;align-items:center;background:${isActive ? "#EEF8F1" : "#FEF2F2"};border:1px solid ${statusColor}40;border-radius:20px;padding:3px 10px">
                       <div style="width:6px;height:6px;border-radius:50%;background:${statusColor};flex-shrink:0"></div>
                       <span style="font-size:11px;font-weight:700;color:${statusColor};font-family:sans-serif;margin-left:5px">${(m.status || "—").toUpperCase()}</span>
@@ -1127,7 +1129,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
                 <div style="overflow-x:auto">
                   <table style="width:100%;border-collapse:collapse;min-width:400px">
-                    <thead><tr style="background:#14534F;color:#fff">
+                    <thead><tr style="background:#222222;color:#fff">
                       <th style="padding:10px 14px;text-align:left;font-family:sans-serif;font-size:.82rem">Date</th>
                       <th style="padding:10px 14px;text-align:left;font-family:sans-serif;font-size:.82rem">Payment Method</th>
                       <th style="padding:10px 14px;text-align:left;font-family:sans-serif;font-size:.82rem">Amount</th>
@@ -1135,12 +1137,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     </tr></thead>
                     <tbody>${rows}</tbody>
                     <tfoot><tr style="background:#EEF8F1">
-                      <td colspan="2" style="padding:12px 14px;font-weight:700;color:#14534F;font-family:sans-serif">Total Charity Donated</td>
-                      <td colspan="2" style="padding:12px 14px;font-weight:700;color:#14534F;font-size:1rem;font-family:sans-serif">Rs. ${res.total.toLocaleString()}</td>
+                      <td colspan="2" style="padding:12px 14px;font-weight:700;color:#222222;font-family:sans-serif">Total Charity Donated</td>
+                      <td colspan="2" style="padding:12px 14px;font-weight:700;color:#222222;font-size:1rem;font-family:sans-serif">Rs. ${res.total.toLocaleString()}</td>
                     </tr></tfoot>
                   </table>
                 </div>
-                <div style="padding:10px 24px;background:#F5F9F8;text-align:center;border-top:1px solid #E7DFD2">
+                <div style="padding:10px 24px;background:#f7f7f7;text-align:center;border-top:1px solid #E7DFD2">
                   <div style="font-size:10px;color:#8A9A96;font-family:sans-serif">⚠️ Computer-generated statement · ${window.NGO.name} · ${window.NGO.phone}</div>
                 </div>
                 <div style="padding:14px 24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;border-top:1px solid #E7DFD2">
@@ -1286,7 +1288,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const preview = document.getElementById("regPhotoPreview");
     if (!preview) return;
     const reader = new FileReader();
-    reader.onload = e => { preview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid #14534F;">`; };
+    reader.onload = e => { preview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid #222222;">`; };
     reader.readAsDataURL(file);
   };
 
@@ -1352,7 +1354,7 @@ document.addEventListener("DOMContentLoaded", () => {
               grantResult.hidden = false;
               grantResult.innerHTML = `
                 <div class="status-msg status-yellow">
-                  <i class="fa-solid fa-circle-exclamation" style="font-size:2.2rem;color:#E8A33D;display:block;margin-bottom:12px"></i>
+                  <i class="fa-solid fa-circle-exclamation" style="font-size:2.2rem;color:#ff385c;display:block;margin-bottom:12px"></i>
                   <div class="status-title" style="color:#92620A">Case Already Submitted!</div>
                   <p>Dear <strong>${c.name || nameVal}</strong>, Your case is already submitted as <strong>${c.crn}</strong>. Please check status of your case by using <strong>Check Request Status</strong>.</p>
                   <p style="margin-top:8px;font-size:.88rem;color:#555">
@@ -1435,7 +1437,7 @@ document.addEventListener("DOMContentLoaded", () => {
               setTimeout(() => grantResult.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
               grantResult.innerHTML = `
                 <div class="status-msg status-yellow">
-                  <i class="fa-solid fa-circle-exclamation" style="font-size:2.2rem;color:#E8A33D;display:block;margin-bottom:12px"></i>
+                  <i class="fa-solid fa-circle-exclamation" style="font-size:2.2rem;color:#ff385c;display:block;margin-bottom:12px"></i>
                   <div class="status-title" style="color:#92620A">Case Already Submitted!</div>
                   <p>Dear <strong>${name}</strong>, Your case is already submitted as <strong>${res.crn || ""}</strong>. Please check status of your case by using <strong>Check Request Status</strong>.</p>
                   <p style="margin-top:8px;font-size:.88rem;color:#555">
@@ -1615,7 +1617,7 @@ document.addEventListener("DOMContentLoaded", () => {
                   <div style="font-size:1.05rem;font-weight:700;letter-spacing:.08em;color:#2E9E5B;text-transform:uppercase;margin-bottom:6px">
                     🎉 Congratulations! 🎉
                   </div>
-                  <div style="font-size:1.5rem;font-weight:800;color:#14534F;margin-bottom:4px;font-family:'Fraunces',Georgia,serif">
+                  <div style="font-size:1.5rem;font-weight:800;color:#222222;margin-bottom:4px;font-family:'Fraunces',Georgia,serif">
                     Case Approved
                   </div>
 
@@ -1633,7 +1635,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                   <!-- Main message -->
                   <p style="font-size:1rem;color:#1a4a38;line-height:1.8;margin:0 0 10px">
-                    Dear <strong style="color:#14534F">${g.name}</strong>,<br>
+                    Dear <strong style="color:#222222">${g.name}</strong>,<br>
                     We are pleased to inform you that your grant request has been
                     <strong style="color:#2E9E5B">officially approved</strong>.
                     Please wait for the grant disbursement — our team will contact you
@@ -1651,10 +1653,10 @@ document.addEventListener("DOMContentLoaded", () => {
                   <div style="font-size:.9rem;color:#2d6e50;margin-bottom:6px">
                     For any query, feel free to contact us:
                   </div>
-                  <div style="font-size:.92rem;font-weight:600;color:#14534F">
-                    📞 <a href="tel:+92${window.NGO.alert.replace(/\D/g,'').slice(-10)}" style="color:#14534F;text-decoration:none">${window.NGO.alert}</a>
+                  <div style="font-size:.92rem;font-weight:600;color:#222222">
+                    📞 <a href="tel:+92${window.NGO.alert.replace(/\D/g,'').slice(-10)}" style="color:#222222;text-decoration:none">${window.NGO.alert}</a>
                     &nbsp;|&nbsp;
-                    📧 <a href="mailto:${window.NGO.email}" style="color:#14534F;text-decoration:none">${window.NGO.email}</a>
+                    📧 <a href="mailto:${window.NGO.email}" style="color:#222222;text-decoration:none">${window.NGO.email}</a>
                   </div>
                 </div>`;
               // skip default card rendering for this grant
@@ -1882,6 +1884,7 @@ document.addEventListener("DOMContentLoaded", () => {
   (function () {
     const loader = document.getElementById("pageLoader");
     if (!loader) return;
+    try { sessionStorage.setItem("rhs_seen", "1"); } catch (e) {}
 
     const windowReady = new Promise(resolve => {
       if (document.readyState === "complete") resolve();
@@ -1890,7 +1893,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const dataReady = Promise.race([
       Promise.all(window.__rhsPageLoads),
-      new Promise(resolve => setTimeout(resolve, 9000)) // safety cap
+      new Promise(resolve => setTimeout(resolve, 2500)) // safety cap (short: skeletons cover the rest)
     ]);
 
     Promise.all([windowReady, dataReady]).then(() => {

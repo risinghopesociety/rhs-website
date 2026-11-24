@@ -2,15 +2,17 @@
 <html lang="en" id="htmlRoot">
 <head>
 <meta charset="UTF-8">
+<script>try{if(sessionStorage.getItem("rhs_seen"))document.documentElement.classList.add("no-loader")}catch(e){}</script>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Donate Us — Rising Hope Society</title>
+<title>Donate — Rising Hope Society</title>
 <meta name="description" content="Support Rising Hope Society's welfare work in Khairpur Tamewali, Bahawalpur. Donate directly through any of our bank accounts.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://rhs-pk.vercel.app/donate.html">
 
 <meta property="og:type" content="website">
-<meta property="og:title" content="Donate Us — Rising Hope Society">
+<meta property="og:title" content="Donate — Rising Hope Society">
 <meta property="og:description" content="Support Rising Hope Society's welfare work in Khairpur Tamewali, Bahawalpur.">
 <meta property="og:image" content="https://rhs-pk.vercel.app/images/og-share.jpg">
 <meta property="og:image:width" content="1200">
@@ -25,7 +27,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=12">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#ffffff">
 <meta name="mobile-web-app-capable" content="yes">
@@ -78,7 +80,7 @@
 <section class="donate-banks">
   <div class="container">
     <div class="section-head">
-      <span class="eyebrow" id="donateEyebrow" data-en="Bank Details" data-ur="بینک تفصیلات">Bank Details</span>
+      <span class="eyebrow" id="donateEyebrow" data-en="Bank details" data-ur="بینک تفصیلات">Bank details</span>
       <h2 id="donateHeading" data-en="Choose any bank to donate" data-ur="عطیہ کے لیے کوئی بھی بینک منتخب کریں">Choose any bank to donate</h2>
       <p id="donateSubheading" data-en="All accounts are held in the name of Rising Hope Society and monitored transparently." data-ur="تمام اکاؤنٹس رائزنگ ہوپ سوسائٹی کے نام پر ہیں اور شفاف طریقے سے مانیٹر کیے جاتے ہیں۔">All accounts are held in the name of Rising Hope Society and monitored transparently.</p>
     </div>
@@ -92,13 +94,54 @@
   </div>
 </section>
 
+<!-- ===== WHERE DONATIONS GO ===== -->
+<section class="donate-use">
+  <div class="container">
+    <div class="section-head">
+      <h2 data-ur="آپ کا عطیہ کہاں استعمال ہوتا ہے">Where your donation goes</h2>
+      <p data-ur="ہم ان شعبوں میں کام کرتے ہیں۔ عطیہ کرنے کے بعد ہم آپ کو شکریے کی رسید بھیجتے ہیں۔">We work in the areas below. After you donate, we send you a thank-you receipt.</p>
+    </div>
+    <div class="use-grid">
+      <div class="use-item">
+        <span class="use-icon"><i class="fa-solid fa-bowl-food"></i></span>
+        <h3 data-ur="راشن">Food packages</h3>
+        <p data-ur="مستحق خاندانوں کے لیے کھانے کا سامان۔">Groceries for families who need them.</p>
+      </div>
+      <div class="use-item">
+        <span class="use-icon"><i class="fa-solid fa-house-chimney"></i></span>
+        <h3 data-ur="رہائش">Shelter</h3>
+        <p data-ur="بے گھر اور کمزور خاندانوں کی مدد۔">Support for families without safe housing.</p>
+      </div>
+      <div class="use-item">
+        <span class="use-icon"><i class="fa-solid fa-kit-medical"></i></span>
+        <h3 data-ur="صحت">Health camps</h3>
+        <p data-ur="طبی کیمپ اور علاج میں مدد۔">Medical camps and help with treatment.</p>
+      </div>
+      <div class="use-item">
+        <span class="use-icon"><i class="fa-solid fa-book-open"></i></span>
+        <h3 data-ur="تعلیم">Education</h3>
+        <p data-ur="طلبہ کے لیے تعلیمی معاونت۔">Learning support for students.</p>
+      </div>
+      <div class="use-item">
+        <span class="use-icon"><i class="fa-solid fa-hands-holding-circle"></i></span>
+        <h3 data-ur="امدادی مہمات">Relief drives</h3>
+        <p data-ur="ہنگامی حالات میں فوری امداد۔">Quick help when emergencies hit.</p>
+      </div>
+    </div>
+    <div class="use-actions">
+      <a class="btn btn-secondary" href="member.html#verify"><span data-ur="اپنا عطیہ ریکارڈ دیکھیں">Check your donation record</span></a>
+      <a class="btn btn-ghost" href="our-work.html"><span data-ur="ہمارا کام دیکھیں">See our work</span></a>
+    </div>
+  </div>
+</section>
+
 <!-- ===== FOOTER (shared) ===== -->
 <div id="site-footer"></div>
 
 <script type="module" src="firebase-db.js?v=2"></script>
-<script type="module" src="include.js?v=2"></script>
+<script type="module" src="include.js?v=3"></script>
 <script src="rtl-text.js?v=1" defer></script>
-<script src="script.js?v=5" defer></script>
+<script src="script.js?v=8" defer></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -198,7 +241,7 @@
             <span class="value">${escHtml(b.accountTitle || "")}</span>
           </div>
           <div class="bank-card-row">
-            <span class="label">Account No</span>
+            <span class="label">Account number</span>
             <span class="value">
               <span>${escHtml(b.accountNo || "")}</span>
               <button class="bank-copy-btn" title="Copy" onclick="copyBankField(this,'${(b.accountNo || "").replace(/'/g, "\\'")}')"><i class="fa-solid fa-copy"></i></button>
@@ -212,6 +255,6 @@
   });
 </script>
 
-<script src="pwa.js?v=1" defer></script>
+<script src="pwa.js?v=2" defer></script>
 </body>
 </html>

@@ -1,6 +1,5 @@
 User-agent: *
 Allow: /
 Disallow: /admin.html
-Disallow: /setup-firestore.html
 
 Sitemap: https://rhs-pk.vercel.app/sitemap.xml

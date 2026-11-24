@@ -2,6 +2,8 @@
 <html lang="en" id="htmlRoot">
 <head>
 <meta charset="UTF-8">
+<script>try{if(sessionStorage.getItem("rhs_seen"))document.documentElement.classList.add("no-loader")}catch(e){}</script>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Rising Hope Society — NGO Khairpur Tamewali, Bahawalpur, Pakistan</title>
@@ -25,7 +27,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=12">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#ffffff">
 <meta name="mobile-web-app-capable" content="yes">
@@ -73,8 +75,19 @@
 <div id="site-header"></div>
 <!-- ===== HERO ===== -->
 <section class="hero" id="home">
+  <div class="hero-content container">
+    <span class="eyebrow" id="heroEyebrow" data-ur="رائزنگ ہوپ سوسائٹی">Rising Hope Society</span>
+    <h1 id="heroHeading" data-ur="حقیقی مدد، حقیقی تبدیلی۔">Real help, <span class="accent">real change.</span></h1>
+    <p id="heroText" data-ur="کھیر پور ٹامے والی میں عوامی فلاح کا کام، مکمل طور پر رضاکاروں اور فراخ دل عطیہ دہندگان کے تعاون سے۔">Grassroots welfare work in Khairpur Tamewali — powered entirely by volunteers and generous donors.</p>
+    <div class="hero-actions">
+      <a href="member.html?open=registration" class="btn btn-primary"><span data-ur="شامل ہوں">Join us</span></a>
+      <a href="charity.html?open=grant" class="btn btn-ghost"><span data-ur="مدد حاصل کریں">Get help</span></a>
+      <a href="donate.html" class="btn btn-donate"><span data-ur="عطیہ کریں">Donate</span></a>
+    </div>
+  </div>
+
   <div class="carousel-heading container">
-    <h2 id="slidesHeading">Current Activities</h2>
+    <h2 id="slidesHeading" data-ur="جاری سرگرمیاں">Current activities</h2>
   </div>
   <div class="hero-carousel-wrap container">
     <div class="hero-carousel" id="heroSlider">
@@ -87,26 +100,15 @@
       <button class="carousel-arrow next" id="nextSlide" aria-label="Next slide"><i class="fa-solid fa-chevron-right"></i></button>
     </div>
   </div>
-
-  <div class="hero-content container">
-    <span class="eyebrow" id="heroEyebrow">Rising Hope Society</span>
-    <h1 id="heroHeading">Real help, <span class="accent">real change.</span></h1>
-    <p id="heroText">Grassroots welfare work in Khairpur Tamewali — powered entirely by volunteers and generous donors.</p>
-    <div class="hero-actions">
-      <a href="member.html?open=registration" class="btn btn-primary">Join Us <i class="fa-solid fa-arrow-right"></i></a>
-      <a href="charity.html?open=grant" class="btn btn-ghost">Get Help <i class="fa-solid fa-hand-holding-heart"></i></a>
-      <a href="donate.html" class="btn btn-donate">Donate Us <i class="fa-solid fa-hand-holding-dollar"></i></a>
-    </div>
-  </div>
 </section>
 
 <!-- ===== ABOUT ===== -->
 <section class="about" id="about">
   <div class="container about-grid">
     <div class="about-text">
-      <span class="eyebrow" id="purposeTitle">Our Purpose</span>
-      <h2 id="purposeHeading">Service rooted in community, driven by people.</h2>
-      <p id="purposeText">Founded by residents of Khairpur Tamewali, Rising Hope Society works on grassroots welfare projects — food packages, shelter, health camps, education support, and relief drives — entirely powered by volunteer members and generous donors.</p>
+      <span class="eyebrow" id="purposeTitle" data-ur="ہمارا مقصد">Our purpose</span>
+      <h2 id="purposeHeading" data-ur="خدمت جو کمیونٹی میں جڑی ہو اور لوگوں سے چلتی ہو۔">Service rooted in community, driven by people.</h2>
+      <p id="purposeText" data-ur="کھیر پور ٹامے والی کے رہائشیوں نے رائزنگ ہوپ سوسائٹی کی بنیاد رکھی۔ ہم راشن، رہائش، صحت کیمپ، تعلیمی معاونت اور امدادی مہمات پر کام کرتے ہیں، جو مکمل طور پر رضاکار ممبران اور عطیہ دہندگان کے تعاون سے چلتی ہیں۔">Founded by residents of Khairpur Tamewali, Rising Hope Society works on grassroots welfare projects — food packages, shelter, health camps, education support, and relief drives — entirely powered by volunteer members and generous donors.</p>
       <div class="about-badges" id="purposeBadges">
         <span><i class="fa-solid fa-certificate"></i> Registered NGO</span>
         <span><i class="fa-solid fa-location-dot"></i> Khairpur Tamewali</span>
@@ -115,8 +117,8 @@
     </div>
     <div class="about-card">
       <i class="fa-solid fa-hands-holding-circle" id="purposeCardIcon"></i>
-      <h3 id="purposeCardTitle">Community First</h3>
-      <p id="purposeCardText">Every project begins and ends with the people of our community in mind. We serve without discrimination.</p>
+      <h3 id="purposeCardTitle" data-ur="کمیونٹی سب سے پہلے">Community first</h3>
+      <p id="purposeCardText" data-ur="ہر منصوبہ ہماری کمیونٹی کے لوگوں کو سامنے رکھ کر شروع اور مکمل ہوتا ہے۔ ہم بغیر کسی امتیاز کے خدمت کرتے ہیں۔">Every project begins and ends with the people of our community in mind. We serve without discrimination.</p>
     </div>
   </div>
 </section>
@@ -125,34 +127,34 @@
 <section class="services" id="services">
   <div class="container">
     <div class="services-head">
-      <span class="eyebrow" id="servicesEyebrow" data-ur="ہماری خدمات">What We Offer</span>
+      <span class="eyebrow" id="servicesEyebrow" data-ur="ہماری خدمات">What we offer</span>
       <h2 id="servicesHeading" data-ur="ہر کسی کے لیے آسان خدمات۔">Services made simple, for everyone.</h2>
       <p id="servicesText" data-ur="سب کچھ ایک ہی جگہ — ممبر بنیں، مدد حاصل کریں، عطیہ کریں اور باخبر رہیں۔">Everything you need — join, get help, donate and stay informed — in one place.</p>
     </div>
     <div class="svc-grid" id="servicesGrid">
       <a class="svc-card" href="member.html?open=registration">
         <span class="svc-icon"><i class="fa-solid fa-id-card"></i></span>
-        <h3 data-ur="آن لائن ممبرشپ">Online Membership</h3>
+        <h3 data-ur="آن لائن ممبرشپ">Online membership</h3>
         <p data-ur="اپنے شناختی کارڈ نمبر کے ساتھ آن لائن رجسٹر کریں اور QR کوڈ والا ممبرشپ کارڈ حاصل کریں۔">Register online with your CNIC and get your membership card with QR code.</p>
       </a>
       <a class="svc-card" href="member.html#verify">
         <span class="svc-icon"><i class="fa-solid fa-circle-check"></i></span>
-        <h3 data-ur="تصدیق اور چیریٹی ریکارڈ">Verify & Charity Record</h3>
+        <h3 data-ur="تصدیق اور چیریٹی ریکارڈ">Verify and donation record</h3>
         <p data-ur="شناختی کارڈ نمبر اور تاریخ پیدائش سے اپنا سرٹیفکیٹ تصدیق کریں اور عطیات کا ریکارڈ دیکھیں۔">Verify your certificate and view your donation record using your CNIC and date of birth.</p>
       </a>
       <a class="svc-card" href="charity.html?open=grant">
         <span class="svc-icon"><i class="fa-solid fa-hand-holding-heart"></i></span>
-        <h3 data-ur="چیریٹی ہیلپ ڈیسک">Charity Help Desk</h3>
+        <h3 data-ur="امدادی ڈیسک">Help desk</h3>
         <p data-ur="مدد کے لیے آن لائن درخواست دیں اور اپنے کیس کی صورتحال کسی بھی وقت دیکھیں۔">Apply online for help and track the status of your case anytime.</p>
       </a>
       <a class="svc-card" href="donate.html">
         <span class="svc-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span>
-        <h3 data-ur="آن لائن عطیہ">Donate Online</h3>
+        <h3 data-ur="آن لائن عطیہ">Donate online</h3>
         <p data-ur="ہمارے بینک اکاؤنٹس دیکھیں اور اعتماد کے ساتھ عطیہ کریں۔">See our bank accounts and donate with confidence.</p>
       </a>
       <a class="svc-card" href="our-work.html">
         <span class="svc-icon"><i class="fa-solid fa-briefcase"></i></span>
-        <h3 data-ur="ہمارا کام">Our Work</h3>
+        <h3 data-ur="ہمارا کام">Our work</h3>
         <p data-ur="ہمارے کام کی تاریخ تصاویر اور ویڈیوز کے ساتھ دیکھیں۔">Browse our work history with photos and videos.</p>
       </a>
       <a class="svc-card" href="news.html">
@@ -162,12 +164,12 @@
       </a>
       <a class="svc-card" href="stories.html">
         <span class="svc-icon"><i class="fa-solid fa-heart"></i></span>
-        <h3 data-ur="کامیابی کی کہانیاں">Impact Stories</h3>
+        <h3 data-ur="کامیابی کی کہانیاں">Impact stories</h3>
         <p data-ur="ان لوگوں اور خاندانوں کی کہانیاں جن کی ہم خدمت کرتے ہیں۔">Stories of the people and families we serve.</p>
       </a>
       <a class="svc-card" href="team.html">
         <span class="svc-icon"><i class="fa-solid fa-users"></i></span>
-        <h3 data-ur="ہماری ٹیم">Our Team</h3>
+        <h3 data-ur="ہماری ٹیم">Our team</h3>
         <p data-ur="ہماری کمیونٹی کی خدمت کرنے والے ٹیم ممبران سے ملیں۔">Meet the team members serving our community.</p>
       </a>
     </div>
@@ -178,42 +180,22 @@
 <section class="stats" id="stats">
   <div class="container">
     <div class="section-head">
-      <span class="eyebrow">Live Numbers</span>
-      <h2>Our impact, updated in real time</h2>
-      <p>Figures pulled directly from our records and updated automatically.</p>
+      <span class="eyebrow" data-ur="ہمارا اثر">Our impact</span>
+      <h2 data-ur="ہمارے کام کے اعداد و شمار">Our work in numbers</h2>
+      <p data-ur="یہ اعداد ہمارے ریکارڈ سے خودکار طور پر لیے جاتے ہیں۔">Figures come straight from our records and update automatically.</p>
     </div>
     <div class="stats-grid" id="statsGrid">
       <div class="stat-card">
-        <div class="stat-num" id="pub-pending" data-count="0">0</div>
-        <div class="stat-label">Underprocess Members</div>
+        <div class="stat-num" id="pub-active" data-count="0">&mdash;</div>
+        <div class="stat-label" data-ur="فعال ممبران">Active members</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num" id="pub-active" data-count="0">0</div>
-        <div class="stat-label">Active Members</div>
+        <div class="stat-num" id="pub-approved" data-count="0">&mdash;</div>
+        <div class="stat-label" data-ur="منظور شدہ امدادی کیسز">Charity cases approved</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num" id="pub-expired" data-count="0">0</div>
-        <div class="stat-label">Expired Members</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" id="pub-banned" data-count="0">0</div>
-        <div class="stat-label">Banned Members</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" id="pub-completed" data-count="0">0</div>
-        <div class="stat-label">Charity Case Completed</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" id="pub-approved" data-count="0">0</div>
-        <div class="stat-label">Approved Charity Cases</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" id="pub-rejected" data-count="0">0</div>
-        <div class="stat-label">Rejected Charity Cases</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" id="pub-closed" data-count="0">0</div>
-        <div class="stat-label">Closed Charity Cases</div>
+        <div class="stat-num" id="pub-completed" data-count="0">&mdash;</div>
+        <div class="stat-label" data-ur="مکمل شدہ امدادی کیسز">Charity cases completed</div>
       </div>
     </div>
   </div>
@@ -223,9 +205,9 @@
 <div id="site-footer"></div>
 
 <script type="module" src="firebase-db.js?v=2"></script>
-<script type="module" src="include.js?v=2"></script>
+<script type="module" src="include.js?v=3"></script>
 <script src="rtl-text.js?v=2" defer></script>
-<script src="script.js?v=7" defer></script>
+<script src="script.js?v=8" defer></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -274,12 +256,8 @@
         if(dec==="rejected"&&s!=="closed") rejected++;
         if(s==="closed") closed++;
       });
-      const map = {
-        "pub-pending": pending, "pub-active": active,
-        "pub-expired": expired, "pub-banned": banned,
-        "pub-completed": completed, "pub-approved": approved,
-        "pub-rejected": rejected, "pub-closed": closed
-      };
+      // Only the positive, public-friendly numbers are shown on the homepage.
+      const map = { "pub-active": active, "pub-approved": approved, "pub-completed": completed };
       function animateNum(el, target) {
         target = Number(target)||0;
         const dur=1400, start=performance.now();
@@ -300,6 +278,6 @@
   })();
 </script>
 
-<script src="pwa.js?v=1" defer></script>
+<script src="pwa.js?v=2" defer></script>
 </body>
 </html>

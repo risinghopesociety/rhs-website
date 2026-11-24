@@ -2,15 +2,17 @@
 <html lang="en" id="htmlRoot">
 <head>
 <meta charset="UTF-8">
+<script>try{if(sessionStorage.getItem("rhs_seen"))document.documentElement.classList.add("no-loader")}catch(e){}</script>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Charity Help Desk — Rising Hope Society</title>
+<title>Help desk — Rising Hope Society</title>
 <meta name="description" content="Apply for charity assistance from Rising Hope Society or check the status of an existing request.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://rhs-pk.vercel.app/charity.html">
 
 <meta property="og:type" content="website">
-<meta property="og:title" content="Charity Help Desk — Rising Hope Society">
+<meta property="og:title" content="Help desk — Rising Hope Society">
 <meta property="og:description" content="Apply for charity assistance from Rising Hope Society or check the status of an existing request.">
 <meta property="og:image" content="https://rhs-pk.vercel.app/images/og-share.jpg">
 <meta property="og:image:width" content="1200">
@@ -25,7 +27,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=12">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#ffffff">
 <meta name="mobile-web-app-capable" content="yes">
@@ -75,13 +77,13 @@
 <section class="help-desk" id="charityDesk">
   <div class="container">
     <div class="section-head">
-      <span class="eyebrow">Charity Help Desk</span>
+      <span class="eyebrow">Help desk</span>
       <h2>Need Help? We're Here.</h2>
       <p>Apply for charity assistance or check the status of your existing request.</p>
     </div>
     <div class="helpdesk-btns" id="helpdeskBtns">
       <button class="btn btn-primary" onclick="showHelpSection('grant')">
-        <i class="fa-solid fa-hand-holding-heart"></i> Apply for Charity Help
+        <i class="fa-solid fa-hand-holding-heart"></i> Apply for help
       </button>
       <button class="btn btn-ghost" onclick="showHelpSection('status')">
         <i class="fa-solid fa-magnifying-glass"></i> Check Request Status
@@ -91,7 +93,7 @@
     <!-- GRANT FORM -->
     <div class="form-card" id="grantFormWrap" style="display:none;margin-top:32px">
       <h3 style="font-family:'Fraunces',serif;color:var(--teal);margin-bottom:24px;font-size:1.3rem">
-        <i class="fa-solid fa-hand-holding-heart"></i> Charity Help Request Form
+        <i class="fa-solid fa-hand-holding-heart"></i> Help request form
       </h3>
       <form id="grantForm" novalidate autocomplete="off">
         <div class="form-grid two-col">
@@ -100,15 +102,15 @@
             <input type="text" id="gCnic" placeholder="00000-0000000-0" maxlength="15" inputmode="numeric" required autocomplete="off">
           </div>
           <div class="field">
-            <label for="gDob">Date of Birth <span class="req">*</span></label>
+            <label for="gDob">Date of birth <span class="req">*</span></label>
             <input type="text" id="gDob" placeholder="dd-mm-yyyy" maxlength="10" required autocomplete="off">
           </div>
           <div class="field">
-            <label for="gName">Full Name <span class="req">*</span></label>
+            <label for="gName">Full name <span class="req">*</span></label>
             <input type="text" id="gName" placeholder="Your full name" required autocomplete="off">
           </div>
           <div class="field">
-            <label for="gFather">Father / Husband Name <span class="req">*</span></label>
+            <label for="gFather">Father / husband name <span class="req">*</span></label>
             <input type="text" id="gFather" placeholder="Father or husband name" required autocomplete="off">
           </div>
           <div class="field">
@@ -124,11 +126,11 @@
             <input type="email" id="gEmail" placeholder="you@example.com" autocomplete="off">
           </div>
           <div class="field">
-            <label for="gMobile">Mobile Number <span class="req">*</span></label>
+            <label for="gMobile">Mobile number <span class="req">*</span></label>
             <input type="text" id="gMobile" placeholder="0300-0000000" maxlength="12" inputmode="numeric" required autocomplete="off">
           </div>
           <div class="field">
-            <label for="gHelpType">What Help You Need <span class="req">*</span></label>
+            <label for="gHelpType">What help do you need <span class="req">*</span></label>
             <select id="gHelpType" required autocomplete="off">
               <option value="">Select type</option>
               <option value="Food Packages">Food Packages</option>
@@ -142,11 +144,11 @@
             </select>
           </div>
           <div class="field">
-            <label for="gAmount">Amount Required (Rs.) <span class="req">*</span></label>
+            <label for="gAmount">Amount required (Rs.) <span class="req">*</span></label>
             <input type="number" id="gAmount" placeholder="e.g. 25000" min="1" required autocomplete="off">
           </div>
           <div class="field full-col">
-            <label for="gAddress">Full Address <span class="req">*</span></label>
+            <label for="gAddress">Full address <span class="req">*</span></label>
             <textarea id="gAddress" rows="2" placeholder="Complete address" required autocomplete="off"></textarea>
           </div>
         </div>
@@ -154,7 +156,7 @@
           <button type="submit" class="btn btn-primary" id="grantSubmitBtn">
             Submit Request <i class="fa-solid fa-paper-plane"></i>
           </button>
-          <button type="reset" class="btn btn-ghost">Clear Form</button>
+          <button type="reset" class="btn btn-ghost">Clear form</button>
           <button type="button" class="btn btn-ghost" onclick="hideHelpSection()">Back</button>
         </div>
         <p class="form-msg" id="grantMsg"></p>
@@ -174,7 +176,7 @@
             <input type="text" id="gsCnic" placeholder="00000-0000000-0" maxlength="15" inputmode="numeric" required autocomplete="off">
           </div>
           <div class="field">
-            <label for="gsDob">Date of Birth <span class="req">*</span></label>
+            <label for="gsDob">Date of birth <span class="req">*</span></label>
             <input type="text" id="gsDob" placeholder="dd-mm-yyyy" maxlength="10" inputmode="numeric" required autocomplete="off">
           </div>
         </div>
@@ -207,9 +209,9 @@
 </script>
 
 <script type="module" src="firebase-db.js?v=2"></script>
-<script type="module" src="include.js?v=2"></script>
+<script type="module" src="include.js?v=3"></script>
 <script src="rtl-text.js?v=1" defer></script>
-<script src="script.js?v=5" defer></script>
+<script src="script.js?v=8" defer></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -235,6 +237,6 @@
   window.dispatchEvent(new Event('firebaseReady'));
 </script>
 
-<script src="pwa.js?v=1" defer></script>
+<script src="pwa.js?v=2" defer></script>
 </body>
 </html>

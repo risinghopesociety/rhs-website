@@ -17,7 +17,8 @@
     b.id = "pwaInstallBtn";
     b.type = "button";
     b.className = "pwa-install-btn";
-    b.innerHTML = '<i class="fa-solid fa-download"></i> <span>Install App</span>';
+    b.setAttribute("aria-label", "Install app");
+    b.innerHTML = '<i class="fa-solid fa-download"></i> <span>Install app</span>';
     b.addEventListener("click", onClick);
     document.body.appendChild(b);
   }
