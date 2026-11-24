@@ -987,7 +987,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <button class="btn btn-primary" onclick="printCertificate(window.__certMember, this)">
             <i class="fa-solid fa-file-pdf"></i> Download PDF / Print
           </button>
-          <button class="btn btn-primary" style="background:#E8A33D;border-color:#E8A33D" onclick="printSmartCard(window.__certMember, this)">
+          <button class="btn btn-primary" onclick="printSmartCard(window.__certMember, this)">
             <i class="fa-solid fa-id-card"></i> Download Smart Card
           </button>
           <button class="btn btn-ghost" onclick="window.closeLedger ? window.closeLedger() : null; document.getElementById('certResult').hidden=true; document.getElementById('certResult').innerHTML='';">
