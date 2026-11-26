@@ -1078,6 +1078,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
           const m = res.member;
           const donations = res.donations || [];
+          window.__ledgerData = { member: m, donations: donations, total: res.total };   // used by the PDF statement
           const logoSrc   = window.NGO.logoUrl || "images/logo.png";
           const isActive  = (m.status || "").toLowerCase() === "active";
           const statusColor = isActive ? "#2E9E5B" : "#D9483A";
@@ -1145,8 +1146,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div style="padding:10px 24px;background:#f7f7f7;text-align:center;border-top:1px solid #E7DFD2">
                   <div style="font-size:10px;color:#8A9A96;font-family:sans-serif">⚠️ Computer-generated statement · ${window.NGO.name} · ${window.NGO.phone}</div>
                 </div>
-                <div style="padding:14px 24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;border-top:1px solid #E7DFD2">
-                  <button class="btn btn-primary" onclick="printLedger()"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
+                <div data-ledger-actions style="padding:14px 24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;border-top:1px solid #E7DFD2">
+                  <button class="btn btn-primary" onclick="printLedger(this)"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
                   <button class="btn btn-ghost" onclick="window.closeLedger()"><i class="fa-solid fa-rotate-left"></i> Search Again</button>
                   <button class="btn btn-ghost" onclick="hideMemberSection()"><i class="fa-solid fa-arrow-left"></i> Back to Portal</button>
                 </div>
@@ -1160,12 +1161,24 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  window.printLedger = function () {
+  window.printLedger = function (btn) {
+    const data = window.__ledgerData;
+    if (!data) return;
+    // Professional multi-page A4 statement (ledger-pdf.js) — never includes screen buttons
+    if (window.RHSLedger) {
+      if (btn) setLoading(btn, true, "Preparing PDF...");
+      window.RHSLedger.download(data)
+        .catch(err => { console.error("Ledger PDF failed", err); alert("Could not create the PDF. Please try again."); })
+        .then(() => { if (btn) setLoading(btn, false); });
+      return;
+    }
+    // Fallback (ledger-pdf.js missing): old behaviour, but without the buttons row
     const content = document.getElementById("ledgerContent");
-    if (!content) return;
     const pa = document.getElementById("printCert");
-    if (!pa) return;
-    pa.innerHTML = `<style>@page{margin:12mm;size:A4;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}</style>${content.outerHTML}`;
+    if (!content || !pa) return;
+    const clone = content.cloneNode(true);
+    clone.querySelectorAll("[data-ledger-actions]").forEach(n => n.remove());
+    pa.innerHTML = `<style>@page{margin:12mm;size:A4;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}</style>${clone.outerHTML}`;
     printAreaWhenReady(pa, "Charity-Ledger.pdf");
   };
 
