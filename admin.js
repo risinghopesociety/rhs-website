@@ -11,7 +11,8 @@ window.NGO = {
   bank: "111111111111111",
   alert: "0308-8919628",
   logoUrl: "",
-  signatureUrl: ""
+  signatureUrl: "",
+  stampUrl: ""
 };
 
 function loadNGOSettings() {
@@ -26,12 +27,17 @@ function loadNGOSettings() {
       bank:    res.bankAccount|| window.NGO.bank,
       alert:   res.alertNumber|| res.ngoPhone || window.NGO.alert,
       logoUrl: res.logoUrl || "",
-      signatureUrl: res.presidentSignatureUrl || ""
+      signatureUrl: res.presidentSignatureUrl || "",
+      stampUrl: res.stampUrl || ""
     };
     document.querySelectorAll(".ngo-name").forEach(el => el.textContent = window.NGO.name);
     document.querySelectorAll(".ngo-address").forEach(el => el.textContent = window.NGO.address);
     const logoPrev = document.getElementById("currentLogoPreview");
     if (logoPrev && window.NGO.logoUrl) logoPrev.src = window.NGO.logoUrl;
+    const stampPrev = document.getElementById("currentStampPreview");
+    if (stampPrev) stampPrev.src = window.NGO.stampUrl || "images/stamp.png";
+    const stampSt = document.getElementById("stampStatus");
+    if (stampSt) stampSt.textContent = window.NGO.stampUrl ? "Custom stamp in use." : "Using the default stamp.";
     const sigPrev = document.getElementById("currentSignaturePreview");
     if (sigPrev) {
       if (window.NGO.signatureUrl) { sigPrev.src = window.NGO.signatureUrl; sigPrev.style.display = "block"; }
@@ -456,6 +462,7 @@ function saveContent(){
 // ====== LOGO / SIGNATURE UPLOAD (Cloudinary) ======
 let __pendingLogoUrl = null;
 let __pendingSignatureUrl = null;
+let __pendingStampUrl = null;
 
 function previewLogo(input){
   const file = input.files && input.files[0];
@@ -490,6 +497,28 @@ function previewSignature(input){
   });
 }
 
+function previewStamp(input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  const preview = document.getElementById("currentStampPreview");
+  if(preview) preview.src = URL.createObjectURL(file);
+  if(!window.RHS){ return; }
+  showMsg("adminSettingsMsg","Uploading stamp...","");
+  RHS.uploadImage(file, "rhs/settings").then(url=>{
+    __pendingStampUrl = url;
+    showMsg("adminSettingsMsg","✅ Stamp uploaded. Click 'Save Settings' to apply.","success");
+  }).catch(()=>{
+    showMsg("adminSettingsMsg","⚠️ Stamp upload failed. Please try again.","error");
+  });
+}
+
+function removeStamp(){
+  __pendingStampUrl = "";
+  const preview = document.getElementById("currentStampPreview");
+  if(preview) preview.src = "images/stamp.png";
+  showMsg("adminSettingsMsg","The default stamp will be used after you click Save Settings.","");
+}
+
 function removeSignature(){
   __pendingSignatureUrl = "";
   const preview = document.getElementById("currentSignaturePreview");
@@ -512,6 +541,7 @@ function saveAdminSettings(){
   };
   if(__pendingLogoUrl !== null) data.logoUrl = __pendingLogoUrl;
   if(__pendingSignatureUrl !== null) data.presidentSignatureUrl = __pendingSignatureUrl;
+  if(__pendingStampUrl !== null) data.stampUrl = __pendingStampUrl;
   const btn=document.querySelector('#setup-adminSettings .btn-primary');
   setLoading(btn,true,"Saving...");
   RHS.saveNGOSettings(data).then(()=>{
@@ -519,6 +549,7 @@ function saveAdminSettings(){
     showMsg("adminSettingsMsg","✅ Settings saved!","success");
     __pendingLogoUrl = null;
     __pendingSignatureUrl = null;
+    __pendingStampUrl = null;
     loadNGOSettings();
   }).catch(()=>{setLoading(btn,false);showMsg("adminSettingsMsg","Failed to save.","error");});
 }

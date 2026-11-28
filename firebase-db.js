@@ -74,6 +74,7 @@ async function getNGOSettings() {
     alertNumber: "0308-8919628",
     logoUrl: "",
     presidentSignatureUrl: "",
+    stampUrl: "",
     copyrightText: "Rising Hope Society — Khairpur Tamewali, Bahawalpur. All rights reserved.",
     ourTeamTitle: "Our Team",
     ourTeamMatter: "The volunteers and coordinators who keep Rising Hope Society moving forward."

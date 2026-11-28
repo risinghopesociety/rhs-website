@@ -9,7 +9,7 @@
 (function () {
   "use strict";
   var PW = 794, PH = 1123;                       // A4 at 96 dpi
-  var CAP = { first: 17, next: 26, lastFirst: 9, lastNext: 17 };
+  var CAP = { first: 17, next: 26, lastFirst: 8, lastNext: 16 };
 
   var esc = function (s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
@@ -103,7 +103,7 @@
     '.lp-mgrid{flex:1;display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:10px 16px}' +
     '.lp-k{font-size:8.5px;letter-spacing:.2em;font-weight:700;color:#5a5d65;text-transform:uppercase}' +
     '.lp-v{font-size:12.5px;font-weight:600;margin-top:3px;word-break:break-word}' +
-    '.lp-chip{display:inline-block;border:1.5px solid #161616;border-radius:999px;padding:1px 10px;font-size:10px;font-weight:700;letter-spacing:.14em}' +
+    '.lp-chip{display:inline-block;height:22px;line-height:19px;padding:0 13px 0 14px;border:1.5px solid #161616;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.14em;vertical-align:top;white-space:nowrap}' +
     '.lp-sum{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:12px;margin-top:13px}' +
     '.lp-box{border:1.2px solid #c9ccd3;border-radius:12px;padding:11px 16px}' +
     '.lp-box.main{border-left:5px solid #ff385c;background:#fff8f9}' +
@@ -124,11 +124,11 @@
     '.lp-words b{font-size:8.5px;letter-spacing:.2em;color:#5a5d65;display:block;margin-bottom:3px}' +
     '.lp-note{font-size:10px;color:#62656d;line-height:1.65;margin-top:12px}' +
     '.lp-sign{display:flex;justify-content:space-between;align-items:flex-end;margin-top:22px}' +
-    '.lp-sig{width:230px;text-align:center}' +
-    '.lp-sig .im{height:44px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:4px}' +
-    '.lp-sig .im img{max-height:44px;max-width:200px}' +
-    '.lp-sig .l{border-top:1.6px solid #161616;padding-top:6px;font-size:9px;font-weight:700;letter-spacing:.18em;color:#4a4d55}' +
-    '.lp-stamp{width:92px;height:92px;border:1.5px dashed #9a9da6;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8.5px;color:#9a9da6;letter-spacing:.14em;text-align:center;line-height:1.5}' +
+    '.lp-auth{position:relative;width:300px;height:132px}' +
+    '.lp-auth .st{position:absolute;left:0;top:-4px;width:130px;height:130px;object-fit:contain;transform:rotate(-6deg)}' +
+    '.lp-auth .sg{position:absolute;left:96px;right:0;top:44px;height:66px;display:flex;align-items:flex-end;justify-content:center}' +
+    '.lp-auth .sg img{max-height:64px;max-width:196px;object-fit:contain}' +
+    '.lp-auth .l{position:absolute;left:70px;right:0;bottom:0;border-top:1.6px solid #161616;padding-top:6px;text-align:center;font-size:9px;font-weight:700;letter-spacing:.18em;color:#4a4d55}' +
     '.lp-qr{text-align:center;font-size:8.5px;color:#4a4d55;line-height:1.4;width:96px}' +
     '.lp-qr img{width:84px;height:84px;display:block;margin:0 auto 4px;border:1.4px solid #161616;padding:3px;border-radius:6px}' +
     '.lp-cmp{display:flex;align-items:center;gap:12px}' +
@@ -198,7 +198,7 @@
 
     var closing = "";
     if (isLast) {
-      var sig = n.signatureUrl ? '<img src="' + esc(n.signatureUrl) + '" alt="">' : "";
+      var sig = ctx.sig ? '<img src="' + esc(ctx.sig) + '" alt="">' : "";
       closing =
         '<div class="lp-total"><span>Total charity donated (' + ctx.count + (ctx.count === 1 ? ' donation' : ' donations') + ')</span><span>' + esc(money(ctx.total)) + '</span></div>' +
         '<div class="lp-words"><b>AMOUNT IN WORDS</b>Rupees ' + esc(words(ctx.total)) + ' only.</div>' +
@@ -207,8 +207,8 @@
         'This is a computer-generated statement; to confirm it, scan the QR code or visit the verification page.</p>' +
         '<div class="lp-sign">' +
           '<div class="lp-qr">' + (ctx.qr ? '<img src="' + ctx.qr + '" alt="">' : '') + 'Scan to verify<br>online</div>' +
-          '<div class="lp-stamp">OFFICIAL<br>STAMP</div>' +
-          '<div class="lp-sig"><div class="im">' + sig + '</div><div class="l">AUTHORIZED SIGNATORY</div></div>' +
+          '<div class="lp-auth">' + (ctx.stamp ? '<img class="st" src="' + esc(ctx.stamp) + '" alt="">' : '') +
+            '<div class="sg">' + sig + '</div><div class="l">AUTHORIZED SIGNATORY</div></div>' +
         '</div>';
     }
 
@@ -218,8 +218,9 @@
       '<div class="pg">Statement ' + esc(ctx.stmtNo) + '<br>Page ' + (idx + 1) + ' of ' + total + '</div></div></section>';
   }
 
-  function build(data) {
-    var m = data.member || {}, donations = data.donations || [], n = ngo();
+  function build(data, n) {
+    var m = data.member || {}, donations = data.donations || [];
+    n = n || ngo();
     var total = data.total != null ? data.total : donations.reduce(function (s, d) { return s + (Number(d.amount) || 0); }, 0);
     var now = new Date();
     var ymd = now.getFullYear() + String(now.getMonth() + 1).padStart(2, "0") + String(now.getDate()).padStart(2, "0");
@@ -227,6 +228,8 @@
     var ctx = {
       ngo: n, m: m, total: total, count: donations.length,
       logo: n.logoUrl || "images/logo.png",
+      sig: n.signatureUrl || "",
+      stamp: n.stampUrl || "images/stamp.png",
       photo: m.photo ? (window.RHS && window.RHS.imgUrl ? window.RHS.imgUrl(m.photo, 200) : m.photo) : "",
       stmtNo: "CL-" + (m.registrationNo || "NA") + "-" + ymd,
       generated: now.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
@@ -249,6 +252,29 @@
     }).join("");
   }
 
+  // Fresh settings straight from the admin panel data (same place the card reads from)
+  function loadSettings() {
+    var base = Object.assign({}, ngo());
+    if (!(window.RHS && window.RHS.getNGOSettings)) return Promise.resolve(base);
+    return Promise.race([window.RHS.getNGOSettings(), new Promise(function (r) { setTimeout(function () { r(null); }, 4000); })])
+      .then(function (r) {
+        if (!r) return base;
+        return Object.assign(base, {
+          name: r.ngoName || base.name, phone: r.ngoPhone || base.phone, address: r.ngoAddress || base.address, email: r.ngoEmail || base.email,
+          logoUrl: r.logoUrl || base.logoUrl || "", signatureUrl: r.presidentSignatureUrl || base.signatureUrl || "", stampUrl: r.stampUrl || base.stampUrl || ""
+        });
+      }).catch(function () { return base; });
+  }
+  // Embed images as data URLs so nothing is lost when the page is turned into a PDF
+  function toData(url) {
+    return new Promise(function (resolve) {
+      if (!url || /^data:/.test(url)) return resolve(url || "");
+      fetch(url, { mode: "cors" }).then(function (r) { if (!r.ok) throw new Error("x"); return r.blob(); })
+        .then(function (b) { var fr = new FileReader(); fr.onload = function () { resolve(fr.result); }; fr.onerror = function () { resolve(url); }; fr.readAsDataURL(b); })
+        .catch(function () { resolve(url); });
+    });
+  }
+
   function waitImages(root) {
     var imgs = Array.prototype.slice.call(root.querySelectorAll("img"));
     var all = Promise.all(imgs.map(function (img) {
@@ -259,9 +285,12 @@
   }
 
   function download(data) {
-    var ctx = build(data);
-    return qrDataUrl(location.origin + "/member.html#verify", 160).then(function (qr) {
-      ctx.qr = qr;
+    var ctx;
+    return loadSettings().then(function (n) {
+      ctx = build(data, n);
+      return Promise.all([toData(ctx.logo), toData(ctx.photo), toData(ctx.sig), toData(ctx.stamp), qrDataUrl(location.origin + "/member.html#verify", 160)]);
+    }).then(function (r) {
+      ctx.logo = r[0] || ctx.logo; ctx.photo = r[1]; ctx.sig = r[2]; ctx.stamp = r[3]; ctx.qr = r[4];
       var host = document.createElement("div");
       host.id = "rhsLedgerHost";
       host.style.cssText = "position:fixed;left:-99999px;top:0;width:" + PW + "px;z-index:-1";

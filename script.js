@@ -41,6 +41,7 @@ window.NGO = {
   alert: "0308-8919628",
   logoUrl: "",
   signatureUrl: "",
+  stampUrl: "",
   ourTeamTitle: "Our Team",
   ourTeamMatter: ""
 };
@@ -57,6 +58,7 @@ function loadNGOSettings() {
       alert:         res.alertNumber    || res.ngoPhone || window.NGO.alert,
       logoUrl:       res.logoUrl        || "",
       signatureUrl:  res.presidentSignatureUrl || "",
+      stampUrl:      res.stampUrl       || "",
       ourTeamTitle:  res.ourTeamTitle   || "Our Team",
       ourTeamMatter: res.ourTeamMatter  || ""
     };

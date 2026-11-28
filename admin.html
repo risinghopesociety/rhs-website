@@ -936,6 +936,26 @@
                 </div>
               </div>
             </div>
+            <div class="field" style="grid-column:1/-1">
+              <label>Official Round Stamp</label>
+              <p style="font-size:.78rem;color:#8A9A96;margin:4px 0 8px">Used on the Charity Ledger statement (and wherever an official stamp is needed). Upload a PNG with a transparent background. If you upload nothing, the default Rising Hope Society stamp is used.</p>
+              <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+                <div style="width:110px;height:110px;background:#fff;border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">
+                  <img id="currentStampPreview" src="images/stamp.png" alt="Stamp preview" style="max-width:100px;max-height:100px;width:auto;height:auto;object-fit:contain">
+                </div>
+                <div style="flex:1;min-width:200px">
+                  <label for="set-stampFile" style="display:block;padding:10px 16px;background:#F5F9F8;border:2px dashed #4CAF8A;border-radius:8px;cursor:pointer;text-align:center;font-size:.9rem;color:#14534F">
+                    <i class="fa fa-stamp"></i> Click to upload stamp
+                    <input type="file" id="set-stampFile" accept="image/*" style="display:none" onchange="previewStamp(this)">
+                  </label>
+                  <p style="font-size:.78rem;color:#8A9A96;margin-top:4px">
+                    <span id="stampStatus">Using the default stamp.</span>
+                    PNG (transparent), max 2MB.
+                    <a href="javascript:void(0)" onclick="removeStamp()" style="color:#D9483A;font-weight:600">Use default stamp</a>
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="form-actions">
             <button class="btn btn-primary" onclick="saveAdminSettings()"><i class="fa fa-save"></i> Save Settings</button>
@@ -1057,8 +1077,8 @@
     window.__fbReady = true;
     window.dispatchEvent(new Event('firebaseReady'));
   </script>
-  <script type="module" src="firebase-db.js?v=5"></script>
+  <script type="module" src="firebase-db.js?v=6"></script>
   <script src="rtl-editor.js?v=1" defer></script>
-<script src="admin.js?v=8" defer></script>
+<script src="admin.js?v=9" defer></script>
 </body>
 </html>
